@@ -24,14 +24,12 @@
                 <i data-lucide="bar-chart-3" class="nav-icon"></i>
                 <span>Reports</span>
             </a>
+            {% if current_user.is_authenticated and current_user.role in ['admin', 'super_admin', 'manager'] %}
             <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item {% if request.endpoint == 'main.gantt_chart' %}active{% endif %}">
                 <i data-lucide="gantt-chart" class="nav-icon"></i>
                 <span>Gantt Chart</span>
             </a>
-            <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item {% if request.endpoint == 'main.gantt_chart' %}active{% endif %}">
-                <i data-lucide="calendar" class="nav-icon"></i>
-                <span>Timeline</span>
-            </a>
+            {% endif %}
         </div>
 
         {% if project %}
