@@ -1,0 +1,248 @@
+# app/__init__.py - Application Factory Pattern
+"""
+Enterprise-grade Flask Application Factory
+Following clean architecture principles with proper separation of concerns.
+"""
+
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_compress import Compress
+from flask_talisman import Talisman
+import logging
+from logging.handlers import RotatingFileHandler
+import os
+
+from config import config
+from models import db  # Use the db instance from models.py
+
+# Initialize extensions (without creating new db)
+login_manager = LoginManager()
+csrf = CSRFProtect()
+compress = Compress()
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
+
+def create_app(config_name=None):
+    """Application factory function following Flask best practices."""
+    
+    if config_name is None:
+        config_name = os.environ.get('FLASK_ENV', 'development')
+    
+    app = Flask(__name__, 
+                template_folder='../templates',
+                static_folder='../static')
+    
+    # Load configuration
+    app.config.from_object(config[config_name])
+    
+    # Initialize extensions
+    db.init_app(app)
+    login_manager.init_app(app)
+    csrf.init_app(app)
+    compress.init_app(app)
+    limiter.init_app(app)
+    
+    # Configure login manager
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'info'
+    login_manager.session_protection = 'strong'
+    
+    # User loader for Flask-Login
+    @login_manager.user_loader
+    def load_user(user_id):
+        from models import User
+        return User.query.get(int(user_id))
+    
+    # Setup Talisman for security headers
+    csp = {
+        'default-src': "'self'",
+        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+        'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        'font-src': ["'self'", "https://fonts.gstatic.com"],
+        'img-src': ["'self'", "data:", "https:"],
+        'connect-src': ["'self'"],
+        'frame-ancestors': "'self'",
+        'form-action': "'self'",
+        'base-uri': "'self'",
+        'object-src': "'none'"
+    }
+    
+    # Apply Talisman with environment-appropriate settings
+    # In development, use relaxed CSP; in production, use strict CSP with nonces
+    Talisman(app, 
+             content_security_policy=csp if config_name == 'production' else None,
+             force_https=(config_name == 'production'),
+             strict_transport_security=(config_name == 'production'),
+             strict_transport_security_max_age=31536000,
+             session_cookie_secure=(config_name == 'production'),
+             session_cookie_http_only=True)
+    
+    # Additional security headers via after_request
+    @app.after_request
+    def add_security_headers(response):
+        # Prevent MIME type sniffing
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        # Prevent clickjacking
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        # XSS Protection
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        # Referrer Policy
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        # Permissions Policy
+        response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        # Cache control for sensitive pages
+        if 'text/html' in response.content_type:
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        return response
+    
+    # Setup logging
+    _setup_logging(app)
+    
+    # Register blueprints
+    _register_blueprints(app)
+    
+    # Register error handlers
+    _register_error_handlers(app)
+    
+    # Register context processors
+    _register_context_processors(app)
+    
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+    
+    app.logger.info(f'Application started in {config_name} mode')
+    
+    return app
+
+
+def _setup_logging(app):
+    """Configure application logging with rotation."""
+    
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+    
+    # File handler for errors
+    error_handler = RotatingFileHandler(
+        'logs/error.log',
+        maxBytes=10485760,  # 10MB
+        backupCount=10
+    )
+    error_handler.setLevel(logging.ERROR)
+    error_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    
+    # File handler for all logs
+    info_handler = RotatingFileHandler(
+        'logs/app.log',
+        maxBytes=10485760,
+        backupCount=10
+    )
+    info_handler.setLevel(logging.INFO)
+    info_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s'
+    ))
+    
+    # Security audit log
+    audit_handler = RotatingFileHandler(
+        'logs/audit.log',
+        maxBytes=10485760,
+        backupCount=20
+    )
+    audit_handler.setLevel(logging.INFO)
+    audit_handler.setFormatter(logging.Formatter(
+        '%(asctime)s AUDIT: %(message)s'
+    ))
+    
+    app.logger.addHandler(error_handler)
+    app.logger.addHandler(info_handler)
+    
+    # Create audit logger
+    audit_logger = logging.getLogger('audit')
+    audit_logger.setLevel(logging.INFO)
+    audit_logger.addHandler(audit_handler)
+    
+    if app.config['DEBUG']:
+        app.logger.setLevel(logging.DEBUG)
+    else:
+        app.logger.setLevel(logging.INFO)
+
+
+def _register_blueprints(app):
+    """Register application blueprints."""
+    
+    from app.routes.auth import auth_bp
+    from app.routes.main import main_bp
+    from app.routes.admin import admin_bp
+    from app.routes.api import api_bp
+    from app.routes.projects import projects_bp
+    
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(main_bp)
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(api_bp, url_prefix='/api/v1')
+    app.register_blueprint(projects_bp, url_prefix='/project')
+
+
+def _register_error_handlers(app):
+    """Register error handlers."""
+    
+    from flask import render_template
+    
+    @app.errorhandler(400)
+    def bad_request(e):
+        return render_template('error.html', 
+                              error='400 Bad Request',
+                              message='The request was invalid or malformed.'), 400
+    
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template('error.html',
+                              error='403 Forbidden',
+                              message='You do not have permission to access this resource.'), 403
+    
+    @app.errorhandler(404)
+    def not_found(e):
+        return render_template('error.html',
+                              error='404 Not Found',
+                              message='The requested resource was not found.'), 404
+    
+    @app.errorhandler(429)
+    def rate_limit_exceeded(e):
+        return render_template('error.html',
+                              error='429 Too Many Requests',
+                              message='Rate limit exceeded. Please try again later.'), 429
+    
+    @app.errorhandler(500)
+    def internal_error(e):
+        db.session.rollback()
+        app.logger.error(f'Internal error: {str(e)}')
+        return render_template('error.html',
+                              error='500 Internal Server Error',
+                              message='An unexpected error occurred.'), 500
+
+
+def _register_context_processors(app):
+    """Register template context processors."""
+    
+    from datetime import datetime
+    
+    @app.context_processor
+    def inject_globals():
+        return {
+            'now': datetime.utcnow(),
+            'app_name': app.config.get('APP_NAME', 'Project Management'),
+            'app_version': app.config.get('APP_VERSION', '2.0.0')
+        }

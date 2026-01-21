@@ -1,0 +1,227 @@
+/* =====================================================
+   ICON SYSTEM - Lucide Icons Integration
+   Professional icon set for enterprise applications
+   ===================================================== */
+
+/* Icon base styles */
+.icon {
+    width: 1em;
+    height: 1em;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Icon sizes */
+.icon-xs { width: 12px; height: 12px; }
+.icon-sm { width: 16px; height: 16px; }
+.icon-md { width: 20px; height: 20px; }
+.icon-lg { width: 24px; height: 24px; }
+.icon-xl { width: 32px; height: 32px; }
+.icon-2xl { width: 40px; height: 40px; }
+.icon-3xl { width: 48px; height: 48px; }
+
+/* Icon with text alignment */
+.icon-inline {
+    margin-right: 0.5em;
+}
+
+/* Icon button container */
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--gray-500);
+    transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.icon-btn:focus-visible {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+[data-theme="dark"] .icon-btn:hover {
+    background: var(--gray-800);
+    color: var(--gray-300);
+}
+
+/* Colored icon containers */
+.icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+}
+
+.icon-container-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.icon-container-md {
+    width: 40px;
+    height: 40px;
+}
+
+.icon-container-lg {
+    width: 48px;
+    height: 48px;
+}
+
+.icon-container-xl {
+    width: 56px;
+    height: 56px;
+}
+
+/* Icon container color variants */
+.icon-container-primary {
+    background: var(--primary-100);
+    color: var(--primary-600);
+}
+
+.icon-container-success {
+    background: var(--success-100);
+    color: var(--success-600);
+}
+
+.icon-container-warning {
+    background: var(--warning-100);
+    color: var(--warning-600);
+}
+
+.icon-container-error {
+    background: var(--error-100);
+    color: var(--error-600);
+}
+
+.icon-container-info {
+    background: var(--info-100);
+    color: var(--info-600);
+}
+
+.icon-container-neutral {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+
+/* Gradient icon containers */
+.icon-container-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+    color: white;
+}
+
+.icon-container-gradient-success {
+    background: linear-gradient(135deg, var(--success-500) 0%, var(--success-600) 100%);
+    color: white;
+}
+
+.icon-container-gradient-warning {
+    background: linear-gradient(135deg, var(--warning-500) 0%, var(--warning-600) 100%);
+    color: white;
+}
+
+.icon-container-gradient-error {
+    background: linear-gradient(135deg, var(--error-500) 0%, var(--error-600) 100%);
+    color: white;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .icon-container-primary {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--primary-400);
+}
+
+[data-theme="dark"] .icon-container-success {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success-400);
+}
+
+[data-theme="dark"] .icon-container-warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning-400);
+}
+
+[data-theme="dark"] .icon-container-error {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--error-400);
+}
+
+[data-theme="dark"] .icon-container-info {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--info-400);
+}
+
+[data-theme="dark"] .icon-container-neutral {
+    background: var(--gray-800);
+    color: var(--gray-400);
+}
+
+/* Spinning icon for loading states */
+.icon-spin {
+    animation: icon-spin 1s linear infinite;
+}
+
+@keyframes icon-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Pulse animation for notifications */
+.icon-pulse {
+    animation: icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Badge with icon */
+.icon-badge {
+    position: relative;
+    display: inline-flex;
+}
+
+.icon-badge-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: var(--error-500);
+    border-radius: 50%;
+    border: 2px solid var(--bg-primary);
+}
+
+.icon-badge-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    background: var(--error-500);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-primary);
+}

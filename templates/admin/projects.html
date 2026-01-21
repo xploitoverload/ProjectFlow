@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Projects - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="gauge" class="nav-icon"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item active">
+                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span>Projects</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
+                        <i data-lucide="users" class="nav-icon"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
+                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span>Teams</span>
+                    </a>
+                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span>Security</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">Administrator</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="header-breadcrumb">
+                        <span>Admin</span>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <span class="header-breadcrumb-current">Projects</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
+                                <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
+                                <div class="alert-content">{{ message }}</div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-header-top">
+                        <div>
+                            <h1 class="page-title">Project Management</h1>
+                            <p class="page-subtitle">Manage all projects across the organization</p>
+                        </div>
+                        <div class="page-header-actions">
+                            <button class="btn btn-primary" onclick="openAddProjectModal()">
+                                <i data-lucide="plus" class="icon-sm"></i>
+                                New Project
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-4 mb-6">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon primary">
+                                <i data-lucide="folder" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ projects|length if projects is defined else 0 }}</div>
+                        <div class="stat-card-label">Total Projects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon success">
+                                <i data-lucide="check-circle" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ projects|selectattr('status', 'equalto', 'completed')|list|length if projects is defined else 0 }}</div>
+                        <div class="stat-card-label">Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon warning">
+                                <i data-lucide="play-circle" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ projects|selectattr('status', 'equalto', 'in_progress')|list|length if projects is defined else 0 }}</div>
+                        <div class="stat-card-label">In Progress</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon info">
+                                <i data-lucide="square" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ total_issues if total_issues is defined else 0 }}</div>
+                        <div class="stat-card-label">Total Issues</div>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="tabs mb-6">
+                    <button class="tab active" data-filter="all">All Projects</button>
+                    <button class="tab" data-filter="active">Active</button>
+                    <button class="tab" data-filter="completed">Completed</button>
+                    <button class="tab" data-filter="on_hold">On Hold</button>
+                </div>
+
+                <!-- Projects Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">All Projects</h2>
+                        <div class="header-search" style="width: 220px;">
+                            <i data-lucide="search" class="header-search-icon"></i>
+                            <input type="text" id="projectSearch" class="header-search-input" placeholder="Search projects...">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        {% if projects %}
+                        <div class="table-container" style="border: none; border-radius: 0;">
+                            <table class="table" id="projectsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Project</th>
+                                        <th>Lead</th>
+                                        <th>Team</th>
+                                        <th>Status</th>
+                                        <th>Progress</th>
+                                        <th>Created</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for project in projects %}
+                                    <tr data-status="{{ project.status or 'active' }}">
+                                        <td>
+                                            <div class="flex items-center gap-3">
+                                                <div class="avatar avatar-sm" style="background: {{ project.color if project.color else 'var(--primary-100)' }}; border-radius: var(--radius-md);">
+                                                    <i data-lucide="folder" class="icon-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="font-medium text-primary hover:underline">{{ project.name }}</a>
+                                                    <p class="text-xs text-tertiary">{{ project.key if project.key else project.name[:3].upper() }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if project.lead %}
+                                            <div class="flex items-center gap-2">
+                                                <div class="avatar avatar-xs">{{ project.lead.username[:2].upper() }}</div>
+                                                <span class="text-sm">{{ project.lead.username }}</span>
+                                            </div>
+                                            {% else %}
+                                            <span class="text-tertiary">Unassigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-secondary">{{ project.team.name if project.team else 'N/A' }}</td>
+                                        <td>
+                                            {% set status = project.status or 'active' %}
+                                            <span class="badge badge-{{ 'success' if status == 'completed' else 'warning' if status == 'in_progress' else 'info' if status == 'active' else 'gray' }}">
+                                                {{ status.replace('_', ' ').title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% set progress = project.progress if project.progress is defined else 0 %}
+                                            <div class="flex items-center gap-2" style="min-width: 120px;">
+                                                <div class="progress-bar" style="flex: 1; height: 6px;">
+                                                    <div class="progress-bar-fill" style="width: {{ progress }}%;"></div>
+                                                </div>
+                                                <span class="text-xs text-secondary">{{ progress }}%</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-tertiary text-sm">
+                                            {{ project.created_at.strftime('%b %d, %Y') if project.created_at else 'N/A' }}
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center gap-1">
+                                                <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="btn btn-ghost btn-sm btn-icon" title="View">
+                                                    <i data-lucide="eye" class="icon-sm"></i>
+                                                </a>
+                                                <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="btn btn-ghost btn-sm btn-icon" title="Kanban">
+                                                    <i data-lucide="kanban" class="icon-sm"></i>
+                                                </a>
+                                                <button class="btn btn-ghost btn-sm btn-icon" title="Edit">
+                                                    <i data-lucide="pencil" class="icon-sm"></i>
+                                                </button>
+                                                <form method="POST" action="{{ url_for('admin.delete_project', project_id=project.id) }}" style="margin: 0;" onsubmit="return confirm('Delete this project? This cannot be undone.');">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-ghost btn-sm btn-icon" title="Delete">
+                                                        <i data-lucide="trash-2" class="icon-sm" style="color: var(--error-500);"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i data-lucide="folder" class="empty-state-icon"></i>
+                            <h3 class="empty-state-title">No projects found</h3>
+                            <p class="empty-state-text">Create your first project to get started</p>
+                            <button class="btn btn-primary" onclick="openAddProjectModal()">
+                                <i data-lucide="plus" class="icon-sm"></i>
+                                New Project
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div class="modal-backdrop" id="addProjectModal">
+        <div class="modal" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Project</h3>
+                <button class="modal-close" onclick="closeAddProjectModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.add_project') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Project Name</label>
+                        <input type="text" name="name" class="form-input" placeholder="Enter project name" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Project Key</label>
+                            <input type="text" name="key" class="form-input" placeholder="e.g. PROJ" maxlength="10" style="text-transform: uppercase;">
+                            <p class="form-hint">Unique identifier for issues</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="active">Active</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="on_hold">On Hold</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-textarea" rows="3" placeholder="Brief description of the project"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Project Lead</label>
+                            <select name="lead_id" class="form-select">
+                                <option value="">Select Lead</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Team</label>
+                            <select name="team_id" class="form-select">
+                                <option value="">No Team</option>
+                                {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" class="form-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddProjectModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="plus" class="icon-sm"></i>
+                        Create Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function openAddProjectModal() {
+            document.getElementById('addProjectModal').classList.add('active');
+        }
+
+        function closeAddProjectModal() {
+            document.getElementById('addProjectModal').classList.remove('active');
+        }
+
+        // Search
+        document.getElementById('projectSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('#projectsTable tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // Filter tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const filter = tab.dataset.filter;
+                document.querySelectorAll('#projectsTable tbody tr').forEach(row => {
+                    if (filter === 'all') {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = row.dataset.status === filter ? '' : 'none';
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAddProjectModal();
+        });
+
+        document.getElementById('addProjectModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeAddProjectModal();
+        });
+    </script>
+</body>
+</html>

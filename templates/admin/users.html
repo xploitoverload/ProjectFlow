@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="gauge" class="nav-icon"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item">
+                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span>Projects</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item active">
+                        <i data-lucide="users" class="nav-icon"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
+                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span>Teams</span>
+                    </a>
+                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span>Security</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">Administrator</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="header-breadcrumb">
+                        <span>Admin</span>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <span class="header-breadcrumb-current">Users</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
+                                <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
+                                <div class="alert-content">{{ message }}</div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-header-top">
+                        <div>
+                            <h1 class="page-title">User Management</h1>
+                            <p class="page-subtitle">Manage user accounts and permissions</p>
+                        </div>
+                        <div class="page-header-actions">
+                            <button class="btn btn-primary" onclick="openAddUserModal()">
+                                <i data-lucide="user-plus" class="icon-sm"></i>
+                                Add User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-4 mb-6">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon primary">
+                                <i data-lucide="users" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ users|length if users is defined else 0 }}</div>
+                        <div class="stat-card-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon success">
+                                <i data-lucide="shield-check" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ users|selectattr('role', 'equalto', 'admin')|list|length if users is defined else 0 }}</div>
+                        <div class="stat-card-label">Admins</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon info">
+                                <i data-lucide="code" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ users|selectattr('role', 'equalto', 'developer')|list|length if users is defined else 0 }}</div>
+                        <div class="stat-card-label">Developers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon warning">
+                                <i data-lucide="check-circle" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ users|selectattr('is_active', 'equalto', true)|list|length if users is defined else 0 }}</div>
+                        <div class="stat-card-label">Active</div>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">All Users</h2>
+                        </div>
+                        <div class="header-search" style="width: 220px;">
+                            <i data-lucide="search" class="header-search-icon"></i>
+                            <input type="text" id="userSearch" class="header-search-input" placeholder="Search users...">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        {% if users %}
+                        <div class="table-container" style="border: none; border-radius: 0;">
+                            <table class="table" id="usersTable">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Team</th>
+                                        <th>Status</th>
+                                        <th>Last Login</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>
+                                            <div class="flex items-center gap-3">
+                                                <div class="avatar avatar-sm" style="background: {{ user.avatar_color or 'var(--primary-100)' }};">
+                                                    {{ user.username[:2].upper() }}
+                                                </div>
+                                                <span class="font-medium">{{ user.username }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-secondary">{{ user.email if user.email else 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ 'primary' if user.role == 'admin' else 'info' if user.role == 'developer' else 'gray' }}">
+                                                {{ user.role.title() }}
+                                            </span>
+                                        </td>
+                                        <td class="text-secondary">{{ user.team.name if user.team else 'Unassigned' }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ 'success' if user.is_active else 'gray' }}">
+                                                <span class="status-dot {{ 'active' if user.is_active else 'inactive' }}"></span>
+                                                {{ 'Active' if user.is_active else 'Inactive' }}
+                                            </span>
+                                        </td>
+                                        <td class="text-tertiary text-sm">
+                                            {{ user.last_login.strftime('%b %d, %Y') if user.last_login else 'Never' }}
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center gap-1">
+                                                <button class="btn btn-ghost btn-sm btn-icon" title="Edit">
+                                                    <i data-lucide="pencil" class="icon-sm"></i>
+                                                </button>
+                                                {% if user.id != current_user.id %}
+                                                <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="margin: 0;" onsubmit="return confirm('Delete this user?');">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-ghost btn-sm btn-icon" title="Delete">
+                                                        <i data-lucide="trash-2" class="icon-sm" style="color: var(--error-500);"></i>
+                                                    </button>
+                                                </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i data-lucide="users" class="empty-state-icon"></i>
+                            <h3 class="empty-state-title">No users found</h3>
+                            <p class="empty-state-text">Create your first user to get started</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal-backdrop" id="addUserModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New User</h3>
+                <button class="modal-close" onclick="closeAddUserModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.add_user') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-input" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-input" placeholder="Enter email" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-input" placeholder="Enter password" required minlength="8">
+                        <p class="form-hint">Minimum 8 characters</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Role</label>
+                            <select name="role" class="form-select">
+                                <option value="developer">Developer</option>
+                                <option value="designer">Designer</option>
+                                <option value="manager">Manager</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Team</label>
+                            <select name="team_id" class="form-select">
+                                <option value="">No Team</option>
+                                {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="user-plus" class="icon-sm"></i>
+                        Add User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function openAddUserModal() {
+            document.getElementById('addUserModal').classList.add('active');
+        }
+
+        function closeAddUserModal() {
+            document.getElementById('addUserModal').classList.remove('active');
+        }
+
+        // Search
+        document.getElementById('userSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAddUserModal();
+        });
+
+        document.getElementById('addUserModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeAddUserModal();
+        });
+    </script>
+</body>
+</html>

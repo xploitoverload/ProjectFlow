@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Diagram - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                {% if project %}
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">{{ project.name }}</div>
+                    <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="kanban" class="nav-icon"></i>
+                        <span>Board</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item active">
+                        <i data-lucide="git-branch" class="nav-icon"></i>
+                        <span>Workflow</span>
+                    </a>
+                </div>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.role else 'User' }}</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="header-breadcrumb">
+                        {% if project %}
+                        <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="header-breadcrumb-link">{{ project.name }}</a>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        {% endif %}
+                        <span class="header-breadcrumb-current">Workflow</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                    <button class="btn btn-primary btn-sm" onclick="openEditWorkflow()">
+                        <i data-lucide="pencil" class="icon-sm"></i>
+                        Edit Workflow
+                    </button>
+                    {% endif %}
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-header-top">
+                        <div>
+                            <h1 class="page-title">Workflow Diagram</h1>
+                            <p class="page-subtitle">Visualize the issue lifecycle and transitions</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workflow Diagram -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="workflow-diagram">
+                            <!-- Status Nodes -->
+                            <div class="workflow-row">
+                                <div class="workflow-node start">
+                                    <div class="workflow-node-icon">
+                                        <i data-lucide="circle"></i>
+                                    </div>
+                                    <div class="workflow-node-label">Open</div>
+                                    <div class="workflow-node-desc">New issues start here</div>
+                                </div>
+                            </div>
+
+                            <div class="workflow-connector">
+                                <div class="connector-line"></div>
+                                <i data-lucide="chevron-down" class="connector-arrow"></i>
+                            </div>
+
+                            <div class="workflow-row">
+                                <div class="workflow-node todo">
+                                    <div class="workflow-node-icon">
+                                        <i data-lucide="list-todo"></i>
+                                    </div>
+                                    <div class="workflow-node-label">To Do</div>
+                                    <div class="workflow-node-desc">Ready for development</div>
+                                </div>
+                            </div>
+
+                            <div class="workflow-connector">
+                                <div class="connector-line"></div>
+                                <i data-lucide="chevron-down" class="connector-arrow"></i>
+                            </div>
+
+                            <div class="workflow-row workflow-branch">
+                                <div class="workflow-node in-progress">
+                                    <div class="workflow-node-icon">
+                                        <i data-lucide="loader"></i>
+                                    </div>
+                                    <div class="workflow-node-label">In Progress</div>
+                                    <div class="workflow-node-desc">Work in progress</div>
+                                </div>
+                            </div>
+
+                            <div class="workflow-connector">
+                                <div class="connector-line"></div>
+                                <i data-lucide="chevron-down" class="connector-arrow"></i>
+                            </div>
+
+                            <div class="workflow-row">
+                                <div class="workflow-node in-review">
+                                    <div class="workflow-node-icon">
+                                        <i data-lucide="eye"></i>
+                                    </div>
+                                    <div class="workflow-node-label">In Review</div>
+                                    <div class="workflow-node-desc">Awaiting code review</div>
+                                </div>
+                            </div>
+
+                            <div class="workflow-connector split">
+                                <div class="connector-branches">
+                                    <div class="branch left">
+                                        <div class="branch-label reject">Rejected</div>
+                                    </div>
+                                    <div class="branch center">
+                                        <div class="connector-line"></div>
+                                        <i data-lucide="chevron-down" class="connector-arrow"></i>
+                                    </div>
+                                    <div class="branch right">
+                                        <div class="branch-label approve">Approved</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="workflow-row workflow-split">
+                                <div class="workflow-node blocked">
+                                    <div class="workflow-node-icon">
+                                        <i data-lucide="ban"></i>
+                                    </div>
+                                    <div class="workflow-node-label">Blocked</div>
+                                    <div class="workflow-node-desc">Cannot proceed</div>
+                                </div>
+
+                                <div class="workflow-node testing">
+                                    <div class="workflow-node-icon">
+                                        <i data-lucide="flask-conical"></i>
+                                    </div>
+                                    <div class="workflow-node-label">Testing</div>
+                                    <div class="workflow-node-desc">QA verification</div>
+                                </div>
+
+                                <div class="workflow-node ready">
+                                    <div class="workflow-node-icon">
+                                        <i data-lucide="package"></i>
+                                    </div>
+                                    <div class="workflow-node-label">Ready</div>
+                                    <div class="workflow-node-desc">Ready for deploy</div>
+                                </div>
+                            </div>
+
+                            <div class="workflow-connector merge">
+                                <div class="connector-line"></div>
+                                <i data-lucide="chevron-down" class="connector-arrow"></i>
+                            </div>
+
+                            <div class="workflow-row">
+                                <div class="workflow-node done">
+                                    <div class="workflow-node-icon">
+                                        <i data-lucide="check-circle"></i>
+                                    </div>
+                                    <div class="workflow-node-label">Done</div>
+                                    <div class="workflow-node-desc">Issue completed</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transition Rules -->
+                <div class="card mt-6">
+                    <div class="card-header">
+                        <h2 class="card-title">Transition Rules</h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container" style="border: none;">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>From Status</th>
+                                        <th>To Status</th>
+                                        <th>Conditions</th>
+                                        <th>Allowed Roles</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="badge badge-gray">To Do</span></td>
+                                        <td><span class="badge badge-primary">In Progress</span></td>
+                                        <td class="text-sm text-secondary">Assignee must be set</td>
+                                        <td>
+                                            <span class="badge badge-info">Developer</span>
+                                            <span class="badge badge-info">Admin</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-primary">In Progress</span></td>
+                                        <td><span class="badge badge-warning">In Review</span></td>
+                                        <td class="text-sm text-secondary">None</td>
+                                        <td>
+                                            <span class="badge badge-info">Developer</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-warning">In Review</span></td>
+                                        <td><span class="badge badge-success">Done</span></td>
+                                        <td class="text-sm text-secondary">Review approved</td>
+                                        <td>
+                                            <span class="badge badge-info">Reviewer</span>
+                                            <span class="badge badge-info">Admin</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-warning">In Review</span></td>
+                                        <td><span class="badge badge-primary">In Progress</span></td>
+                                        <td class="text-sm text-secondary">Changes requested</td>
+                                        <td>
+                                            <span class="badge badge-info">Reviewer</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge">Any</span></td>
+                                        <td><span class="badge badge-error">Blocked</span></td>
+                                        <td class="text-sm text-secondary">Must add blocker reason</td>
+                                        <td>
+                                            <span class="badge badge-info">Any</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .workflow-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .workflow-row {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+        }
+
+        .workflow-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.5rem 2rem;
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            min-width: 160px;
+            transition: var(--transition-base);
+        }
+
+        .workflow-node:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .workflow-node-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .workflow-node-icon i {
+            width: 24px;
+            height: 24px;
+        }
+
+        .workflow-node.start .workflow-node-icon { background: var(--gray-100); color: var(--gray-600); }
+        .workflow-node.todo .workflow-node-icon { background: var(--gray-100); color: var(--gray-600); }
+        .workflow-node.in-progress .workflow-node-icon { background: var(--primary-100); color: var(--primary-600); }
+        .workflow-node.in-review .workflow-node-icon { background: var(--warning-100); color: var(--warning-600); }
+        .workflow-node.blocked .workflow-node-icon { background: var(--error-100); color: var(--error-600); }
+        .workflow-node.testing .workflow-node-icon { background: var(--info-100); color: var(--info-600); }
+        .workflow-node.ready .workflow-node-icon { background: var(--success-100); color: var(--success-600); }
+        .workflow-node.done .workflow-node-icon { background: var(--success-100); color: var(--success-600); }
+
+        .workflow-node.start { border-color: var(--gray-300); }
+        .workflow-node.todo { border-color: var(--gray-300); }
+        .workflow-node.in-progress { border-color: var(--primary-300); }
+        .workflow-node.in-review { border-color: var(--warning-300); }
+        .workflow-node.blocked { border-color: var(--error-300); }
+        .workflow-node.testing { border-color: var(--info-300); }
+        .workflow-node.ready { border-color: var(--success-300); }
+        .workflow-node.done { border-color: var(--success-300); background: var(--success-50); }
+
+        .workflow-node-label {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .workflow-node-desc {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .workflow-connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 0;
+        }
+
+        .connector-line {
+            width: 2px;
+            height: 24px;
+            background: var(--gray-300);
+        }
+
+        .connector-arrow {
+            width: 20px;
+            height: 20px;
+            color: var(--gray-400);
+        }
+
+        .workflow-split {
+            gap: 2rem;
+        }
+
+        .connector-branches {
+            display: flex;
+            align-items: flex-end;
+            gap: 4rem;
+        }
+
+        .branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .branch-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-md);
+        }
+
+        .branch-label.reject {
+            background: var(--error-100);
+            color: var(--error-600);
+        }
+
+        .branch-label.approve {
+            background: var(--success-100);
+            color: var(--success-600);
+        }
+
+        .header-breadcrumb-link {
+            color: var(--gray-500);
+            text-decoration: none;
+        }
+
+        .header-breadcrumb-link:hover {
+            color: var(--primary-600);
+        }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        function openEditWorkflow() {
+            alert('Workflow editor would open here');
+        }
+    </script>
+</body>
+</html>

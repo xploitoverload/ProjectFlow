@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.name }} - Kanban Board - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <style>
+        .kanban-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+        }
+        .kanban-header {
+            padding: var(--space-6);
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-primary);
+        }
+        .kanban-container {
+            flex: 1;
+            padding: var(--space-6);
+            overflow-x: auto;
+            background: var(--bg-secondary);
+        }
+        .kanban-column {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-primary);
+        }
+        .kanban-column[data-status="Backlog"] .kanban-column-header { border-top: 3px solid var(--gray-400); }
+        .kanban-column[data-status="To Do"] .kanban-column-header { border-top: 3px solid var(--info-500); }
+        .kanban-column[data-status="In Progress"] .kanban-column-header { border-top: 3px solid var(--warning-500); }
+        .kanban-column[data-status="In Review"] .kanban-column-header { border-top: 3px solid var(--primary-500); }
+        .kanban-column[data-status="Testing"] .kanban-column-header { border-top: 3px solid var(--info-400); }
+        .kanban-column[data-status="Done"] .kanban-column-header { border-top: 3px solid var(--success-500); }
+        .kanban-column[data-status="Blocked"] .kanban-column-header { border-top: 3px solid var(--error-500); }
+        .kanban-column[data-status="Cancelled"] .kanban-column-header { border-top: 3px solid var(--gray-500); }
+        
+        .kanban-card.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg);
+        }
+        .kanban-column-body.drag-over {
+            background: var(--primary-50);
+            border: 2px dashed var(--primary-300);
+            border-radius: var(--radius-lg);
+        }
+        .issue-type-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .issue-type-icon.bug { background: var(--error-100); color: var(--error-600); }
+        .issue-type-icon.feature { background: var(--success-100); color: var(--success-600); }
+        .issue-type-icon.task { background: var(--info-100); color: var(--info-600); }
+        .issue-type-icon.story { background: var(--primary-100); color: var(--primary-600); }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Navigation</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">{{ project.name }}</div>
+                    <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item active">
+                        <i data-lucide="kanban" class="nav-icon"></i>
+                        <span>Kanban Board</span>
+                    </a>
+                    <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="file-text" class="nav-icon"></i>
+                        <span>Updates</span>
+                    </a>
+                    <a href="{{ url_for('projects.project_timeline', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="git-branch" class="nav-icon"></i>
+                        <span>Timeline</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar" style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--primary-100)' }};">
+                        {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.is_authenticated and current_user.role else 'User' }}</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <div class="kanban-wrapper">
+                <!-- Kanban Header -->
+                <div class="kanban-header">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <a href="{{ url_for('main.dashboard') }}" class="btn btn-ghost btn-sm">
+                                <i data-lucide="arrow-left" class="icon-sm"></i>
+                                Back
+                            </a>
+                            <div>
+                                <h1 class="text-xl font-semibold">{{ project.name }}</h1>
+                                <p class="text-sm text-secondary">Kanban Board</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="header-search" style="width: 220px;">
+                                <i data-lucide="search" class="header-search-icon"></i>
+                                <input type="text" id="issueSearch" class="header-search-input" placeholder="Search issues...">
+                            </div>
+                            <button class="btn btn-primary" onclick="openAddIssueModal()">
+                                <i data-lucide="plus" class="icon-sm"></i>
+                                Add Issue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kanban Board -->
+                <div class="kanban-container">
+                    <div class="kanban-board">
+                        {% set statuses = ['Backlog', 'To Do', 'In Progress', 'In Review', 'Testing', 'Done', 'Blocked', 'Cancelled'] %}
+                        {% for status in statuses %}
+                        {% set status_issues = issues|selectattr('status', 'equalto', status)|list %}
+                        <div class="kanban-column" data-status="{{ status }}">
+                            <div class="kanban-column-header">
+                                <div class="kanban-column-title">
+                                    <span>{{ status }}</span>
+                                    <span class="kanban-column-count">{{ status_issues|length }}</span>
+                                </div>
+                                <button class="btn btn-ghost btn-sm btn-icon" onclick="openAddIssueModal('{{ status }}')">
+                                    <i data-lucide="plus" class="icon-sm"></i>
+                                </button>
+                            </div>
+                            <div class="kanban-column-body" data-status="{{ status }}" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                                {% for issue in status_issues %}
+                                <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-issue-id="{{ issue.id }}" onclick="openIssueDetail({{ issue.id }})">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="issue-type-icon {{ issue.issue_type|lower if issue.issue_type else 'task' }}">
+                                            <i data-lucide="{{ 'bug' if issue.issue_type == 'Bug' else 'zap' if issue.issue_type == 'Feature' else 'bookmark' if issue.issue_type == 'Story' else 'check-square' }}" style="width: 10px; height: 10px;"></i>
+                                        </div>
+                                        <span class="kanban-card-id">{{ project.name[:3].upper() }}-{{ issue.id }}</span>
+                                    </div>
+                                    <div class="kanban-card-title">{{ issue.title }}</div>
+                                    <div class="kanban-card-footer">
+                                        <span class="kanban-card-priority {{ issue.priority|lower if issue.priority else 'medium' }}">
+                                            {{ issue.priority or 'Medium' }}
+                                        </span>
+                                        {% if issue.assignee %}
+                                        <div class="avatar avatar-xs" title="{{ issue.assignee.username if issue.assignee else 'Unassigned' }}">
+                                            {{ issue.assignee.username[:2].upper() if issue.assignee else '?' }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Issue Modal -->
+    <div class="modal-backdrop" id="addIssueModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Issue</h3>
+                <button class="modal-close" onclick="closeAddIssueModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('projects.add_issue', project_id=project.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Issue Title</label>
+                        <input type="text" name="title" class="form-input" placeholder="Enter issue title" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-textarea" placeholder="Describe the issue..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            <select name="issue_type" class="form-select">
+                                <option value="Task">Task</option>
+                                <option value="Bug">Bug</option>
+                                <option value="Feature">Feature</option>
+                                <option value="Story">Story</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Priority</label>
+                            <select name="priority" class="form-select">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select name="status" id="issueStatus" class="form-select">
+                            <option value="Backlog">Backlog</option>
+                            <option value="To Do">To Do</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="In Review">In Review</option>
+                            <option value="Testing">Testing</option>
+                            <option value="Done">Done</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Assignee</label>
+                        <select name="assignee_id" class="form-select">
+                            <option value="">Unassigned</option>
+                            {% for user in users if users is defined %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddIssueModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="plus" class="icon-sm"></i>
+                        Create Issue
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Modal functions
+        function openAddIssueModal(status = 'To Do') {
+            document.getElementById('addIssueModal').classList.add('active');
+            document.getElementById('issueStatus').value = status;
+        }
+
+        function closeAddIssueModal() {
+            document.getElementById('addIssueModal').classList.remove('active');
+        }
+
+        function openIssueDetail(issueId) {
+            window.location.href = `/projects/{{ project.id }}/issues/${issueId}`;
+        }
+
+        // Drag and Drop
+        let draggedCard = null;
+
+        function drag(event) {
+            draggedCard = event.target;
+            event.target.classList.add('dragging');
+            event.dataTransfer.setData('text/plain', event.target.dataset.issueId);
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function dragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+            
+            const issueId = event.dataTransfer.getData('text/plain');
+            const newStatus = event.currentTarget.dataset.status;
+            
+            if (draggedCard) {
+                draggedCard.classList.remove('dragging');
+                event.currentTarget.appendChild(draggedCard);
+                
+                // Update issue status via API
+                fetch(`/api/issues/${issueId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                }).then(response => {
+                    if (response.ok) {
+                        updateColumnCounts();
+                    }
+                }).catch(err => console.error('Failed to update status:', err));
+            }
+        }
+
+        function updateColumnCounts() {
+            document.querySelectorAll('.kanban-column').forEach(column => {
+                const count = column.querySelectorAll('.kanban-card').length;
+                column.querySelector('.kanban-column-count').textContent = count;
+            });
+        }
+
+        // Search functionality
+        document.getElementById('issueSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // Close modal on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAddIssueModal();
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('addIssueModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeAddIssueModal();
+        });
+    </script>
+</body>
+</html>

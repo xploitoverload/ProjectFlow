@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Teams - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="gauge" class="nav-icon"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item">
+                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span>Projects</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
+                        <i data-lucide="users" class="nav-icon"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item active">
+                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span>Teams</span>
+                    </a>
+                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span>Security</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">Administrator</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="header-breadcrumb">
+                        <span>Admin</span>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <span class="header-breadcrumb-current">Teams</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
+                                <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
+                                <div class="alert-content">{{ message }}</div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-header-top">
+                        <div>
+                            <h1 class="page-title">Team Management</h1>
+                            <p class="page-subtitle">Organize users into teams for better collaboration</p>
+                        </div>
+                        <div class="page-header-actions">
+                            <button class="btn btn-primary" onclick="openAddTeamModal()">
+                                <i data-lucide="plus" class="icon-sm"></i>
+                                Create Team
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 mb-6">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon primary">
+                                <i data-lucide="users-round" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ teams|length if teams is defined else 0 }}</div>
+                        <div class="stat-card-label">Total Teams</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon success">
+                                <i data-lucide="users" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ total_members if total_members is defined else 0 }}</div>
+                        <div class="stat-card-label">Total Members</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon info">
+                                <i data-lucide="folder" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ total_projects if total_projects is defined else 0 }}</div>
+                        <div class="stat-card-label">Active Projects</div>
+                    </div>
+                </div>
+
+                <!-- Teams Grid -->
+                {% if teams %}
+                <div class="grid grid-cols-3 gap-6">
+                    {% for team in teams %}
+                    <div class="card card-hover">
+                        <div class="card-body">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="avatar avatar-lg" style="background: {{ team.color if team.color else 'var(--primary-100)' }}; color: {{ team.text_color if team.text_color else 'var(--primary-700)' }};">
+                                        <i data-lucide="users-round" class="icon-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-primary">{{ team.name }}</h3>
+                                        <p class="text-sm text-secondary">{{ team.description if team.description else 'No description' }}</p>
+                                    </div>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-ghost btn-sm btn-icon">
+                                        <i data-lucide="more-horizontal" class="icon-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-4 py-3 border-t border-b" style="border-color: var(--gray-200);">
+                                <div class="flex items-center gap-2 text-sm text-secondary">
+                                    <i data-lucide="users" class="icon-xs"></i>
+                                    <span>{{ team.members|length if team.members else 0 }} members</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-sm text-secondary">
+                                    <i data-lucide="folder" class="icon-xs"></i>
+                                    <span>{{ team.projects|length if team.projects else 0 }} projects</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                {% if team.members %}
+                                <div class="avatar-group">
+                                    {% for member in team.members[:5] %}
+                                    <div class="avatar avatar-sm" title="{{ member.username }}">
+                                        {{ member.username[:2].upper() }}
+                                    </div>
+                                    {% endfor %}
+                                    {% if team.members|length > 5 %}
+                                    <div class="avatar avatar-sm" style="background: var(--gray-200); color: var(--gray-600);">
+                                        +{{ team.members|length - 5 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <p class="text-sm text-tertiary">No members yet</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex items-center gap-2 mt-4">
+                                <a href="{{ url_for('admin.edit_team', team_id=team.id) }}" class="btn btn-secondary btn-sm flex-1">
+                                    <i data-lucide="pencil" class="icon-sm"></i>
+                                    Edit
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.delete_team', team_id=team.id) }}" style="flex: 1;" onsubmit="return confirm('Delete this team? Members will be unassigned.');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-ghost btn-sm" style="width: 100%; color: var(--error-600);">
+                                        <i data-lucide="trash-2" class="icon-sm"></i>
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <i data-lucide="users-round" class="empty-state-icon"></i>
+                            <h3 class="empty-state-title">No teams yet</h3>
+                            <p class="empty-state-text">Create your first team to organize your users</p>
+                            <button class="btn btn-primary" onclick="openAddTeamModal()">
+                                <i data-lucide="plus" class="icon-sm"></i>
+                                Create Team
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Team Modal -->
+    <div class="modal-backdrop" id="addTeamModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Team</h3>
+                <button class="modal-close" onclick="closeAddTeamModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.add_team') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Team Name</label>
+                        <input type="text" name="name" class="form-input" placeholder="Enter team name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-textarea" rows="3" placeholder="Brief description of the team"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Team Color</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" name="color" value="#6366f1" class="form-color">
+                            <span class="text-sm text-secondary">Choose a color to identify this team</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddTeamModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="plus" class="icon-sm"></i>
+                        Create Team
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .form-color {
+            width: 48px;
+            height: 48px;
+            padding: 4px;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            background: var(--white);
+        }
+        .form-color:hover {
+            border-color: var(--primary-500);
+        }
+        .avatar-group {
+            display: flex;
+            align-items: center;
+        }
+        .avatar-group .avatar {
+            margin-left: -8px;
+            border: 2px solid var(--white);
+        }
+        .avatar-group .avatar:first-child {
+            margin-left: 0;
+        }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        function openAddTeamModal() {
+            document.getElementById('addTeamModal').classList.add('active');
+        }
+
+        function closeAddTeamModal() {
+            document.getElementById('addTeamModal').classList.remove('active');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAddTeamModal();
+        });
+
+        document.getElementById('addTeamModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeAddTeamModal();
+        });
+    </script>
+</body>
+</html>

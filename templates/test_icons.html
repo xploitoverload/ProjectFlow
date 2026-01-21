@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lucide Test</title>
+</head>
+<body>
+    <h1>Lucide Icons Test</h1>
+    <div>
+        <p>Icon should appear below:</p>
+        <i data-lucide="home"></i>
+        <i data-lucide="user"></i>
+        <i data-lucide="settings"></i>
+        <i data-lucide="layers"></i>
+    </div>
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <script>
+        console.log('Lucide object:', typeof lucide);
+        console.log('Lucide:', lucide);
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            console.log('Calling lucide.createIcons()');
+            lucide.createIcons();
+            console.log('Icons created!');
+        } else {
+            console.error('Lucide not loaded properly!');
+        }
+    </script>
+</body>
+</html>

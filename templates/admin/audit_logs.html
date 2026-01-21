@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="gauge" class="nav-icon"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item">
+                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span>Projects</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
+                        <i data-lucide="users" class="nav-icon"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
+                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span>Teams</span>
+                    </a>
+                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span>Security</span>
+                    </a>
+                    <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-nav-item active">
+                        <i data-lucide="scroll-text" class="nav-icon"></i>
+                        <span>Audit Logs</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">Administrator</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="header-breadcrumb">
+                        <span>Admin</span>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <span class="header-breadcrumb-current">Audit Logs</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-secondary btn-sm" onclick="exportLogs()">
+                        <i data-lucide="download" class="icon-sm"></i>
+                        Export
+                    </button>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-header-top">
+                        <div>
+                            <h1 class="page-title">Audit Logs</h1>
+                            <p class="page-subtitle">Track all system activities and security events</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <form class="flex items-center gap-4 flex-wrap" id="filterForm">
+                            <div class="form-group" style="margin: 0; min-width: 160px;">
+                                <select class="form-select" name="event_type" id="eventType">
+                                    <option value="">All Events</option>
+                                    <option value="login">Login</option>
+                                    <option value="logout">Logout</option>
+                                    <option value="create">Create</option>
+                                    <option value="update">Update</option>
+                                    <option value="delete">Delete</option>
+                                    <option value="security">Security</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0; min-width: 160px;">
+                                <select class="form-select" name="user" id="userFilter">
+                                    <option value="">All Users</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <input type="date" class="form-input" name="date_from" id="dateFrom" placeholder="From Date">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <input type="date" class="form-input" name="date_to" id="dateTo" placeholder="To Date">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-lucide="filter" class="icon-sm"></i>
+                                Filter
+                            </button>
+                            <button type="reset" class="btn btn-ghost">Clear</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Logs Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Activity Log</h2>
+                        <div class="header-search" style="width: 220px;">
+                            <i data-lucide="search" class="header-search-icon"></i>
+                            <input type="text" id="logSearch" class="header-search-input" placeholder="Search logs...">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        {% if logs %}
+                        <div class="table-container" style="border: none; border-radius: 0;">
+                            <table class="table" id="logsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 180px;">Timestamp</th>
+                                        <th>User</th>
+                                        <th>Event</th>
+                                        <th>Details</th>
+                                        <th>IP Address</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in logs %}
+                                    <tr>
+                                        <td class="text-sm text-secondary">
+                                            {{ log.timestamp.strftime('%b %d, %Y %H:%M:%S') if log.timestamp else 'N/A' }}
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <div class="avatar avatar-xs">{{ (log.user.username[:2] if log.user else 'SY').upper() }}</div>
+                                                <span class="text-sm">{{ log.user.username if log.user else 'System' }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% set event_type = log.event_type or 'info' %}
+                                            <span class="badge badge-{{ 'success' if event_type == 'login' else 'info' if event_type == 'create' else 'warning' if event_type == 'update' else 'error' if event_type in ['delete', 'security'] else 'gray' }}">
+                                                <i data-lucide="{{ 'log-in' if event_type == 'login' else 'log-out' if event_type == 'logout' else 'plus' if event_type == 'create' else 'edit' if event_type == 'update' else 'trash-2' if event_type == 'delete' else 'shield-alert' if event_type == 'security' else 'info' }}" class="icon-xs"></i>
+                                                {{ event_type.title() }}
+                                            </span>
+                                        </td>
+                                        <td class="text-sm">{{ log.details or log.description or 'No details' }}</td>
+                                        <td class="text-sm text-tertiary font-mono">{{ log.ip_address or 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ 'success' if log.success else 'error' }}">
+                                                {{ 'Success' if log.success else 'Failed' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i data-lucide="scroll-text" class="empty-state-icon"></i>
+                            <h3 class="empty-state-title">No audit logs yet</h3>
+                            <p class="empty-state-text">Activity logs will appear here as users interact with the system</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .font-mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        document.getElementById('logSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('#logsTable tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        function exportLogs() {
+            alert('Export functionality - would download logs as CSV');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Settings - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="gauge" class="nav-icon"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item">
+                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span>Projects</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
+                        <i data-lucide="users" class="nav-icon"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
+                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span>Teams</span>
+                    </a>
+                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item active">
+                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span>Security</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">Administrator</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="header-breadcrumb">
+                        <span>Admin</span>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <span class="header-breadcrumb-current">Security</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
+                                <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
+                                <div class="alert-content">{{ message }}</div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-header-top">
+                        <div>
+                            <h1 class="page-title">Security Settings</h1>
+                            <p class="page-subtitle">Manage security policies and access controls</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Overview -->
+                <div class="grid grid-cols-4 mb-6">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon success">
+                                <i data-lucide="shield-check" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value text-success">Secure</div>
+                        <div class="stat-card-label">System Status</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon info">
+                                <i data-lucide="key" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ active_sessions if active_sessions is defined else 12 }}</div>
+                        <div class="stat-card-label">Active Sessions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon warning">
+                                <i data-lucide="alert-triangle" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ failed_logins if failed_logins is defined else 0 }}</div>
+                        <div class="stat-card-label">Failed Logins (24h)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon primary">
+                                <i data-lucide="file-text" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ audit_events if audit_events is defined else 156 }}</div>
+                        <div class="stat-card-label">Audit Events</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Password Policy -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="flex items-center gap-3">
+                                <div class="avatar" style="background: var(--primary-100); color: var(--primary-600);">
+                                    <i data-lucide="lock" class="icon-md"></i>
+                                </div>
+                                <div>
+                                    <h3 class="card-title">Password Policy</h3>
+                                    <p class="text-sm text-secondary">Configure password requirements</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('admin.update_password_policy') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Minimum Password Length</label>
+                                    <input type="number" name="min_length" class="form-input" value="{{ password_policy.min_length if password_policy else 8 }}" min="6" max="32">
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="flex items-center justify-between py-2">
+                                        <div>
+                                            <p class="font-medium text-primary">Require Uppercase</p>
+                                            <p class="text-sm text-secondary">At least one uppercase letter</p>
+                                        </div>
+                                        <label class="toggle">
+                                            <input type="checkbox" name="require_uppercase" {{ 'checked' if password_policy and password_policy.require_uppercase else '' }}>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="flex items-center justify-between py-2">
+                                        <div>
+                                            <p class="font-medium text-primary">Require Numbers</p>
+                                            <p class="text-sm text-secondary">At least one numeric digit</p>
+                                        </div>
+                                        <label class="toggle">
+                                            <input type="checkbox" name="require_numbers" {{ 'checked' if password_policy and password_policy.require_numbers else '' }}>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="flex items-center justify-between py-2">
+                                        <div>
+                                            <p class="font-medium text-primary">Require Special Characters</p>
+                                            <p class="text-sm text-secondary">At least one special character</p>
+                                        </div>
+                                        <label class="toggle">
+                                            <input type="checkbox" name="require_special" {{ 'checked' if password_policy and password_policy.require_special else '' }}>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary mt-4">
+                                    <i data-lucide="save" class="icon-sm"></i>
+                                    Save Changes
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Session Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="flex items-center gap-3">
+                                <div class="avatar" style="background: var(--success-100); color: var(--success-600);">
+                                    <i data-lucide="clock" class="icon-md"></i>
+                                </div>
+                                <div>
+                                    <h3 class="card-title">Session Settings</h3>
+                                    <p class="text-sm text-secondary">Configure session security</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('admin.update_session_settings') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                <div class="form-group">
+                                    <label class="form-label">Session Timeout (minutes)</label>
+                                    <input type="number" name="session_timeout" class="form-input" value="{{ session_settings.timeout if session_settings else 30 }}" min="5" max="1440">
+                                    <p class="form-hint">Users will be logged out after inactivity</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Max Concurrent Sessions</label>
+                                    <input type="number" name="max_sessions" class="form-input" value="{{ session_settings.max_sessions if session_settings else 3 }}" min="1" max="10">
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="flex items-center justify-between py-2">
+                                        <div>
+                                            <p class="font-medium text-primary">Remember Me Option</p>
+                                            <p class="text-sm text-secondary">Allow extended sessions</p>
+                                        </div>
+                                        <label class="toggle">
+                                            <input type="checkbox" name="remember_me" {{ 'checked' if session_settings and session_settings.remember_me else 'checked' }}>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="flex items-center justify-between py-2">
+                                        <div>
+                                            <p class="font-medium text-primary">Secure Cookies Only</p>
+                                            <p class="text-sm text-secondary">Require HTTPS for cookies</p>
+                                        </div>
+                                        <label class="toggle">
+                                            <input type="checkbox" name="secure_cookies" {{ 'checked' if session_settings and session_settings.secure_cookies else '' }}>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary mt-4">
+                                    <i data-lucide="save" class="icon-sm"></i>
+                                    Save Changes
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Protection -->
+                <div class="card mt-6">
+                    <div class="card-header">
+                        <div class="flex items-center gap-3">
+                            <div class="avatar" style="background: var(--error-100); color: var(--error-600);">
+                                <i data-lucide="shield-alert" class="icon-md"></i>
+                            </div>
+                            <div>
+                                <h3 class="card-title">Login Protection</h3>
+                                <p class="text-sm text-secondary">Protect against brute force attacks</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('admin.update_login_protection') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            
+                            <div class="grid grid-cols-3 gap-6">
+                                <div class="form-group">
+                                    <label class="form-label">Max Login Attempts</label>
+                                    <input type="number" name="max_attempts" class="form-input" value="{{ login_protection.max_attempts if login_protection else 5 }}" min="3" max="10">
+                                    <p class="form-hint">Before temporary lockout</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Lockout Duration (minutes)</label>
+                                    <input type="number" name="lockout_duration" class="form-input" value="{{ login_protection.lockout_duration if login_protection else 15 }}" min="5" max="60">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Attempt Reset (minutes)</label>
+                                    <input type="number" name="attempt_reset" class="form-input" value="{{ login_protection.attempt_reset if login_protection else 30 }}" min="10" max="120">
+                                    <p class="form-hint">Failed attempt counter resets</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 mt-4 pt-4" style="border-top: 1px solid var(--gray-200);">
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-lucide="save" class="icon-sm"></i>
+                                    Save Changes
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="clearLockedAccounts()">
+                                    <i data-lucide="unlock" class="icon-sm"></i>
+                                    Clear All Lockouts
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Audit Log Link -->
+                <div class="card mt-6">
+                    <div class="card-body">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="avatar" style="background: var(--gray-100); color: var(--gray-600);">
+                                    <i data-lucide="scroll-text" class="icon-md"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-primary">Audit Logs</h3>
+                                    <p class="text-sm text-secondary">View detailed security and activity logs</p>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-secondary">
+                                <i data-lucide="external-link" class="icon-sm"></i>
+                                View Audit Logs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: var(--gray-300);
+            transition: var(--transition-base);
+            border-radius: 24px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: var(--transition-base);
+            border-radius: 50%;
+            box-shadow: var(--shadow-sm);
+        }
+        .toggle input:checked + .toggle-slider {
+            background-color: var(--primary-600);
+        }
+        .toggle input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+        .text-success {
+            color: var(--success-600);
+        }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        function clearLockedAccounts() {
+            if (confirm('This will unlock all currently locked accounts. Continue?')) {
+                fetch('{{ url_for("admin.clear_lockouts") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

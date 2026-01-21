@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Edit Epic' if epic else 'New Epic' }} - {{ project.name }} - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">{{ project.name }}</div>
+                    <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-grid" class="nav-icon"></i>
+                        <span>Kanban Board</span>
+                    </a>
+                    <a href="{{ url_for('projects.epics_list', project_id=project.id) }}" class="sidebar-nav-item active">
+                        <i data-lucide="rocket" class="nav-icon"></i>
+                        <span>Epics</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar" style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--primary-100)' }};">
+                        {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.is_authenticated and current_user.role else 'User' }}</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <nav class="breadcrumb">
+                        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}">{{ project.name }}</a>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        <a href="{{ url_for('projects.epics_list', project_id=project.id) }}">Epics</a>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        <span>{{ 'Edit' if epic else 'New' }}</span>
+                    </nav>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="mb-6">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}">
+                        <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' }}" style="width: 18px; height: 18px;"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <div class="card" style="max-width: 640px;">
+                    <div class="card-header">
+                        <h2 class="card-title">{{ 'Edit Epic' if epic else 'New Epic' }}</h2>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('projects.edit_epic', project_id=project.id, epic_id=epic.id) if epic else url_for('projects.add_epic', project_id=project.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            
+                            <div class="space-y-4">
+                                <div class="form-group">
+                                    <label for="name" class="form-label">Epic Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="name" name="name" class="form-input" 
+                                           value="{{ epic.name if epic else '' }}" required 
+                                           placeholder="e.g., User Authentication, Payment Integration">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="summary" class="form-label">Summary</label>
+                                    <input type="text" id="summary" name="summary" class="form-input" 
+                                           value="{{ epic.summary if epic else '' }}"
+                                           placeholder="Brief one-line summary">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea id="description" name="description" class="form-input" rows="4" 
+                                              placeholder="Detailed description of the epic">{{ epic.description if epic else '' }}</textarea>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="form-group">
+                                        <label for="color" class="form-label">Color</label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="color" id="color" name="color" 
+                                                   value="{{ epic.color if epic else '#7C3AED' }}" 
+                                                   style="width: 50px; height: 38px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); cursor: pointer;">
+                                            <input type="text" id="color_text" class="form-input" 
+                                                   value="{{ epic.color if epic else '#7C3AED' }}" 
+                                                   style="flex: 1;" pattern="^#[0-9A-Fa-f]{6}$">
+                                        </div>
+                                    </div>
+
+                                    {% if epic %}
+                                    <div class="form-group">
+                                        <label for="status" class="form-label">Status</label>
+                                        <select id="status" name="status" class="form-select">
+                                            <option value="open" {{ 'selected' if epic.status == 'open' else '' }}>Open</option>
+                                            <option value="in_progress" {{ 'selected' if epic.status == 'in_progress' else '' }}>In Progress</option>
+                                            <option value="done" {{ 'selected' if epic.status == 'done' else '' }}>Done</option>
+                                        </select>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center pt-6 mt-6 border-t">
+                                <a href="{{ url_for('projects.epics_list', project_id=project.id) }}" class="btn btn-ghost">
+                                    <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                                    {{ 'Save Changes' if epic else 'Create Epic' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // Sync color picker and text input
+        const colorPicker = document.getElementById('color');
+        const colorText = document.getElementById('color_text');
+        
+        colorPicker.addEventListener('input', () => {
+            colorText.value = colorPicker.value;
+        });
+        
+        colorText.addEventListener('input', () => {
+            if (/^#[0-9A-Fa-f]{6}$/.test(colorText.value)) {
+                colorPicker.value = colorText.value;
+            }
+        });
+        
+        // Update hidden color field on submit
+        document.querySelector('form').addEventListener('submit', () => {
+            document.getElementById('color').value = colorText.value;
+        });
+    </script>
+</body>
+</html>

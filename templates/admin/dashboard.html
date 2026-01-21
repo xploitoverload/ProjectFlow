@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item active">
+                        <i data-lucide="gauge" class="nav-icon"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item">
+                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span>Projects</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
+                        <i data-lucide="users" class="nav-icon"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
+                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span>Teams</span>
+                    </a>
+                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span>Security</span>
+                    </a>
+                    <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-nav-item">
+                        <i data-lucide="scroll-text" class="nav-icon"></i>
+                        <span>Audit Logs</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">Administrator</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="header-breadcrumb">
+                        <span>Admin</span>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <span class="header-breadcrumb-current">Dashboard</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-header-top">
+                        <div>
+                            <h1 class="page-title">Admin Dashboard</h1>
+                            <p class="page-subtitle">System overview and management</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-4 mb-8">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon primary">
+                                <i data-lucide="folder" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ projects|length if projects is defined else 0 }}</div>
+                        <div class="stat-card-label">Total Projects</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon info">
+                                <i data-lucide="users" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ users|length if users is defined else 0 }}</div>
+                        <div class="stat-card-label">Total Users</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon success">
+                                <i data-lucide="users-round" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ teams|length if teams is defined else 0 }}</div>
+                        <div class="stat-card-label">Teams</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon warning">
+                                <i data-lucide="list-todo" class="icon-lg"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ total_issues if total_issues is defined else 0 }}</div>
+                        <div class="stat-card-label">Total Issues</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-3 mb-8">
+                    <a href="{{ url_for('admin.admin_projects') }}" class="card card-hover p-6">
+                        <div class="flex items-center gap-4">
+                            <div class="stat-card-icon primary">
+                                <i data-lucide="folder-plus" class="icon-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">Manage Projects</h3>
+                                <p class="text-sm text-secondary">Create, edit, and delete projects</p>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="{{ url_for('admin.admin_users') }}" class="card card-hover p-6">
+                        <div class="flex items-center gap-4">
+                            <div class="stat-card-icon info">
+                                <i data-lucide="user-plus" class="icon-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">Manage Users</h3>
+                                <p class="text-sm text-secondary">Add and manage user accounts</p>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="{{ url_for('admin.admin_teams') }}" class="card card-hover p-6">
+                        <div class="flex items-center gap-4">
+                            <div class="stat-card-icon success">
+                                <i data-lucide="users-round" class="icon-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">Manage Teams</h3>
+                                <p class="text-sm text-secondary">Create and organize teams</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Recent Activity & System Info -->
+                <div class="grid" style="grid-template-columns: 2fr 1fr; gap: var(--space-6);">
+                    <!-- Recent Projects -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Recent Projects</h2>
+                            <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-ghost btn-sm">View all</a>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            {% if projects %}
+                            <div class="table-container" style="border: none; border-radius: 0;">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Project</th>
+                                            <th>Status</th>
+                                            <th>Team</th>
+                                            <th>Created</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for project in projects[:5] %}
+                                        <tr>
+                                            <td>
+                                                <div class="flex items-center gap-3">
+                                                    <div class="avatar avatar-sm">{{ project.name[:2].upper() }}</div>
+                                                    <span class="font-medium">{{ project.name }}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-{{ 'success' if project.status == 'Completed' else 'warning' if project.status == 'In Progress' else 'gray' }}">
+                                                    {{ project.status }}
+                                                </span>
+                                            </td>
+                                            <td class="text-secondary">{{ project.team.name if project.team else 'Unassigned' }}</td>
+                                            <td class="text-tertiary text-sm">{{ project.created_at.strftime('%b %d') if project.created_at else 'N/A' }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="empty-state">
+                                <i data-lucide="folder-open" class="empty-state-icon"></i>
+                                <p class="text-secondary">No projects yet</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- System Info -->
+                    <div class="flex flex-col gap-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">System Status</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="flex flex-col gap-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-secondary">Database</span>
+                                        <span class="badge badge-success">
+                                            <span class="status-dot active"></span>
+                                            Healthy
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-secondary">Security</span>
+                                        <span class="badge badge-success">
+                                            <span class="status-dot active"></span>
+                                            Active
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-secondary">Encryption</span>
+                                        <span class="badge badge-success">
+                                            <span class="status-dot active"></span>
+                                            Enabled
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Quick Links</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="flex flex-col gap-2">
+                                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
+                                        <i data-lucide="shield" class="nav-icon"></i>
+                                        <span>Security Settings</span>
+                                    </a>
+                                    <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-nav-item">
+                                        <i data-lucide="scroll-text" class="nav-icon"></i>
+                                        <span>Audit Logs</span>
+                                    </a>
+                                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
+                                        <i data-lucide="file-text" class="nav-icon"></i>
+                                        <span>Reports</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labels - {{ project.name }} - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">{{ project.name }}</div>
+                    <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-grid" class="nav-icon"></i>
+                        <span>Kanban Board</span>
+                    </a>
+                    <a href="{{ url_for('projects.sprints_list', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="zap" class="nav-icon"></i>
+                        <span>Sprints</span>
+                    </a>
+                    <a href="{{ url_for('projects.epics_list', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="rocket" class="nav-icon"></i>
+                        <span>Epics</span>
+                    </a>
+                    <a href="{{ url_for('projects.labels_list', project_id=project.id) }}" class="sidebar-nav-item active">
+                        <i data-lucide="tags" class="nav-icon"></i>
+                        <span>Labels</span>
+                    </a>
+                    <a href="{{ url_for('projects.project_timeline', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="calendar" class="nav-icon"></i>
+                        <span>Timeline</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar" style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--primary-100)' }};">
+                        {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.is_authenticated and current_user.role else 'User' }}</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <nav class="breadcrumb">
+                        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}">{{ project.name }}</a>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        <span>Labels</span>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('projects.add_label', project_id=project.id) }}" class="btn btn-primary">
+                        <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                        New Label
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="mb-6">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}">
+                        <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' }}" style="width: 18px; height: 18px;"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <div class="page-header">
+                    <h1 class="page-title">Labels</h1>
+                    <p class="page-description">Categorize and organize your issues</p>
+                </div>
+
+                {% if labels %}
+                <div class="card">
+                    <div class="card-body p-0">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Label</th>
+                                    <th>Description</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for label in labels %}
+                                <tr>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ label.color }}20; color: {{ label.color }}; border: 1px solid {{ label.color }}40;">
+                                            {{ label.name }}
+                                        </span>
+                                    </td>
+                                    <td class="text-gray-600">
+                                        {{ label.description or '—' }}
+                                    </td>
+                                    <td class="text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="{{ url_for('projects.edit_label', project_id=project.id, label_id=label.id) }}" class="btn btn-ghost btn-sm">
+                                                <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                                            </a>
+                                            <form action="{{ url_for('projects.delete_label', project_id=project.id, label_id=label.id) }}" method="POST" 
+                                                  onsubmit="return confirm('Are you sure you want to delete this label?');" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-ghost btn-sm text-danger">
+                                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-12">
+                        <i data-lucide="tags" class="mx-auto mb-4" style="width: 48px; height: 48px; color: var(--gray-400);"></i>
+                        <h3 class="text-lg font-semibold mb-2">No Labels Yet</h3>
+                        <p class="text-gray-500 mb-4">Create labels to categorize and filter your issues.</p>
+                        <a href="{{ url_for('projects.add_label', project_id=project.id) }}" class="btn btn-primary">
+                            <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                            Create Label
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

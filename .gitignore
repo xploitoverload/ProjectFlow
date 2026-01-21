@@ -1,0 +1,179 @@
+# Project Management System - Git Ignore
+# =======================================
+
+# Environment & Configuration
+# ---------------------------
+.env
+.env.local
+.env.*.local
+*.env
+config.local.py
+secrets/
+encryption.key
+
+# Python
+# ------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+# --------------------
+venv/
+env/
+ENV/
+.venv/
+.virtualenv/
+virtualenv/
+.python-version
+
+# IDE & Editors
+# -------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+.spyproject
+.spyderproject
+
+# Testing
+# -------
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+nosetests.xml
+
+# Database Files
+# --------------
+instance/
+*.db
+*.sqlite3
+*.sql
+migrations/versions/
+
+# Logs
+# ----
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Static Files (generated)
+# ------------------------
+static/dist/
+static/build/
+node_modules/
+package-lock.json
+yarn.lock
+
+# Backup Files
+# ------------
+*.backup
+*.bak
+*.old
+*.orig
+
+# OS Generated Files
+# ------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Docker
+# ------
+.docker/
+
+# Security
+# --------
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# Temporary Files
+# ---------------
+*.tmp
+*.temp
+tmp/
+temp/
+.cache/
+
+# Flask
+# -----
+instance/
+.webassets-cache
+
+# Celery
+# ------
+celerybeat-schedule
+celerybeat.pid
+
+# Jupyter Notebooks
+# -----------------
+.ipynb_checkpoints
+*.ipynb
+
+# MyPy
+# ----
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Profiling
+# ---------
+*.prof
+*.lprof
+
+# Documentation Build
+# -------------------
+docs/_build/
+site/
+
+# Uploads (user-generated content)
+# --------------------------------
+uploads/
+media/
+attachments/
+
+# Misc
+# ----
+*.manifest
+*.spec
+.ruff_cache/

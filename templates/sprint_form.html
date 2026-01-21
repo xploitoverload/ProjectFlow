@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Edit Sprint' if sprint else 'New Sprint' }} - {{ project.name }} - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">{{ project.name }}</div>
+                    <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-grid" class="nav-icon"></i>
+                        <span>Kanban Board</span>
+                    </a>
+                    <a href="{{ url_for('projects.sprints_list', project_id=project.id) }}" class="sidebar-nav-item active">
+                        <i data-lucide="zap" class="nav-icon"></i>
+                        <span>Sprints</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar" style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--primary-100)' }};">
+                        {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.is_authenticated and current_user.role else 'User' }}</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <nav class="breadcrumb">
+                        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}">{{ project.name }}</a>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        <a href="{{ url_for('projects.sprints_list', project_id=project.id) }}">Sprints</a>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        <span>{{ 'Edit' if sprint else 'New' }}</span>
+                    </nav>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="mb-6">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}">
+                        <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' }}" style="width: 18px; height: 18px;"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <div class="card" style="max-width: 640px;">
+                    <div class="card-header">
+                        <h2 class="card-title">{{ 'Edit Sprint' if sprint else 'New Sprint' }}</h2>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('projects.edit_sprint', project_id=project.id, sprint_id=sprint.id) if sprint else url_for('projects.add_sprint', project_id=project.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            
+                            <div class="space-y-4">
+                                <div class="form-group">
+                                    <label for="name" class="form-label">Sprint Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="name" name="name" class="form-input" 
+                                           value="{{ sprint.name if sprint else '' }}" required 
+                                           placeholder="e.g., Sprint 1, Q1 Sprint 2">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="goal" class="form-label">Sprint Goal</label>
+                                    <textarea id="goal" name="goal" class="form-input" rows="3" 
+                                              placeholder="What do you want to achieve this sprint?">{{ sprint.goal if sprint else '' }}</textarea>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="form-group">
+                                        <label for="start_date" class="form-label">Start Date</label>
+                                        <input type="date" id="start_date" name="start_date" class="form-input" 
+                                               value="{{ sprint.start_date.strftime('%Y-%m-%d') if sprint and sprint.start_date else '' }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="end_date" class="form-label">End Date</label>
+                                        <input type="date" id="end_date" name="end_date" class="form-input" 
+                                               value="{{ sprint.end_date.strftime('%Y-%m-%d') if sprint and sprint.end_date else '' }}">
+                                    </div>
+                                </div>
+
+                                {% if sprint %}
+                                <div class="form-group">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select id="status" name="status" class="form-select">
+                                        <option value="planned" {{ 'selected' if sprint.status == 'planned' else '' }}>Planned</option>
+                                        <option value="active" {{ 'selected' if sprint.status == 'active' else '' }}>Active</option>
+                                        <option value="completed" {{ 'selected' if sprint.status == 'completed' else '' }}>Completed</option>
+                                    </select>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex justify-between items-center pt-6 mt-6 border-t">
+                                <a href="{{ url_for('projects.sprints_list', project_id=project.id) }}" class="btn btn-ghost">
+                                    <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                                    {{ 'Save Changes' if sprint else 'Create Sprint' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

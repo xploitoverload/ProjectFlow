@@ -1,0 +1,97 @@
+<!-- Reusable Sidebar Component -->
+<!-- Usage: {% include 'components/sidebar.html' %} -->
+<!-- Required context: current_user, optional: project -->
+
+<aside class="app-sidebar">
+    <div class="sidebar-header">
+        <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+            <div class="sidebar-logo-icon">
+                <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+            </div>
+            <span class="sidebar-logo-text">ProjectFlow</span>
+        </a>
+    </div>
+
+    <nav class="sidebar-nav">
+        <!-- Main Navigation -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Navigation</div>
+            <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item {% if request.endpoint == 'main.reports' %}active{% endif %}">
+                <i data-lucide="bar-chart-3" class="nav-icon"></i>
+                <span>Reports</span>
+            </a>
+            <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item {% if request.endpoint == 'main.gantt_chart' %}active{% endif %}">
+                <i data-lucide="gantt-chart" class="nav-icon"></i>
+                <span>Gantt Chart</span>
+            </a>
+            <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item {% if request.endpoint == 'main.gantt_chart' %}active{% endif %}">
+                <i data-lucide="calendar" class="nav-icon"></i>
+                <span>Timeline</span>
+            </a>
+        </div>
+
+        {% if project %}
+        <!-- Project Section -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">{{ project.name[:20] }}</div>
+            <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="sidebar-nav-item {% if request.endpoint == 'projects.project_detail' %}active{% endif %}">
+                <i data-lucide="folder" class="nav-icon"></i>
+                <span>Overview</span>
+            </a>
+            <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item {% if request.endpoint == 'projects.project_kanban' %}active{% endif %}">
+                <i data-lucide="kanban" class="nav-icon"></i>
+                <span>Kanban Board</span>
+            </a>
+            <a href="{{ url_for('projects.project_timeline', project_id=project.id) }}" class="sidebar-nav-item {% if request.endpoint == 'projects.project_timeline' %}active{% endif %}">
+                <i data-lucide="calendar" class="nav-icon"></i>
+                <span>Timeline</span>
+            </a>
+            <a href="{{ url_for('projects.project_issues', project_id=project.id) }}" class="sidebar-nav-item {% if request.endpoint == 'projects.project_issues' %}active{% endif %}">
+                <i data-lucide="list-checks" class="nav-icon"></i>
+                <span>Issues</span>
+            </a>
+            <a href="{{ url_for('projects.project_workflow', project_id=project.id) }}" class="sidebar-nav-item {% if request.endpoint == 'projects.project_workflow' %}active{% endif %}">
+                <i data-lucide="git-branch" class="nav-icon"></i>
+                <span>Workflow</span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+        <!-- Admin Section -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Administration</div>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item {% if 'admin' in request.endpoint %}active{% endif %}">
+                <i data-lucide="settings" class="nav-icon"></i>
+                <span>Admin Panel</span>
+            </a>
+            <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
+                <i data-lucide="users" class="nav-icon"></i>
+                <span>Users</span>
+            </a>
+            <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
+                <i data-lucide="users-round" class="nav-icon"></i>
+                <span>Teams</span>
+            </a>
+            <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item">
+                <i data-lucide="folder-kanban" class="nav-icon"></i>
+                <span>Projects</span>
+            </a>
+        </div>
+        {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+            <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user else 'U' }}</div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name">{{ current_user.username if current_user else 'User' }}</div>
+                <div class="sidebar-user-role">{{ current_user.role.title() if current_user and current_user.role else 'User' }}</div>
+            </div>
+        </a>
+    </div>
+</aside>

@@ -1,0 +1,251 @@
+<!-- Modern Issue Card Component - JIRA Style -->
+<div class="issue-card" 
+     draggable="true" 
+     ondragstart="drag(event)" 
+     ondragend="dragEnd(event)"
+     data-issue-id="{{ issue.id }}">
+    
+    <div class="issue-card-header">
+        <div class="issue-type-indicator">
+            {% if issue.issue_type == 'bug' %}
+            <i data-lucide="bug" class="type-icon bug"></i>
+            {% elif issue.issue_type == 'feature' %}
+            <i data-lucide="sparkles" class="type-icon feature"></i>
+            {% elif issue.issue_type == 'story' %}
+            <i data-lucide="bookmark" class="type-icon story"></i>
+            {% else %}
+            <i data-lucide="check-square" class="type-icon task"></i>
+            {% endif %}
+        </div>
+        <span class="issue-key">{{ issue.key }}</span>
+        <div class="priority-indicator priority-{{ issue.priority }}">
+            {% if issue.priority == 'critical' %}
+            <i data-lucide="alert-circle"></i>
+            {% elif issue.priority == 'high' %}
+            <i data-lucide="chevrons-up"></i>
+            {% elif issue.priority == 'medium' %}
+            <i data-lucide="equal"></i>
+            {% else %}
+            <i data-lucide="chevrons-down"></i>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="issue-card-title">{{ issue.title }}</div>
+    
+    {% if issue.description %}
+    <div class="issue-card-desc">
+        {{ issue.description[:80] }}{% if issue.description|length > 80 %}...{% endif %}
+    </div>
+    {% endif %}
+    
+    {% if issue.priority == 'critical' or issue.priority == 'high' %}
+    <div class="issue-card-labels">
+        {% if issue.priority == 'critical' %}
+        <span class="issue-label issue-label-critical">
+            <i data-lucide="alert-triangle"></i>
+            Critical
+        </span>
+        {% elif issue.priority == 'high' %}
+        <span class="issue-label issue-label-high">
+            <i data-lucide="chevron-up"></i>
+            High Priority
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="issue-card-footer">
+        <div class="issue-card-meta">
+            {% if issue.time_estimate %}
+            <span class="meta-tag" title="Time estimate">
+                <i data-lucide="clock"></i>
+                {{ issue.time_estimate }}h
+            </span>
+            {% endif %}
+            {% if issue.due_date %}
+            <span class="meta-tag {% if issue.due_date < now %}overdue{% endif %}" title="Due date">
+                <i data-lucide="calendar"></i>
+                {{ issue.due_date.strftime('%b %d') }}
+            </span>
+            {% endif %}
+        </div>
+        
+        {% if issue.assignee %}
+        <div class="issue-card-avatar" title="{{ issue.assignee.username }}">
+            {{ issue.assignee.username[:2].upper() }}
+        </div>
+        {% else %}
+        <div class="issue-card-avatar unassigned" title="Unassigned">
+            <i data-lucide="user" style="width: 12px; height: 12px;"></i>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .issue-card {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        cursor: grab;
+        transition: var(--transition-base);
+    }
+
+    .issue-card:hover {
+        border-color: var(--gray-300);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+    }
+
+    .issue-card:active {
+        cursor: grabbing;
+    }
+
+    .issue-card.dragging {
+        opacity: 0.5;
+        transform: rotate(3deg);
+    }
+
+    .issue-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .issue-type-indicator {
+        display: flex;
+        align-items: center;
+    }
+
+    .type-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .type-icon.bug { color: var(--error-500); }
+    .type-icon.feature { color: var(--primary-500); }
+    .type-icon.story { color: var(--success-500); }
+    .type-icon.task { color: var(--info-500); }
+
+    .issue-key {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--gray-500);
+        flex: 1;
+    }
+
+    .priority-indicator {
+        display: flex;
+        align-items: center;
+    }
+
+    .priority-indicator i {
+        width: 14px;
+        height: 14px;
+    }
+
+    .priority-indicator.priority-critical { color: var(--error-500); }
+    .priority-indicator.priority-high { color: var(--warning-500); }
+    .priority-indicator.priority-medium { color: var(--info-500); }
+    .priority-indicator.priority-low { color: var(--gray-400); }
+
+    .issue-card-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--gray-900);
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+    }
+
+    .issue-card-desc {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        line-height: 1.5;
+        margin-bottom: 0.75rem;
+    }
+
+    .issue-card-labels {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .issue-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.125rem 0.5rem;
+        font-size: 0.625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-radius: var(--radius-md);
+    }
+
+    .issue-label i {
+        width: 10px;
+        height: 10px;
+    }
+
+    .issue-label-critical {
+        background: var(--error-100);
+        color: var(--error-700);
+    }
+
+    .issue-label-high {
+        background: var(--warning-100);
+        color: var(--warning-700);
+    }
+
+    .issue-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .issue-card-meta {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .meta-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.6875rem;
+        color: var(--gray-500);
+    }
+
+    .meta-tag i {
+        width: 12px;
+        height: 12px;
+    }
+
+    .meta-tag.overdue {
+        color: var(--error-500);
+    }
+
+    .issue-card-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary-100);
+        color: var(--primary-700);
+        font-size: 0.625rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .issue-card-avatar.unassigned {
+        background: var(--gray-100);
+        color: var(--gray-400);
+        border: 1px dashed var(--gray-300);
+    }
+</style>

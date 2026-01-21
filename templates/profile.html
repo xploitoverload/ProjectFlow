@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
+                        <i data-lucide="bar-chart-3" class="nav-icon"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Account</div>
+                    <a href="{{ url_for('main.profile') }}" class="sidebar-nav-item active">
+                        <i data-lucide="user" class="nav-icon"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a href="{{ url_for('auth.change_password') }}" class="sidebar-nav-item">
+                        <i data-lucide="lock" class="nav-icon"></i>
+                        <span>Change Password</span>
+                    </a>
+                </div>
+
+                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="settings" class="nav-icon"></i>
+                        <span>Admin Panel</span>
+                    </a>
+                </div>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.role else 'User' }}</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="header-breadcrumb">
+                        <span>Account</span>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <span class="header-breadcrumb-current">Profile</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
+                                <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
+                                <div class="alert-content">{{ message }}</div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Profile Header -->
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <div class="flex items-center gap-6">
+                            <div class="avatar avatar-xl" style="width: 96px; height: 96px; font-size: 2rem;">
+                                {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
+                            </div>
+                            <div class="flex-1">
+                                <h1 class="text-2xl font-bold text-primary">{{ current_user.username if current_user.is_authenticated else 'User' }}</h1>
+                                <p class="text-secondary">{{ current_user.email if current_user.email else 'No email set' }}</p>
+                                <div class="flex items-center gap-4 mt-3">
+                                    <span class="badge badge-primary">{{ current_user.role.title() if current_user.role else 'User' }}</span>
+                                    {% if current_user.team %}
+                                    <span class="badge badge-info">
+                                        <i data-lucide="users" class="icon-xs"></i>
+                                        {{ current_user.team.name }}
+                                    </span>
+                                    {% endif %}
+                                    <span class="badge badge-{{ 'success' if current_user.is_active else 'gray' }}">
+                                        <span class="status-dot {{ 'active' if current_user.is_active else 'inactive' }}"></span>
+                                        {{ 'Active' if current_user.is_active else 'Inactive' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-secondary" onclick="openEditModal()">
+                                    <i data-lucide="pencil" class="icon-sm"></i>
+                                    Edit Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-6">
+                    <!-- Profile Details -->
+                    <div class="col-span-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Profile Information</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <p class="text-sm text-tertiary mb-1">Full Name</p>
+                                        <p class="font-medium text-primary">{{ current_user.full_name or current_user.username }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-tertiary mb-1">Email Address</p>
+                                        <p class="font-medium text-primary">{{ current_user.email or 'Not set' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-tertiary mb-1">Role</p>
+                                        <p class="font-medium text-primary">{{ current_user.role.title() if current_user.role else 'User' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-tertiary mb-1">Team</p>
+                                        <p class="font-medium text-primary">{{ current_user.team.name if current_user.team else 'Unassigned' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-tertiary mb-1">Member Since</p>
+                                        <p class="font-medium text-primary">{{ current_user.created_at.strftime('%B %d, %Y') if current_user.created_at else 'N/A' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-tertiary mb-1">Last Login</p>
+                                        <p class="font-medium text-primary">{{ current_user.last_login.strftime('%B %d, %Y at %H:%M') if current_user.last_login else 'N/A' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Stats -->
+                        <div class="card mt-6">
+                            <div class="card-header">
+                                <h2 class="card-title">Activity Overview</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="stat-card" style="background: transparent; box-shadow: none; border: 1px solid var(--gray-200);">
+                                        <div class="stat-card-header">
+                                            <div class="stat-card-icon primary">
+                                                <i data-lucide="folder" class="icon-md"></i>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card-value">{{ user_stats.projects if user_stats else 0 }}</div>
+                                        <div class="stat-card-label">Projects</div>
+                                    </div>
+                                    <div class="stat-card" style="background: transparent; box-shadow: none; border: 1px solid var(--gray-200);">
+                                        <div class="stat-card-header">
+                                            <div class="stat-card-icon success">
+                                                <i data-lucide="check-circle" class="icon-md"></i>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card-value">{{ user_stats.completed_issues if user_stats else 0 }}</div>
+                                        <div class="stat-card-label">Issues Completed</div>
+                                    </div>
+                                    <div class="stat-card" style="background: transparent; box-shadow: none; border: 1px solid var(--gray-200);">
+                                        <div class="stat-card-header">
+                                            <div class="stat-card-icon warning">
+                                                <i data-lucide="circle-dot" class="icon-md"></i>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card-value">{{ user_stats.open_issues if user_stats else 0 }}</div>
+                                        <div class="stat-card-label">Open Issues</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Quick Actions</h2>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <a href="{{ url_for('auth.change_password') }}" class="quick-action-link">
+                                    <div class="flex items-center gap-3">
+                                        <div class="avatar avatar-sm" style="background: var(--warning-100); color: var(--warning-600);">
+                                            <i data-lucide="lock" class="icon-sm"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-primary">Change Password</p>
+                                            <p class="text-xs text-secondary">Update your password</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="icon-sm text-tertiary"></i>
+                                </a>
+                                <a href="{{ url_for('main.dashboard') }}" class="quick-action-link">
+                                    <div class="flex items-center gap-3">
+                                        <div class="avatar avatar-sm" style="background: var(--primary-100); color: var(--primary-600);">
+                                            <i data-lucide="layout-dashboard" class="icon-sm"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-primary">Dashboard</p>
+                                            <p class="text-xs text-secondary">View your dashboard</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="icon-sm text-tertiary"></i>
+                                </a>
+                                <a href="{{ url_for('main.reports') }}" class="quick-action-link">
+                                    <div class="flex items-center gap-3">
+                                        <div class="avatar avatar-sm" style="background: var(--success-100); color: var(--success-600);">
+                                            <i data-lucide="bar-chart-3" class="icon-sm"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-primary">Reports</p>
+                                            <p class="text-xs text-secondary">View analytics</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="icon-sm text-tertiary"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="card mt-6">
+                            <div class="card-header">
+                                <h2 class="card-title">Security</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="flex items-center justify-between py-2">
+                                    <div>
+                                        <p class="font-medium text-primary">Two-Factor Auth</p>
+                                        <p class="text-sm text-secondary">Additional security</p>
+                                    </div>
+                                    <span class="badge badge-gray">Not enabled</span>
+                                </div>
+                                <div class="flex items-center justify-between py-2 mt-2">
+                                    <div>
+                                        <p class="font-medium text-primary">Active Sessions</p>
+                                        <p class="text-sm text-secondary">Logged in devices</p>
+                                    </div>
+                                    <span class="badge badge-primary">1 device</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal-backdrop" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Profile</h3>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('main.update_profile') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="full_name" class="form-input" value="{{ current_user.full_name or '' }}" placeholder="Your full name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-input" value="{{ current_user.email or '' }}" placeholder="your.email@example.com">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="save" class="icon-sm"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .quick-action-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            text-decoration: none;
+            transition: var(--transition-base);
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .quick-action-link:last-child {
+            border-bottom: none;
+        }
+        .quick-action-link:hover {
+            background: var(--gray-50);
+        }
+        .col-span-2 {
+            grid-column: span 2;
+        }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        function openEditModal() {
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeEditModal();
+        });
+
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeEditModal();
+        });
+    </script>
+</body>
+</html>

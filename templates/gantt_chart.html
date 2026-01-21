@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gantt Chart - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
+                        <i data-lucide="bar-chart-3" class="nav-icon"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Views</div>
+                    <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item active">
+                        <i data-lucide="gantt-chart" class="nav-icon"></i>
+                        <span>Gantt Chart</span>
+                    </a>
+                    <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item">
+                        <i data-lucide="calendar" class="nav-icon"></i>
+                        <span>Timeline</span>
+                    </a>
+                </div>
+
+                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="settings" class="nav-icon"></i>
+                        <span>Admin Panel</span>
+                    </a>
+                </div>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.role else 'User' }}</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="header-breadcrumb">
+                        <span>Views</span>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <span class="header-breadcrumb-current">Gantt Chart</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="btn-group">
+                        <button class="btn btn-secondary btn-sm active" data-view="week">Week</button>
+                        <button class="btn btn-secondary btn-sm" data-view="month">Month</button>
+                        <button class="btn btn-secondary btn-sm" data-view="quarter">Quarter</button>
+                    </div>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="page-header-top">
+                        <div>
+                            <h1 class="page-title">Gantt Chart</h1>
+                            <p class="page-subtitle">Visualize project timelines and task dependencies</p>
+                        </div>
+                        <div class="page-header-actions">
+                            <select class="form-select" id="projectFilter" style="width: 200px;">
+                                <option value="">All Projects</option>
+                                {% for project in projects %}
+                                <option value="{{ project.id }}">{{ project.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gantt Chart Container -->
+                <div class="card">
+                    <div class="gantt-container">
+                        <!-- Left side: Task list -->
+                        <div class="gantt-tasks">
+                            <div class="gantt-header-row">
+                                <span>Task Name</span>
+                            </div>
+                            {% if tasks %}
+                            {% for task in tasks %}
+                            <div class="gantt-task-row" data-task-id="{{ task.id }}">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="{{ 'bug' if task.type == 'bug' else 'bookmark' if task.type == 'story' else 'circle-dot' }}" class="icon-sm text-tertiary"></i>
+                                    <span class="gantt-task-name">{{ task.title }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <!-- Sample tasks for demo -->
+                            <div class="gantt-task-row">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="bookmark" class="icon-sm text-tertiary"></i>
+                                    <span class="gantt-task-name">User Authentication</span>
+                                </div>
+                            </div>
+                            <div class="gantt-task-row">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="circle-dot" class="icon-sm text-tertiary"></i>
+                                    <span class="gantt-task-name">Dashboard Design</span>
+                                </div>
+                            </div>
+                            <div class="gantt-task-row">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="bug" class="icon-sm text-tertiary"></i>
+                                    <span class="gantt-task-name">Fix Login Bug</span>
+                                </div>
+                            </div>
+                            <div class="gantt-task-row">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="bookmark" class="icon-sm text-tertiary"></i>
+                                    <span class="gantt-task-name">API Integration</span>
+                                </div>
+                            </div>
+                            <div class="gantt-task-row">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="circle-dot" class="icon-sm text-tertiary"></i>
+                                    <span class="gantt-task-name">Database Migration</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Right side: Timeline -->
+                        <div class="gantt-timeline">
+                            <div class="gantt-timeline-header">
+                                <div class="gantt-date-headers" id="dateHeaders"></div>
+                            </div>
+                            <div class="gantt-timeline-body">
+                                <div class="gantt-grid" id="ganttGrid"></div>
+                                <div class="gantt-bars" id="ganttBars">
+                                    <!-- Sample bars for demo -->
+                                    <div class="gantt-bar" style="left: 0%; width: 28%; background: var(--primary-500);">
+                                        <span class="gantt-bar-progress" style="width: 70%;"></span>
+                                    </div>
+                                    <div class="gantt-bar" style="left: 14%; width: 35%; background: var(--success-500);">
+                                        <span class="gantt-bar-progress" style="width: 100%;"></span>
+                                    </div>
+                                    <div class="gantt-bar" style="left: 28%; width: 14%; background: var(--error-500);">
+                                        <span class="gantt-bar-progress" style="width: 50%;"></span>
+                                    </div>
+                                    <div class="gantt-bar" style="left: 35%; width: 42%; background: var(--warning-500);">
+                                        <span class="gantt-bar-progress" style="width: 25%;"></span>
+                                    </div>
+                                    <div class="gantt-bar" style="left: 50%; width: 28%; background: var(--info-500);">
+                                        <span class="gantt-bar-progress" style="width: 0%;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="card mt-6">
+                    <div class="card-body">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-6">
+                                <div class="flex items-center gap-2">
+                                    <div class="legend-dot" style="background: var(--primary-500);"></div>
+                                    <span class="text-sm text-secondary">In Progress</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="legend-dot" style="background: var(--success-500);"></div>
+                                    <span class="text-sm text-secondary">Completed</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="legend-dot" style="background: var(--warning-500);"></div>
+                                    <span class="text-sm text-secondary">Pending</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="legend-dot" style="background: var(--error-500);"></div>
+                                    <span class="text-sm text-secondary">Blocked</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="btn btn-ghost btn-sm" id="prevBtn">
+                                    <i data-lucide="chevron-left" class="icon-sm"></i>
+                                </button>
+                                <span class="text-sm font-medium" id="currentRange">Jan 1 - Jan 31, 2024</span>
+                                <button class="btn btn-ghost btn-sm" id="nextBtn">
+                                    <i data-lucide="chevron-right" class="icon-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .btn-group {
+            display: flex;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        .btn-group .btn {
+            border-radius: 0;
+            border: none;
+            border-right: 1px solid var(--gray-300);
+        }
+        .btn-group .btn:last-child {
+            border-right: none;
+        }
+        .btn-group .btn.active {
+            background: var(--primary-500);
+            color: white;
+        }
+
+        .gantt-container {
+            display: flex;
+            min-height: 400px;
+            overflow: hidden;
+        }
+
+        .gantt-tasks {
+            width: 280px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--gray-200);
+        }
+
+        .gantt-header-row {
+            height: 48px;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--gray-500);
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .gantt-task-row {
+            height: 48px;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--gray-100);
+            cursor: pointer;
+            transition: var(--transition-base);
+        }
+        .gantt-task-row:hover {
+            background: var(--gray-50);
+        }
+
+        .gantt-task-name {
+            font-size: 0.875rem;
+            color: var(--gray-900);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .gantt-timeline {
+            flex: 1;
+            overflow-x: auto;
+        }
+
+        .gantt-timeline-header {
+            height: 48px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+        }
+
+        .gantt-date-headers {
+            display: flex;
+            width: 100%;
+            min-width: 800px;
+        }
+
+        .gantt-date-cell {
+            flex: 1;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            padding: 0 0.5rem;
+        }
+
+        .gantt-timeline-body {
+            position: relative;
+            min-width: 800px;
+        }
+
+        .gantt-grid {
+            position: absolute;
+            inset: 0;
+            display: flex;
+        }
+
+        .gantt-grid-col {
+            flex: 1;
+            border-right: 1px solid var(--gray-100);
+        }
+        .gantt-grid-col.weekend {
+            background: var(--gray-50);
+        }
+
+        .gantt-bars {
+            position: relative;
+        }
+
+        .gantt-bar {
+            height: 24px;
+            margin: 12px 0;
+            border-radius: var(--radius-md);
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition-base);
+        }
+        .gantt-bar:hover {
+            opacity: 0.9;
+            transform: scaleY(1.1);
+        }
+
+        .gantt-bar-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: var(--radius-md);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        // Generate date headers
+        const dateHeaders = document.getElementById('dateHeaders');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr'];
+        const weeks = [
+            'Jan 1-7', 'Jan 8-14', 'Jan 15-21', 'Jan 22-28',
+            'Jan 29 - Feb 4', 'Feb 5-11', 'Feb 12-18'
+        ];
+
+        weeks.forEach(week => {
+            const cell = document.createElement('div');
+            cell.className = 'gantt-date-cell';
+            cell.textContent = week;
+            dateHeaders.appendChild(cell);
+        });
+
+        // Generate grid
+        const grid = document.getElementById('ganttGrid');
+        for (let i = 0; i < 7; i++) {
+            const col = document.createElement('div');
+            col.className = 'gantt-grid-col' + (i % 7 === 5 || i % 7 === 6 ? ' weekend' : '');
+            grid.appendChild(col);
+        }
+
+        // View toggle
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
