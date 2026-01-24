@@ -47,9 +47,13 @@ A production-grade, enterprise-level project management system built with Flask,
 
 ## 🏗️ Architecture
 
+### Python Package Structure
+
+This project is now structured as an installable Python package with the following architecture:
+
 ```
-Project Management/
-├── app/                          # Application package
+project-management-system/
+├── app/                          # Main application package
 │   ├── __init__.py              # Application factory
 │   ├── middleware/              # Auth decorators, RBAC
 │   ├── routes/                  # Blueprint controllers
@@ -76,11 +80,23 @@ Project Management/
 │   ├── css/
 │   │   └── design-system.css   # Theme & components
 │   └── js/                     # Frontend JavaScript
+├── pyproject.toml              # Python package configuration
+├── setup.cfg                   # Additional package metadata
+├── MANIFEST.in                 # Package file inclusion rules
 ├── config.py                   # Configuration classes
 ├── models.py                   # SQLAlchemy models
 ├── run.py                      # Application entry point
 └── requirements.txt            # Python dependencies
 ```
+
+### Installation Benefits
+
+Installing as a package provides:
+- ✅ **CLI Commands**: Use `project-management`, `pm-init-db`, etc. from anywhere
+- ✅ **Import Anywhere**: Import modules from `app` package in your scripts
+- ✅ **Dependency Management**: Automatic handling of all dependencies
+- ✅ **Version Control**: Package versioning and distribution
+- ✅ **Development Mode**: Changes reflect immediately with `pip install -e .`
 
 ---
 
@@ -92,6 +108,56 @@ Project Management/
 - (Optional) Redis for production caching
 
 ### Installation
+
+#### Option 1: Install as a Python Package (Recommended)
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/project-management.git
+   cd project-management
+   ```
+
+2. **Create virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # or
+   venv\Scripts\activate     # Windows
+   ```
+
+3. **Install the package in development mode**
+   ```bash
+   pip install -e .
+   # Or with development dependencies:
+   pip install -e ".[dev]"
+   ```
+
+4. **Configure environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   ```
+
+5. **Initialize database**
+   ```bash
+   pm-init-db
+   # Or use the traditional way:
+   python run.py init-db
+   ```
+
+6. **Run the application**
+   ```bash
+   project-management
+   # Or use the traditional way:
+   python run.py
+   ```
+
+7. **Open in browser**
+   ```
+   http://localhost:5000
+   ```
+
+#### Option 2: Traditional Installation (Legacy)
 
 1. **Clone the repository**
    ```bash
@@ -136,6 +202,25 @@ Project Management/
 ---
 
 ## 🔧 CLI Commands
+
+### Package-Based Commands (When installed with `pip install -e .`)
+
+```bash
+# Start development server
+project-management
+
+# Initialize database
+pm-init-db
+pm-init-db --with-sample-data
+
+# Run database migrations
+pm-migrate
+
+# Show all routes
+pm-routes
+```
+
+### Traditional Commands (Legacy)
 
 ```bash
 # Start development server
