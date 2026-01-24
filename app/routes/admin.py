@@ -119,11 +119,7 @@ def admin_users():
 @admin_required
 def add_user():
     """Add a new user."""
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_users'))
-    
+    # CSRF is validated automatically by Flask-WTF
     username = request.form.get('username', '').strip()
     email = request.form.get('email', '').strip()
     password = request.form.get('password', '')
@@ -151,11 +147,7 @@ def add_user():
 @admin_required
 def edit_user(user_id):
     """Edit user information."""
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_users'))
-    
+    # CSRF validated by Flask-WTF
     data = {
         'email': request.form.get('email', '').strip(),
         'role': request.form.get('role'),
@@ -180,11 +172,7 @@ def edit_user(user_id):
 @admin_required
 def delete_user(user_id):
     """Delete a user."""
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_users'))
-    
+    # CSRF validated by Flask-WTF
     success, message = UserService.delete_user(
         user_id=user_id,
         deleted_by=session.get('user_id')
@@ -202,11 +190,7 @@ def delete_user(user_id):
 @admin_required
 def unlock_user(user_id):
     """Unlock a locked user account."""
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_users'))
-    
+    # CSRF validated by Flask-WTF
     success, message = UserService.unlock_user(
         user_id=user_id,
         unlocked_by=session.get('user_id')
@@ -237,11 +221,7 @@ def add_team():
     """Add a new team with type and project assignments."""
     from app.models import Team, Project, db
     
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_teams'))
-    
+    # CSRF validated by Flask-WTF
     name = sanitize_input(request.form.get('name', '').strip())
     description = sanitize_input(request.form.get('description', '').strip())
     team_type = sanitize_input(request.form.get('team_type', 'general').strip())
@@ -290,11 +270,7 @@ def edit_team(team_id):
     """Edit team information."""
     from app.models import Team, db
     
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_teams'))
-    
+    # CSRF validated by Flask-WTF
     team = Team.query.get_or_404(team_id)
     
     name = sanitize_input(request.form.get('name', '').strip())
@@ -326,11 +302,7 @@ def delete_team(team_id):
     """Delete a team."""
     from app.models import Team, db
     
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_teams'))
-    
+    # CSRF validated by Flask-WTF
     team = Team.query.get_or_404(team_id)
     team_name = team.name
     
@@ -366,11 +338,7 @@ def admin_projects():
 @admin_required
 def add_project():
     """Add a new project."""
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_projects'))
-    
+    # CSRF validated by Flask-WTF
     name = request.form.get('name', '').strip()
     key = request.form.get('key', '').strip()
     description = request.form.get('description', '').strip()
@@ -415,11 +383,7 @@ def add_project():
 @admin_required
 def edit_project(project_id):
     """Edit project information."""
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_projects'))
-    
+    # CSRF validated by Flask-WTF
     name = request.form.get('name', '').strip()
     key = request.form.get('key', '').strip()
     description = request.form.get('description', '').strip()
