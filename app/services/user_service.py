@@ -57,7 +57,7 @@ class UserService:
             # Auto-assign to core team if no team specified
             final_team_id = int(team_id) if team_id else None
             if not final_team_id and department:
-                from models import Team
+                from app.models import Team
                 core_team = Team.query.filter_by(
                     department=department,
                     is_core_team=True
@@ -132,7 +132,7 @@ class UserService:
             
             # If role changed and no team assigned, auto-assign to core team
             if 'role' in data and not user.team_id and user.department:
-                from models import Team
+                from app.models import Team
                 core_team = Team.query.filter_by(
                     department=user.department,
                     is_core_team=True

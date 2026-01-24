@@ -396,12 +396,11 @@ def add_project():
     
     # Handle many-to-many team assignment
     if success and project and team_ids:
-        from models import Team
+        from app.models import Team, db
         for tid in team_ids:
             team = Team.query.get(int(tid))
             if team:
                 project.teams.append(team)
-        from app import db
         db.session.commit()
     
     if success:
@@ -449,8 +448,7 @@ def edit_project(project_id):
     
     # Handle many-to-many team assignment
     if success and project:
-        from models import Team
-        from app import db
+        from app.models import Team, db
         # Clear existing team assignments and reassign
         project.teams.clear()
         if team_ids:
