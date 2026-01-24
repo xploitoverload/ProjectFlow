@@ -84,6 +84,22 @@
                         <i data-lucide="gantt-chart" class="nav-icon"></i>
                         <span>Timeline</span>
                     </a>
+                    <a href="{{ url_for('main.issues') }}" class="sidebar-nav-item">
+                        <i data-lucide="list-checks" class="nav-icon"></i>
+                        <span>Issues</span>
+                    </a>
+                    <a href="{{ url_for('main.board') }}" class="sidebar-nav-item">
+                        <i data-lucide="kanban-square" class="nav-icon"></i>
+                        <span>Board</span>
+                    </a>
+                    <a href="{{ url_for('main.backlog') }}" class="sidebar-nav-item">
+                        <i data-lucide="list" class="nav-icon"></i>
+                        <span>Backlog</span>
+                    </a>
+                    <a href="{{ url_for('main.calendar') }}" class="sidebar-nav-item">
+                        <i data-lucide="calendar" class="nav-icon"></i>
+                        <span>Calendar</span>
+                    </a>
                 </div>
 
                 <!-- Your Projects -->
@@ -109,13 +125,21 @@
                 <!-- Administration -->
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_tools') }}" class="sidebar-nav-item" style="background: linear-gradient(90deg, rgba(88, 166, 255, 0.15), transparent); border-left: 3px solid var(--primary-500);">
+                        <i data-lucide="wrench" class="nav-icon" style="color: var(--primary-500);"></i>
+                        <span style="font-weight: 600;">Admin Tools</span>
+                    </a>
                     <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="settings" class="nav-icon"></i>
-                        <span>Settings</span>
+                        <i data-lucide="gauge" class="nav-icon"></i>
+                        <span>Admin Dashboard</span>
                     </a>
                     <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
                         <i data-lucide="users" class="nav-icon"></i>
                         <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
+                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span>Teams</span>
                     </a>
                     <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
                         <i data-lucide="shield" class="nav-icon"></i>

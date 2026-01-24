@@ -49,6 +49,10 @@ def admin_dashboard():
     project_count = Project.query.count()
     issue_count = Issue.query.count()
     
+    # Get online users (active in last 5 minutes)
+    five_mins_ago = datetime.utcnow() - timedelta(minutes=5)
+    online_users_count = User.query.filter(User.last_activity >= five_mins_ago).count() if hasattr(User, 'last_activity') else 0
+    
     # Get active users (last 24 hours)
     yesterday = datetime.utcnow() - timedelta(days=1)
     active_users_count = User.query.filter(User.last_login >= yesterday).count() if hasattr(User, 'last_login') else 0
@@ -63,8 +67,11 @@ def admin_dashboard():
     # Get recent projects
     recent_projects = Project.query.order_by(Project.created_at.desc()).limit(5).all() if hasattr(Project, 'created_at') else []
     
-    # Get recent users
+    # Get recent users with activity status
     recent_users = User.query.order_by(User.id.desc()).limit(5).all()
+    
+    # Get online users list
+    online_users = User.query.filter(User.last_activity >= five_mins_ago).order_by(User.last_activity.desc()).all() if hasattr(User, 'last_activity') else []
     
     # Get users and teams for context
     users = User.query.all()
@@ -92,6 +99,8 @@ def admin_dashboard():
                           issue_count=issue_count,
                           total_issues=issue_count,
                           active_users_count=active_users_count,
+                          online_users_count=online_users_count,
+                          online_users=online_users,
                           project_status=project_status,
                           projects=recent_projects,
                           recent_projects=recent_projects,
@@ -704,6 +713,329 @@ def backup_restore():
     backups.sort(key=lambda x: x['date'], reverse=True)
     
     return render_template('admin/backup.html', backups=backups)
+
+
+@admin_bp.route('/analytics')
+@admin_required
+def analytics_dashboard():
+    """Analytics dashboard with charts and metrics."""
+    from app.models import User, Team, Project, Issue
+    from datetime import datetime, timedelta
+    from sqlalchemy import func
+    import json
+    
+    verify_admin_privilege()
+    
+    # Basic counts
+    project_count = Project.query.count()
+    user_count = User.query.count()
+    
+    # Online users count (last 5 minutes)
+    five_mins_ago = datetime.utcnow() - timedelta(minutes=5)
+    online_count = User.query.filter(User.last_activity >= five_mins_ago).count() if hasattr(User, 'last_activity') else 0
+    
+    # Issue statistics
+    total_issues = Issue.query.count()
+    completed_issues = Issue.query.filter(Issue.status.in_(['Done', 'Closed', 'Resolved'])).count() if total_issues > 0 else 0
+    active_issues = total_issues - completed_issues
+    completion_rate = round((completed_issues / total_issues * 100) if total_issues > 0 else 0)
+    
+    # Project Status Distribution
+    project_status_counts = {}
+    projects = Project.query.all()
+    for project in projects:
+        status = project.status or 'Unknown'
+        project_status_counts[status] = project_status_counts.get(status, 0) + 1
+    
+    project_status_data = json.dumps({
+        'labels': list(project_status_counts.keys()) if project_status_counts else ['No Projects'],
+        'values': list(project_status_counts.values()) if project_status_counts else [0]
+    })
+    
+    # Issue Priority Distribution
+    issue_priority_counts = {}
+    issues = Issue.query.all()
+    for issue in issues:
+        priority = issue.priority or 'Medium'
+        issue_priority_counts[priority] = issue_priority_counts.get(priority, 0) + 1
+    
+    # Order priorities
+    priority_order = ['Critical', 'Highest', 'High', 'Medium', 'Low', 'Lowest']
+    sorted_priorities = []
+    sorted_priority_values = []
+    for p in priority_order:
+        if p in issue_priority_counts:
+            sorted_priorities.append(p)
+            sorted_priority_values.append(issue_priority_counts[p])
+    
+    issue_priority_data = json.dumps({
+        'labels': sorted_priorities if sorted_priorities else ['No Issues'],
+        'values': sorted_priority_values if sorted_priority_values else [0]
+    })
+    
+    # Issue Status Distribution
+    issue_status_counts = {}
+    for issue in issues:
+        status = issue.status or 'Open'
+        issue_status_counts[status] = issue_status_counts.get(status, 0) + 1
+    
+    issue_status_data = json.dumps({
+        'labels': list(issue_status_counts.keys()) if issue_status_counts else ['No Issues'],
+        'values': list(issue_status_counts.values()) if issue_status_counts else [0]
+    })
+    
+    # Issue Types Distribution
+    issue_type_counts = {}
+    for issue in issues:
+        issue_type = issue.type if hasattr(issue, 'type') and issue.type else 'Task'
+        issue_type_counts[issue_type] = issue_type_counts.get(issue_type, 0) + 1
+    
+    issue_types_data = json.dumps({
+        'labels': list(issue_type_counts.keys()) if issue_type_counts else ['No Issues'],
+        'values': list(issue_type_counts.values()) if issue_type_counts else [0]
+    })
+    
+    # Team Performance (issues completed per team)
+    teams = Team.query.all()
+    team_names = []
+    team_performance = []
+    for team in teams[:6]:  # Limit to 6 teams for chart readability
+        team_names.append(team.name)
+        # Calculate team's issue completion rate
+        team_issues = [i for i in issues if hasattr(i, 'assignee') and i.assignee and i.assignee.team_id == team.id]
+        team_completed = len([i for i in team_issues if i.status in ['Done', 'Closed', 'Resolved']])
+        rate = round((team_completed / len(team_issues) * 100) if team_issues else 0)
+        team_performance.append(rate)
+    
+    team_performance_data = json.dumps({
+        'labels': team_names if team_names else ['No Teams'],
+        'values': team_performance if team_performance else [0]
+    })
+    
+    # Project Progress
+    project_names = []
+    project_progress = []
+    for project in projects[:5]:  # Limit to 5 projects
+        project_names.append(project.name[:15] + '...' if len(project.name) > 15 else project.name)
+        # Calculate progress based on issues
+        project_issues = [i for i in issues if i.project_id == project.id]
+        completed = len([i for i in project_issues if i.status in ['Done', 'Closed', 'Resolved']])
+        progress = round((completed / len(project_issues) * 100) if project_issues else 0)
+        project_progress.append(progress)
+    
+    project_progress_data = json.dumps({
+        'labels': project_names if project_names else ['No Projects'],
+        'values': project_progress if project_progress else [0]
+    })
+    
+    # Activity over last 7 days
+    days = []
+    issues_created = []
+    issues_resolved = []
+    for i in range(6, -1, -1):
+        day = datetime.utcnow() - timedelta(days=i)
+        day_start = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day.replace(hour=23, minute=59, second=59, microsecond=999999)
+        
+        days.append(day.strftime('%a'))
+        
+        # Count issues created on this day
+        created = Issue.query.filter(
+            Issue.created_at >= day_start,
+            Issue.created_at <= day_end
+        ).count() if hasattr(Issue, 'created_at') else 0
+        issues_created.append(created)
+        
+        # Count issues resolved on this day
+        resolved = Issue.query.filter(
+            Issue.updated_at >= day_start,
+            Issue.updated_at <= day_end,
+            Issue.status.in_(['Done', 'Closed', 'Resolved'])
+        ).count() if hasattr(Issue, 'updated_at') else 0
+        issues_resolved.append(resolved)
+    
+    activity_data = json.dumps({
+        'labels': days,
+        'issues_created': issues_created,
+        'issues_resolved': issues_resolved
+    })
+    
+    log_admin_action(
+        session.get('user_id'),
+        'ANALYTICS_DASHBOARD_ACCESS',
+        {'ip': request.remote_addr}
+    )
+    
+    return render_template('admin/analytics.html',
+                          project_count=project_count,
+                          user_count=user_count,
+                          online_count=online_count,
+                          active_issues=active_issues,
+                          completed_issues=completed_issues,
+                          completion_rate=completion_rate,
+                          project_status_data=project_status_data,
+                          issue_priority_data=issue_priority_data,
+                          issue_status_data=issue_status_data,
+                          issue_types_data=issue_types_data,
+                          team_performance_data=team_performance_data,
+                          project_progress_data=project_progress_data,
+                          activity_data=activity_data)
+
+
+@admin_bp.route('/tools')
+@admin_required
+def admin_tools():
+    """Admin Tools Dashboard - Central hub for all admin tools."""
+    from app.models import User, Project, Issue
+    
+    admin_user = verify_admin_privilege()
+    
+    # Tool categories with their items
+    tools = {
+        'analytics': {
+            'name': 'Analytics & Reports',
+            'description': 'View detailed analytics, charts, and performance metrics',
+            'icon': 'bar-chart-3',
+            'color': '#8957E5',
+            'url': url_for('admin.analytics_dashboard'),
+            'badge': 'Popular'
+        },
+        'automation': {
+            'name': 'Automation & Workflows',
+            'description': 'Create automated rules, triggers, and workflow processes',
+            'icon': 'workflow',
+            'color': '#238636',
+            'url': url_for('admin.admin_automation')
+        },
+        'service_desk': {
+            'name': 'Service Desk',
+            'description': 'Manage support tickets, queues, and customer requests',
+            'icon': 'headset',
+            'color': '#58A6FF',
+            'url': url_for('admin.admin_service_desk')
+        },
+        'integrations': {
+            'name': 'Integrations & Apps',
+            'description': 'Connect with external services and third-party apps',
+            'icon': 'puzzle',
+            'color': '#D29922',
+            'url': url_for('admin.admin_integrations')
+        },
+        'search': {
+            'name': 'Advanced Search',
+            'description': 'Powerful search across all projects, issues, and users',
+            'icon': 'search',
+            'color': '#F85149',
+            'url': url_for('admin.admin_search')
+        },
+        'change_calendar': {
+            'name': 'Change Calendar',
+            'description': 'Plan and track scheduled changes and releases',
+            'icon': 'calendar-clock',
+            'color': '#A371F7',
+            'url': url_for('admin.admin_change_calendar')
+        },
+        'backup': {
+            'name': 'Backup & Restore',
+            'description': 'Create backups and restore system data',
+            'icon': 'hard-drive-download',
+            'color': '#7EE787',
+            'url': url_for('admin.backup_restore')
+        },
+        'database': {
+            'name': 'Database Management',
+            'description': 'Manage database tables, run queries, and optimize',
+            'icon': 'database',
+            'color': '#79C0FF',
+            'url': url_for('admin.db_management')
+        },
+        'security': {
+            'name': 'Security Settings',
+            'description': 'Configure security policies and access controls',
+            'icon': 'shield-check',
+            'color': '#238636',
+            'url': url_for('admin.security_dashboard')
+        },
+        'audit_logs': {
+            'name': 'Audit Logs',
+            'description': 'View system activity logs and security events',
+            'icon': 'scroll-text',
+            'color': '#8B949E',
+            'url': url_for('admin.audit_logs')
+        }
+    }
+    
+    log_admin_action(
+        session.get('user_id'),
+        'ADMIN_TOOLS_ACCESS',
+        {'ip': request.remote_addr}
+    )
+    
+    return render_template('admin/tools.html', tools=tools)
+
+
+@admin_bp.route('/automation')
+@admin_required
+def admin_automation():
+    """Automation & Workflows tool."""
+    admin_user = verify_admin_privilege()
+    return render_template('admin/automation.html')
+
+
+@admin_bp.route('/service-desk')
+@admin_required
+def admin_service_desk():
+    """Service Desk management."""
+    admin_user = verify_admin_privilege()
+    return render_template('admin/service_desk.html')
+
+
+@admin_bp.route('/integrations')
+@admin_required
+def admin_integrations():
+    """Integrations & Apps management."""
+    admin_user = verify_admin_privilege()
+    return render_template('admin/integrations.html')
+
+
+@admin_bp.route('/search')
+@admin_required
+def admin_search():
+    """Advanced Search across all data."""
+    from app.models import User, Project, Issue
+    
+    admin_user = verify_admin_privilege()
+    query = request.args.get('q', '')
+    results = {'users': [], 'projects': [], 'issues': []}
+    
+    if query:
+        # Search users
+        results['users'] = User.query.filter(
+            User.username.ilike(f'%{query}%') | 
+            User.email.ilike(f'%{query}%')
+        ).limit(10).all()
+        
+        # Search projects
+        results['projects'] = Project.query.filter(
+            Project.name.ilike(f'%{query}%') |
+            Project.key.ilike(f'%{query}%')
+        ).limit(10).all()
+        
+        # Search issues
+        results['issues'] = Issue.query.filter(
+            Issue.title.ilike(f'%{query}%') |
+            Issue.key.ilike(f'%{query}%')
+        ).limit(20).all()
+    
+    return render_template('admin/search.html', query=query, results=results)
+
+
+@admin_bp.route('/change-calendar')
+@admin_required
+def admin_change_calendar():
+    """Change Calendar & Risk Management."""
+    admin_user = verify_admin_privilege()
+    return render_template('admin/change_calendar.html')
 
 
 @admin_bp.route('/backup/create', methods=['POST'])

@@ -74,6 +74,26 @@
 
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Tools</div>
+                    <a href="{{ url_for('admin.admin_tools') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_tools' %}active{% endif %}" data-tooltip="All Tools">
+                        <i data-lucide="wrench" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">All Tools</span>
+                    </a>
+                    <a href="{{ url_for('admin.analytics_dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.analytics_dashboard' %}active{% endif %}" data-tooltip="Analytics">
+                        <i data-lucide="bar-chart-3" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Analytics</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_automation') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_automation' %}active{% endif %}" data-tooltip="Automation">
+                        <i data-lucide="workflow" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Automation</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_service_desk') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_service_desk' %}active{% endif %}" data-tooltip="Service Desk">
+                        <i data-lucide="headset" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Service Desk</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_search') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_search' %}active{% endif %}" data-tooltip="Search">
+                        <i data-lucide="search" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Search</span>
+                    </a>
                     <a href="{{ url_for('admin.db_management') }}" class="sidebar-link {% if request.endpoint == 'admin.db_management' %}active{% endif %}" data-tooltip="Database">
                         <i data-lucide="database" class="sidebar-link-icon"></i>
                         <span class="sidebar-link-text">Database</span>

@@ -3,62 +3,278 @@
 {% block title %}Board - ProjectFlow{% endblock %}
 
 {% block content %}
-<div class="page-container">
-    <div id="boardView">
-        <div class="feature-loading">
-            <div class="feature-loading-spinner"></div>
-            <div class="feature-loading-text">Loading Board View...</div>
+<div class="page-container" style="height: calc(100vh - 64px); display: flex; flex-direction: column;">
+    <!-- Header -->
+    <div class="board-header" style="padding: 16px 24px; border-bottom: 1px solid var(--border-primary); display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div>
+                <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 4px;">
+                    <i data-lucide="layout-grid" style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+                    Board
+                </h1>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 13px;">
+                    {% if selected_project %}{{ selected_project.name }}{% else %}Select a project{% endif %}
+                </p>
+            </div>
         </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <select id="projectSelector" class="form-select" style="min-width: 200px;" onchange="changeProject(this.value)">
+                {% if not projects %}
+                <option value="">No projects available</option>
+                {% else %}
+                {% for project in projects %}
+                <option value="{{ project.id }}" {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
+                    {{ project.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+            </select>
+            <button class="btn btn-primary" onclick="openCreateIssueModal()">
+                <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                Create
+            </button>
+        </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-container" style="flex: 1; padding: 20px; overflow-x: auto; background: var(--bg-tertiary);">
+        {% if selected_project %}
+        <div class="kanban-board" style="display: flex; gap: 16px; min-height: 100%;">
+            {% set statuses = ['To Do', 'In Progress', 'In Review', 'Done'] %}
+            {% for status in statuses %}
+            {% set status_issues = issues_by_status.get(status, []) %}
+            <div class="kanban-column" data-status="{{ status }}" style="min-width: 280px; max-width: 280px; background: var(--bg-secondary); border-radius: 8px; display: flex; flex-direction: column;">
+                <div class="column-header" style="padding: 12px 16px; border-bottom: 1px solid var(--border-primary);">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            {% if status == 'To Do' %}
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #64748b;"></span>
+                            {% elif status == 'In Progress' %}
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
+                            {% elif status == 'In Review' %}
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #8b5cf6;"></span>
+                            {% else %}
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
+                            {% endif %}
+                            <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ status }}</span>
+                        </div>
+                        <span style="background: var(--bg-tertiary); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;">{{ status_issues|length }}</span>
+                    </div>
+                </div>
+                <div class="column-body" style="flex: 1; padding: 8px; overflow-y: auto; min-height: 200px;">
+                    {% for issue in status_issues %}
+                    <div class="kanban-card" onclick="viewIssue({{ issue.id }}, {{ issue.project_id }})" style="background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                            {% if issue.issue_type == 'bug' %}
+                            <i data-lucide="bug" style="width: 14px; height: 14px; color: #dc2626;"></i>
+                            {% elif issue.issue_type == 'story' %}
+                            <i data-lucide="bookmark" style="width: 14px; height: 14px; color: #22c55e;"></i>
+                            {% elif issue.issue_type == 'epic' %}
+                            <i data-lucide="zap" style="width: 14px; height: 14px; color: #8b5cf6;"></i>
+                            {% else %}
+                            <i data-lucide="check-square" style="width: 14px; height: 14px; color: #3b82f6;"></i>
+                            {% endif %}
+                            <span style="font-size: 11px; color: var(--text-secondary);">{{ issue.key }}</span>
+                        </div>
+                        <div style="font-size: 14px; font-weight: 500; margin-bottom: 12px; line-height: 1.4;">{{ issue.title }}</div>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                {% set priority_colors = {'critical': '#dc2626', 'highest': '#ea580c', 'high': '#f59e0b', 'medium': '#3b82f6', 'low': '#22c55e', 'lowest': '#94a3b8'} %}
+                                {% set p_color = priority_colors.get(issue.priority, '#64748b') %}
+                                <span style="color: {{ p_color }};" title="{{ issue.priority|title }}">
+                                    {% if issue.priority in ['critical', 'highest', 'high'] %}
+                                    <i data-lucide="arrow-up" style="width: 12px; height: 12px;"></i>
+                                    {% else %}
+                                    <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                                    {% endif %}
+                                </span>
+                                {% if issue.story_points %}
+                                <span style="background: var(--bg-tertiary); padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 500;">{{ issue.story_points }}</span>
+                                {% endif %}
+                            </div>
+                            {% if issue.assignee %}
+                            <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-500); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;" title="{{ issue.assignee.username }}">
+                                {{ issue.assignee.username[:2].upper() }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 32px 16px; color: var(--text-tertiary);">
+                        <i data-lucide="inbox" style="width: 24px; height: 24px; margin-bottom: 8px; opacity: 0.5;"></i>
+                        <p style="font-size: 12px; margin: 0;">No issues</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="column-footer" style="padding: 8px;">
+                    <button class="btn btn-ghost btn-sm" style="width: 100%; justify-content: center;" onclick="openCreateIssueModal('{{ status }}')">
+                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                        Add Issue
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+            <div style="text-align: center; padding: 60px;">
+                <div style="width: 80px; height: 80px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i data-lucide="layout-grid" style="width: 36px; height: 36px; color: var(--text-tertiary);"></i>
+                </div>
+                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 8px;">No Project Selected</h2>
+                <p style="color: var(--text-secondary); margin: 0 0 24px;">Select a project from the dropdown to view its board.</p>
+                {% if projects %}
+                <button class="btn btn-primary" onclick="document.getElementById('projectSelector').focus()">
+                    Select Project
+                </button>
+                {% else %}
+                <a href="{{ url_for('main.projects') }}" class="btn btn-primary">Create a Project</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
-<script type="module">
-import { BoardView } from '{{ url_for('static', filename='js/board-view.js') }}';
-
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-        try {
-            const boardSystem = new BoardView();
-            const container = document.getElementById('boardView');
-            container.innerHTML = '';
-            
-            const header = document.createElement('div');
-            header.className = 'feature-header';
-            header.innerHTML = `
-                <div class="feature-header-title">
-                    <i data-lucide="trello" class="icon"></i>
-                    <h1>Board View</h1>
+<!-- Create Issue Modal -->
+<div id="createIssueModal" class="modal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeCreateIssueModal()"></div>
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2>Create Issue</h2>
+            <button class="btn-icon" onclick="closeCreateIssueModal()">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        <form method="POST" action="{% if selected_project %}/project/{{ selected_project.id }}/issue/add{% endif %}" id="createIssueForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Issue Type</label>
+                    <select name="issue_type" class="form-select">
+                        <option value="task">Task</option>
+                        <option value="bug">Bug</option>
+                        <option value="story">Story</option>
+                    </select>
                 </div>
-                <div class="feature-header-actions">
-                    <button class="btn btn-secondary"><i data-lucide="filter"></i> Filter</button>
-                    <button class="btn btn-secondary"><i data-lucide="users"></i> Group By</button>
-                    <button class="btn btn-primary"><i data-lucide="plus"></i> Create Issue</button>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Summary *</label>
+                    <input type="text" name="title" class="form-input" required>
                 </div>
-            `;
-            container.appendChild(header);
-            
-            const content = document.createElement('div');
-            content.className = 'feature-content fade-in';
-            container.appendChild(content);
-            
-            boardSystem.render(content);
-            
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        } catch (error) {
-            console.error('Error initializing board:', error);
-            document.getElementById('boardView').innerHTML = `
-                <div class="feature-error">
-                    <i data-lucide="alert-triangle" class="feature-error-icon"></i>
-                    <h2 class="feature-error-title">Failed to Load Board</h2>
-                    <p class="feature-error-description">We encountered an error while loading the board view.</p>
-                    <div class="feature-error-actions">
-                        <button class="btn btn-primary" onclick="location.reload()"><i data-lucide="refresh-cw"></i> Try Again</button>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Status</label>
+                    <select name="status" id="issueStatus" class="form-select">
+                        <option value="To Do">To Do</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="In Review">In Review</option>
+                        <option value="Done">Done</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select name="priority" class="form-select">
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Story Points</label>
+                        <input type="number" name="story_points" class="form-input" min="1" max="100">
                     </div>
                 </div>
-            `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-    }, 300);
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateIssueModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.kanban-card:hover {
+    border-color: var(--primary-300) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+.modal-content {
+    position: relative;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-primary);
+}
+.modal-header h2 { margin: 0; font-size: 18px; }
+.modal-body { padding: 24px; }
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-primary);
+}
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+.form-input, .form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+</style>
+
+<script>
+function changeProject(projectId) {
+    window.location.href = '/board?project=' + projectId;
+}
+
+function openCreateIssueModal(status) {
+    document.getElementById('createIssueModal').style.display = 'flex';
+    if (status) {
+        document.getElementById('issueStatus').value = status;
+    }
+}
+
+function closeCreateIssueModal() {
+    document.getElementById('createIssueModal').style.display = 'none';
+}
+
+function viewIssue(issueId, projectId) {
+    window.location.href = '/project/' + projectId + '/issue/' + issueId;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 });
 </script>
 {% endblock %}

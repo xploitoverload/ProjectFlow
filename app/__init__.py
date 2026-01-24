@@ -118,6 +118,9 @@ def create_app(config_name=None):
     # Register context processors
     _register_context_processors(app)
     
+    # Register request hooks for user activity tracking
+    _register_request_hooks(app)
+    
     # Create database tables
     with app.app_context():
         db.create_all()
@@ -125,6 +128,25 @@ def create_app(config_name=None):
     app.logger.info(f'Application started in {config_name} mode')
     
     return app
+
+
+def _register_request_hooks(app):
+    """Register before/after request hooks."""
+    from flask import session
+    from datetime import datetime
+    
+    @app.before_request
+    def update_user_activity():
+        """Update user's last activity timestamp."""
+        if 'user_id' in session:
+            from app.models import User
+            try:
+                user = User.query.get(session['user_id'])
+                if user:
+                    user.last_activity = datetime.utcnow()
+                    db.session.commit()
+            except Exception:
+                pass  # Don't break the request if activity update fails
 
 
 def _setup_logging(app):

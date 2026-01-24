@@ -3,38 +3,344 @@
 {% block title %}Issues - ProjectFlow{% endblock %}
 
 {% block content %}
-<div class="page-container">
-    <div id="issueNavigator">
-        <div class="feature-loading">
-            <div class="feature-loading-spinner"></div>
-            <div class="feature-loading-text">Loading Issues Navigator...</div>
+<div class="page-container" style="padding: 24px;">
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h1 style="font-size: 24px; font-weight: 600; margin: 0 0 4px;">Issues</h1>
+                <p style="color: var(--text-secondary); margin: 0;">{{ issues|length }} total issues across all projects</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-primary" onclick="openCreateIssueModal()">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                    Create Issue
+                </button>
+            </div>
         </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar" style="background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <form method="GET" action="{{ url_for('main.issues') }}" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 14px; font-weight: 500;">Project:</label>
+                <select name="project" class="form-select" style="min-width: 150px;" onchange="this.form.submit()">
+                    <option value="">All Projects</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}" {% if project_filter == project.id|string %}selected{% endif %}>{{ project.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 14px; font-weight: 500;">Status:</label>
+                <select name="status" class="form-select" style="min-width: 120px;" onchange="this.form.submit()">
+                    <option value="">All Status</option>
+                    <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open</option>
+                    <option value="To Do" {% if status_filter == 'To Do' %}selected{% endif %}>To Do</option>
+                    <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="In Review" {% if status_filter == 'In Review' %}selected{% endif %}>In Review</option>
+                    <option value="Done" {% if status_filter == 'Done' %}selected{% endif %}>Done</option>
+                    <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 14px; font-weight: 500;">Priority:</label>
+                <select name="priority" class="form-select" style="min-width: 120px;" onchange="this.form.submit()">
+                    <option value="">All Priority</option>
+                    <option value="critical" {% if priority_filter == 'critical' %}selected{% endif %}>Critical</option>
+                    <option value="highest" {% if priority_filter == 'highest' %}selected{% endif %}>Highest</option>
+                    <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>High</option>
+                    <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>Low</option>
+                    <option value="lowest" {% if priority_filter == 'lowest' %}selected{% endif %}>Lowest</option>
+                </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 14px; font-weight: 500;">Type:</label>
+                <select name="type" class="form-select" style="min-width: 120px;" onchange="this.form.submit()">
+                    <option value="">All Types</option>
+                    <option value="bug" {% if type_filter == 'bug' %}selected{% endif %}>Bug</option>
+                    <option value="task" {% if type_filter == 'task' %}selected{% endif %}>Task</option>
+                    <option value="story" {% if type_filter == 'story' %}selected{% endif %}>Story</option>
+                    <option value="epic" {% if type_filter == 'epic' %}selected{% endif %}>Epic</option>
+                </select>
+            </div>
+            <a href="{{ url_for('main.issues') }}" class="btn btn-secondary" style="margin-left: auto;">
+                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                Clear Filters
+            </a>
+        </form>
+    </div>
+
+    <!-- Issues Table -->
+    <div class="issues-table-container" style="background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: 8px; overflow: hidden;">
+        {% if issues %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-primary);">
+                    <th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Key</th>
+                    <th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Type</th>
+                    <th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Summary</th>
+                    <th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Priority</th>
+                    <th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Status</th>
+                    <th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Assignee</th>
+                    <th style="padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Project</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for issue in issues %}
+                <tr class="issue-row" 
+                    onclick="window.location.href='{{ url_for('projects.issue_detail', project_id=issue.project_id, issue_id=issue.id) }}'">
+                    <td style="padding: 12px 16px;">
+                        <span style="font-weight: 500; color: var(--primary-600);">{{ issue.key }}</span>
+                    </td>
+                    <td style="padding: 12px 16px;">
+                        {% if issue.issue_type == 'bug' %}
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #dc2626;">
+                            <i data-lucide="bug" style="width: 14px; height: 14px;"></i> Bug
+                        </span>
+                        {% elif issue.issue_type == 'task' %}
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #3b82f6;">
+                            <i data-lucide="check-square" style="width: 14px; height: 14px;"></i> Task
+                        </span>
+                        {% elif issue.issue_type == 'story' %}
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #22c55e;">
+                            <i data-lucide="bookmark" style="width: 14px; height: 14px;"></i> Story
+                        </span>
+                        {% elif issue.issue_type == 'epic' %}
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #8b5cf6;">
+                            <i data-lucide="zap" style="width: 14px; height: 14px;"></i> Epic
+                        </span>
+                        {% else %}
+                        <span>{{ issue.issue_type|default('Task')|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px 16px;">
+                        <span style="font-weight: 500;">{{ issue.title }}</span>
+                    </td>
+                    <td style="padding: 12px 16px;">
+                        {% set priority_colors = {'critical': '#dc2626', 'highest': '#ea580c', 'high': '#f59e0b', 'medium': '#3b82f6', 'low': '#22c55e', 'lowest': '#94a3b8'} %}
+                        {% set p_color = priority_colors.get(issue.priority, '#64748b') %}
+                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: {{ p_color }}20; color: {{ p_color }};">
+                            {% if issue.priority in ['critical', 'highest', 'high'] %}
+                            <i data-lucide="arrow-up" style="width: 12px; height: 12px;"></i>
+                            {% else %}
+                            <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                            {% endif %}
+                            {{ issue.priority|default('Medium')|title }}
+                        </span>
+                    </td>
+                    <td style="padding: 12px 16px;">
+                        {% set status_colors = {'open': '#3b82f6', 'To Do': '#64748b', 'In Progress': '#f59e0b', 'In Review': '#8b5cf6', 'Done': '#22c55e', 'closed': '#94a3b8'} %}
+                        {% set s_color = status_colors.get(issue.status, '#64748b') %}
+                        <span style="padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 500; background: {{ s_color }}20; color: {{ s_color }};">
+                            {{ issue.status|default('Open') }}
+                        </span>
+                    </td>
+                    <td style="padding: 12px 16px;">
+                        {% if issue.assignee %}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-500); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">
+                                {{ issue.assignee.username[:2].upper() }}
+                            </div>
+                            <span style="font-size: 13px;">{{ issue.assignee.username }}</span>
+                        </div>
+                        {% else %}
+                        <span style="color: var(--text-tertiary); font-size: 13px;">Unassigned</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px 16px;">
+                        <span style="font-size: 13px; color: var(--text-secondary);">{{ issue.project.name if issue.project else 'N/A' }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 80px 20px;">
+            <div style="width: 64px; height: 64px; background: var(--bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <i data-lucide="inbox" style="width: 28px; height: 28px; color: var(--text-tertiary);"></i>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 8px;">No Issues Found</h3>
+            <p style="color: var(--text-secondary); margin: 0 0 24px;">
+                {% if status_filter or priority_filter or type_filter or project_filter %}
+                No issues match your current filters. Try adjusting your filters.
+                {% else %}
+                Get started by creating your first issue.
+                {% endif %}
+            </p>
+            <button class="btn btn-primary" onclick="openCreateIssueModal()">
+                <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                Create Issue
+            </button>
+        </div>
+        {% endif %}
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('issueNavigator');
-    
-    setTimeout(() => {
-        if (typeof IssueTableAdvanced !== 'undefined') {
-            container.innerHTML = '';
-            const issueTable = new IssueTableAdvanced();
-            issueTable.render(container);
-        } else {
-            container.innerHTML = `
-                <div class="feature-error">
-                    <i data-lucide="alert-circle" class="feature-error-icon"></i>
-                    <div class="feature-error-title">Feature Not Loaded</div>
-                    <div class="feature-error-description">The Issue Navigator module failed to load. Please refresh the page.</div>
-                    <div class="feature-error-actions">
-                        <button class="btn btn-primary" onclick="location.reload()">Refresh Page</button>
+<!-- Create Issue Modal -->
+<div id="createIssueModal" class="modal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeCreateIssueModal()"></div>
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2>Create Issue</h2>
+            <button class="btn-icon" onclick="closeCreateIssueModal()">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        <form method="POST" action="" id="createIssueForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Project *</label>
+                    <select name="project_id" id="issueProjectSelect" class="form-select" required>
+                        <option value="">Select Project</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Issue Type *</label>
+                    <select name="issue_type" class="form-select" required>
+                        <option value="task">Task</option>
+                        <option value="bug">Bug</option>
+                        <option value="story">Story</option>
+                        <option value="epic">Epic</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Summary *</label>
+                    <input type="text" name="title" class="form-input" placeholder="Enter issue summary" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-input" rows="4" placeholder="Enter description"></textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select name="priority" class="form-select">
+                            <option value="medium">Medium</option>
+                            <option value="critical">Critical</option>
+                            <option value="highest">Highest</option>
+                            <option value="high">High</option>
+                            <option value="low">Low</option>
+                            <option value="lowest">Lowest</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Due Date</label>
+                        <input type="date" name="due_date" class="form-input">
                     </div>
                 </div>
-            `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-    }, 100);
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateIssueModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Issue</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.issue-row {
+    border-bottom: 1px solid var(--border-primary);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.issue-row:hover {
+    background: var(--bg-tertiary);
+}
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+.modal-content {
+    position: relative;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-primary);
+}
+.modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+.modal-body {
+    padding: 24px;
+}
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-primary);
+}
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+.form-input, .form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+.form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+</style>
+
+<script>
+function openCreateIssueModal() {
+    document.getElementById('createIssueModal').style.display = 'flex';
+}
+
+function closeCreateIssueModal() {
+    document.getElementById('createIssueModal').style.display = 'none';
+}
+
+// Update form action when project is selected
+document.getElementById('issueProjectSelect').addEventListener('change', function() {
+    const projectId = this.value;
+    if (projectId) {
+        document.getElementById('createIssueForm').action = '/project/' + projectId + '/issue/add';
+    }
+});
+
+// Initialize Lucide icons
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 });
 </script>
 {% endblock %}

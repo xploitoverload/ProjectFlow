@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline - ProjectFlow{% endblock %}
+
+{% block content %}
+<div class="page-container" style="padding: 24px;">
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h1 style="font-size: 24px; font-weight: 600; margin: 0 0 4px;">
+                    <i data-lucide="gantt-chart" style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+                    Timeline
+                </h1>
+                <p style="color: var(--text-secondary); margin: 0;">
+                    {% if selected_project %}{{ selected_project.name }} - {% endif %}
+                    {{ timeline_items|length }} items with due dates
+                </p>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <select id="projectSelector" class="form-select" style="min-width: 200px;" onchange="changeProject(this.value)">
+                    {% for project in projects %}
+                    <option value="{{ project.id }}" {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
+                        {{ project.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-secondary">
+                    <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                    Today
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline View -->
+    <div class="timeline-container" style="background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: 8px; overflow: hidden;">
+        {% if timeline_items %}
+        <!-- Timeline Header -->
+        <div class="timeline-header" style="display: grid; grid-template-columns: 300px 1fr; border-bottom: 1px solid var(--border-primary);">
+            <div style="padding: 12px 16px; font-weight: 600; font-size: 13px; border-right: 1px solid var(--border-primary);">
+                Issue
+            </div>
+            <div style="display: flex; overflow-x: auto;">
+                {% set months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] %}
+                {% for month in months %}
+                <div style="min-width: 100px; padding: 12px; text-align: center; font-size: 12px; font-weight: 500; border-right: 1px solid var(--border-primary);">
+                    {{ month }} 2026
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Timeline Body -->
+        <div class="timeline-body">
+            {% for issue in timeline_items %}
+            <div class="timeline-row" style="display: grid; grid-template-columns: 300px 1fr; border-bottom: 1px solid var(--border-primary);">
+                <div class="timeline-issue" style="padding: 12px 16px; border-right: 1px solid var(--border-primary); display: flex; align-items: center; gap: 12px;">
+                    {% if issue.issue_type == 'bug' %}
+                    <i data-lucide="bug" style="width: 16px; height: 16px; color: #dc2626;"></i>
+                    {% elif issue.issue_type == 'story' %}
+                    <i data-lucide="bookmark" style="width: 16px; height: 16px; color: #22c55e;"></i>
+                    {% elif issue.issue_type == 'epic' %}
+                    <i data-lucide="zap" style="width: 16px; height: 16px; color: #8b5cf6;"></i>
+                    {% else %}
+                    <i data-lucide="check-square" style="width: 16px; height: 16px; color: #3b82f6;"></i>
+                    {% endif %}
+                    <div style="flex: 1; min-width: 0;">
+                        <a href="{{ url_for('projects.issue_detail', project_id=issue.project_id, issue_id=issue.id) }}" 
+                           style="font-size: 13px; font-weight: 500; color: var(--primary-600); text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            {{ issue.key }}: {{ issue.title }}
+                        </a>
+                        <span style="font-size: 11px; color: var(--text-tertiary);">Due: {{ issue.due_date.strftime('%b %d, %Y') if issue.due_date else 'No date' }}</span>
+                    </div>
+                </div>
+                <div class="timeline-bar-container" style="position: relative; display: flex; align-items: center; padding: 8px 0;">
+                    {% if issue.due_date %}
+                    {% set month_offset = issue.due_date.month - 1 %}
+                    {% set day_offset = (issue.due_date.day / 31) * 100 %}
+                    <div class="timeline-bar" style="position: absolute; left: calc({{ month_offset }} * 100px + {{ day_offset }}px); height: 24px; min-width: 80px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-weight: 500; color: white;
+                        {% if issue.status in ['Done', 'closed'] %}
+                        background: linear-gradient(90deg, #22c55e, #16a34a);
+                        {% elif issue.status == 'In Progress' %}
+                        background: linear-gradient(90deg, #f59e0b, #d97706);
+                        {% elif issue.status == 'In Review' %}
+                        background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+                        {% else %}
+                        background: linear-gradient(90deg, #3b82f6, #2563eb);
+                        {% endif %}
+                    ">
+                        {{ issue.status }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 80px 20px;">
+            <div style="width: 64px; height: 64px; background: var(--bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <i data-lucide="calendar-x" style="width: 28px; height: 28px; color: var(--text-tertiary);"></i>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 8px;">No Timeline Items</h3>
+            <p style="color: var(--text-secondary); margin: 0 0 24px;">
+                Add due dates to your issues to see them on the timeline.
+            </p>
+            <a href="{{ url_for('main.issues') }}" class="btn btn-primary">
+                <i data-lucide="list" style="width: 16px; height: 16px;"></i>
+                View Issues
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Legend -->
+    <div style="margin-top: 24px; display: flex; gap: 24px; justify-content: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 16px; height: 16px; border-radius: 3px; background: #3b82f6;"></div>
+            <span style="font-size: 12px; color: var(--text-secondary);">To Do</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 16px; height: 16px; border-radius: 3px; background: #f59e0b;"></div>
+            <span style="font-size: 12px; color: var(--text-secondary);">In Progress</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 16px; height: 16px; border-radius: 3px; background: #8b5cf6;"></div>
+            <span style="font-size: 12px; color: var(--text-secondary);">In Review</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 16px; height: 16px; border-radius: 3px; background: #22c55e;"></div>
+            <span style="font-size: 12px; color: var(--text-secondary);">Done</span>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline-row:hover {
+    background: var(--bg-tertiary);
+}
+.timeline-bar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+.timeline-bar:hover {
+    transform: scale(1.02);
+}
+</style>
+
+<script>
+function changeProject(projectId) {
+    window.location.href = '/timeline?project=' + projectId;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}

@@ -59,6 +59,7 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     failed_login_attempts = db.Column(db.Integer, default=0)
     last_login = db.Column(db.DateTime)
+    last_activity = db.Column(db.DateTime)  # Updated on each request
     is_active = db.Column(db.Boolean, default=True)
     
     @property
@@ -68,6 +69,44 @@ class User(UserMixin, db.Model):
     @email.setter
     def email(self, value):
         self.email_encrypted = encrypt_field(value)
+    
+    @property
+    def is_online(self):
+        """Check if user is considered online (active in last 5 minutes)."""
+        if not self.last_activity:
+            return False
+        from datetime import timedelta
+        return (datetime.utcnow() - self.last_activity) < timedelta(minutes=5)
+    
+    @property
+    def status_text(self):
+        """Get user status text."""
+        if not self.is_active:
+            return 'Inactive'
+        if self.is_online:
+            return 'Online'
+        if self.last_activity:
+            return f'Last seen {self.time_ago(self.last_activity)}'
+        return 'Offline'
+    
+    @staticmethod
+    def time_ago(dt):
+        """Get human-readable time ago string."""
+        if not dt:
+            return 'Never'
+        diff = datetime.utcnow() - dt
+        seconds = diff.total_seconds()
+        if seconds < 60:
+            return 'just now'
+        elif seconds < 3600:
+            mins = int(seconds / 60)
+            return f'{mins}m ago'
+        elif seconds < 86400:
+            hours = int(seconds / 3600)
+            return f'{hours}h ago'
+        else:
+            days = int(seconds / 86400)
+            return f'{days}d ago'
     
     def set_password(self, password):
         self.password = generate_password_hash(password, method='pbkdf2:sha256:600000')

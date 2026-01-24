@@ -1,0 +1,168 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Tools{% endblock %}
+{% block breadcrumb %}Tools{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header" style="margin-bottom: 32px;">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i data-lucide="wrench" style="width: 28px; height: 28px; display: inline-block; vertical-align: middle; margin-right: 12px; color: var(--admin-accent);"></i>
+                Admin Tools
+            </h1>
+            <p class="page-subtitle">Central hub for all administrative tools and utilities</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="stats-row" style="display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 200px; background: var(--admin-bg-secondary); border: 1px solid var(--admin-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+        <div style="width: 48px; height: 48px; background: rgba(88, 166, 255, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="grid-3x3" style="width: 24px; height: 24px; color: #58A6FF;"></i>
+        </div>
+        <div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--admin-text);">{{ tools|length }}</div>
+            <div style="font-size: 14px; color: var(--admin-text-secondary);">Available Tools</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tools Grid -->
+<div class="tools-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+    {% for key, tool in tools.items() %}
+    <a href="{{ tool.url }}" class="tool-card" style="
+        display: block;
+        text-decoration: none;
+        background: var(--admin-bg-secondary);
+        border: 1px solid var(--admin-border);
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    " onmouseover="this.style.borderColor='{{ tool.color }}'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';" 
+       onmouseout="this.style.borderColor='var(--admin-border)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+        
+        {% if tool.badge %}
+        <span style="
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: {{ tool.color }}20;
+            color: {{ tool.color }};
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        ">{{ tool.badge }}</span>
+        {% endif %}
+        
+        <div style="display: flex; align-items: flex-start; gap: 16px;">
+            <div style="
+                width: 56px;
+                height: 56px;
+                background: {{ tool.color }}20;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            ">
+                <i data-lucide="{{ tool.icon }}" style="width: 28px; height: 28px; color: {{ tool.color }};"></i>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="margin: 0 0 8px; font-size: 17px; font-weight: 600; color: var(--admin-text);">{{ tool.name }}</h3>
+                <p style="margin: 0; font-size: 13px; color: var(--admin-text-secondary); line-height: 1.5;">{{ tool.description }}</p>
+            </div>
+        </div>
+        
+        <div style="
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--admin-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        ">
+            <span style="font-size: 13px; font-weight: 500; color: {{ tool.color }};">Open Tool</span>
+            <i data-lucide="arrow-right" style="width: 16px; height: 16px; color: {{ tool.color }};"></i>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Quick Actions Section -->
+<div style="margin-top: 40px;">
+    <h2 style="font-size: 18px; font-weight: 600; color: var(--admin-text); margin-bottom: 20px;">
+        <i data-lucide="zap" style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 8px; color: #D29922;"></i>
+        Quick Actions
+    </h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+        <a href="{{ url_for('admin.admin_users') }}" style="
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--admin-bg-secondary);
+            border: 1px solid var(--admin-border);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--admin-text);
+            transition: all 0.2s ease;
+        " onmouseover="this.style.background='var(--admin-bg-tertiary)'" onmouseout="this.style.background='var(--admin-bg-secondary)'">
+            <i data-lucide="user-plus" style="width: 20px; height: 20px; color: #8957E5;"></i>
+            <span style="font-size: 14px; font-weight: 500;">Add New User</span>
+        </a>
+        <a href="{{ url_for('admin.admin_teams') }}" style="
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--admin-bg-secondary);
+            border: 1px solid var(--admin-border);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--admin-text);
+            transition: all 0.2s ease;
+        " onmouseover="this.style.background='var(--admin-bg-tertiary)'" onmouseout="this.style.background='var(--admin-bg-secondary)'">
+            <i data-lucide="users-round" style="width: 20px; height: 20px; color: #238636;"></i>
+            <span style="font-size: 14px; font-weight: 500;">Manage Teams</span>
+        </a>
+        <a href="{{ url_for('admin.admin_projects') }}" style="
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--admin-bg-secondary);
+            border: 1px solid var(--admin-border);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--admin-text);
+            transition: all 0.2s ease;
+        " onmouseover="this.style.background='var(--admin-bg-tertiary)'" onmouseout="this.style.background='var(--admin-bg-secondary)'">
+            <i data-lucide="folder-plus" style="width: 20px; height: 20px; color: #58A6FF;"></i>
+            <span style="font-size: 14px; font-weight: 500;">Create Project</span>
+        </a>
+        <a href="{{ url_for('admin.audit_logs') }}" style="
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--admin-bg-secondary);
+            border: 1px solid var(--admin-border);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--admin-text);
+            transition: all 0.2s ease;
+        " onmouseover="this.style.background='var(--admin-bg-tertiary)'" onmouseout="this.style.background='var(--admin-bg-secondary)'">
+            <i data-lucide="file-text" style="width: 20px; height: 20px; color: #8B949E;"></i>
+            <span style="font-size: 14px; font-weight: 500;">View Logs</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -168,40 +168,142 @@ def settings():
 @login_required
 def issues():
     """Issues navigator with advanced filters."""
-    from app.models import User
+    from app.models import User, Issue, Project
+    from app.services import IssueService
+    
     user = User.query.get(session['user_id'])
     projects = ProjectService.get_user_accessible_projects(user)
-    return render_template('issues.html', projects=projects)
+    
+    # Get all issues from user's accessible projects
+    all_issues = []
+    for project in projects:
+        project_issues = Issue.query.filter_by(project_id=project.id).order_by(Issue.created_at.desc()).all()
+        all_issues.extend(project_issues)
+    
+    # Get filter parameters
+    status_filter = request.args.get('status', '')
+    priority_filter = request.args.get('priority', '')
+    type_filter = request.args.get('type', '')
+    project_filter = request.args.get('project', '')
+    
+    # Apply filters
+    if status_filter:
+        all_issues = [i for i in all_issues if i.status == status_filter]
+    if priority_filter:
+        all_issues = [i for i in all_issues if i.priority == priority_filter]
+    if type_filter:
+        all_issues = [i for i in all_issues if i.issue_type == type_filter]
+    if project_filter:
+        all_issues = [i for i in all_issues if str(i.project_id) == project_filter]
+    
+    return render_template('issues.html', 
+                          projects=projects, 
+                          issues=all_issues,
+                          status_filter=status_filter,
+                          priority_filter=priority_filter,
+                          type_filter=type_filter,
+                          project_filter=project_filter)
 
 
 @main_bp.route('/board')
 @login_required
 def board():
     """Kanban/Scrum board view."""
-    from app.models import User
+    from app.models import User, Issue
     user = User.query.get(session['user_id'])
     projects = ProjectService.get_user_accessible_projects(user)
-    return render_template('board.html', projects=projects)
+    
+    # Get first project with issues for default view
+    selected_project = None
+    issues_by_status = {}
+    
+    project_id = request.args.get('project')
+    if project_id:
+        from app.models import Project
+        selected_project = Project.query.get(int(project_id))
+    elif projects:
+        selected_project = projects[0]
+    
+    if selected_project:
+        # Get issues grouped by status
+        all_issues = Issue.query.filter_by(project_id=selected_project.id).order_by(Issue.position).all()
+        statuses = ['To Do', 'In Progress', 'In Review', 'Done']
+        for status in statuses:
+            issues_by_status[status] = [i for i in all_issues if i.status == status]
+    
+    return render_template('board.html', 
+                          projects=projects,
+                          selected_project=selected_project,
+                          issues_by_status=issues_by_status)
 
 
 @main_bp.route('/backlog')
 @login_required
 def backlog():
     """Backlog with sprint planning."""
-    from app.models import User
+    from app.models import User, Issue, Sprint
     user = User.query.get(session['user_id'])
     projects = ProjectService.get_user_accessible_projects(user)
-    return render_template('backlog_new.html', projects=projects)
+    
+    # Get first project for default view
+    selected_project = None
+    backlog_issues = []
+    sprints = []
+    
+    project_id = request.args.get('project')
+    if project_id:
+        from app.models import Project
+        selected_project = Project.query.get(int(project_id))
+    elif projects:
+        selected_project = projects[0]
+    
+    if selected_project:
+        # Get backlog issues (issues without sprint)
+        backlog_issues = Issue.query.filter_by(
+            project_id=selected_project.id,
+            sprint_id=None
+        ).order_by(Issue.position).all()
+        
+        # Get sprints
+        sprints = Sprint.query.filter_by(project_id=selected_project.id).order_by(Sprint.start_date.desc()).all()
+    
+    return render_template('backlog_new.html', 
+                          projects=projects,
+                          selected_project=selected_project,
+                          backlog_issues=backlog_issues,
+                          sprints=sprints)
 
 
 @main_bp.route('/timeline')
 @login_required
 def timeline():
     """Timeline/Roadmap Gantt view."""
-    from app.models import User
+    from app.models import User, Issue, Sprint
     user = User.query.get(session['user_id'])
     projects = ProjectService.get_user_accessible_projects(user)
-    return render_template('timeline.html', projects=projects)
+    
+    # Get first project for default view
+    selected_project = None
+    timeline_items = []
+    
+    project_id = request.args.get('project')
+    if project_id:
+        from app.models import Project
+        selected_project = Project.query.get(int(project_id))
+    elif projects:
+        selected_project = projects[0]
+    
+    if selected_project:
+        # Get issues with dates for timeline
+        timeline_items = Issue.query.filter(
+            Issue.project_id == selected_project.id,
+            Issue.due_date != None
+        ).order_by(Issue.due_date).all()
+    
+    return render_template('timeline.html', 
+                          projects=projects,
+                          selected_project=selected_project,
+                          timeline_items=timeline_items)
 
 
 @main_bp.route('/service-desk')

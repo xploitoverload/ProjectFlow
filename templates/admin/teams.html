@@ -172,7 +172,7 @@
                     </h2>
                     <div class="grid grid-cols-4 gap-4">
                         {% for team in core_teams %}
-                        <div class="card card-hover" style="border-left: 4px solid {{ team.color or '#6366f1' }};">
+                        <a href="{{ url_for('admin.team_detail', team_id=team.id) }}" class="card card-hover" style="border-left: 4px solid {{ team.color or '#6366f1' }}; text-decoration: none; cursor: pointer;">
                             <div class="card-body p-4">
                                 <div class="flex items-center gap-3 mb-2">
                                     <div class="avatar avatar-md" style="background: {{ team.color or '#6366f1' }}; color: white;">
@@ -183,11 +183,14 @@
                                         <p class="text-xs text-secondary">{{ team.department or 'Core Team' }}</p>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-3 text-xs text-secondary mt-2">
+                                <div class="flex items-center justify-between text-xs text-secondary mt-2">
                                     <span><i data-lucide="users" class="icon-xs"></i> {{ team.members|length }} members</span>
+                                    <span class="btn btn-ghost btn-sm" style="padding: 4px 8px; font-size: 11px;">
+                                        <i data-lucide="settings" class="icon-xs"></i> Manage
+                                    </span>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                         {% endfor %}
                     </div>
                 </div>

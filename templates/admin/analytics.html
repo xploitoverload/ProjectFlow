@@ -1,0 +1,491 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+{% block breadcrumb %}Analytics{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+    .chart-card {
+        background: var(--admin-bg-secondary);
+        border: 1px solid var(--admin-border);
+        border-radius: 12px;
+        padding: 24px;
+    }
+    .chart-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--admin-text);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-card {
+        background: var(--admin-bg-tertiary);
+        border-radius: 10px;
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .stat-label {
+        font-size: 12px;
+        color: var(--admin-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--admin-text);
+    }
+    .stat-trend {
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .stat-trend.up { color: #7EE787; }
+    .stat-trend.down { color: #F85149; }
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+    }
+    @media (max-width: 768px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+        .chart-container {
+            height: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">Analytics Dashboard</h1>
+            <p class="page-subtitle">Project and team performance insights</p>
+        </div>
+        <div class="page-header-actions">
+            <button class="btn btn-secondary" onclick="exportAnalytics()">
+                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                Export Report
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="stats-summary">
+    <div class="stat-card">
+        <span class="stat-label">Total Projects</span>
+        <span class="stat-value">{{ project_count|default(0) }}</span>
+        <span class="stat-trend up"><i data-lucide="trending-up" style="width: 14px; height: 14px;"></i> Active tracking</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Active Issues</span>
+        <span class="stat-value">{{ active_issues|default(0) }}</span>
+        <span class="stat-trend">In progress</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Completed Issues</span>
+        <span class="stat-value">{{ completed_issues|default(0) }}</span>
+        <span class="stat-trend up"><i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Done</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Team Members</span>
+        <span class="stat-value">{{ user_count|default(0) }}</span>
+        <span class="stat-trend">{{ online_count|default(0) }} online</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Avg. Completion Rate</span>
+        <span class="stat-value">{{ completion_rate|default(0) }}%</span>
+        <span class="stat-trend {% if (completion_rate|default(0)) > 50 %}up{% else %}down{% endif %}">
+            <i data-lucide="{% if (completion_rate|default(0)) > 50 %}trending-up{% else %}trending-down{% endif %}" style="width: 14px; height: 14px;"></i>
+            {{ 'Good' if (completion_rate|default(0)) > 50 else 'Needs attention' }}
+        </span>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="charts-grid">
+    <!-- Project Status Chart -->
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <i data-lucide="pie-chart" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Project Status Distribution
+        </h3>
+        <div class="chart-container">
+            <canvas id="projectStatusChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Issue Priority Chart -->
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <i data-lucide="alert-triangle" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Issues by Priority
+        </h3>
+        <div class="chart-container">
+            <canvas id="issuePriorityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Issue Status Chart -->
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <i data-lucide="list-checks" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Issue Status Overview
+        </h3>
+        <div class="chart-container">
+            <canvas id="issueStatusChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Team Performance Chart -->
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <i data-lucide="users" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Team Performance
+        </h3>
+        <div class="chart-container">
+            <canvas id="teamPerformanceChart"></canvas>
+        </div>
+    </div>
+
+    <!-- User Activity Chart -->
+    <div class="chart-card" style="grid-column: span 2;">
+        <h3 class="chart-title">
+            <i data-lucide="activity" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Activity Over Last 7 Days
+        </h3>
+        <div class="chart-container" style="height: 280px;">
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Issue Types Chart -->
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <i data-lucide="tag" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Issue Types Distribution
+        </h3>
+        <div class="chart-container">
+            <canvas id="issueTypesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Project Progress Chart -->
+    <div class="chart-card">
+        <h3 class="chart-title">
+            <i data-lucide="target" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Project Progress
+        </h3>
+        <div class="chart-container">
+            <canvas id="projectProgressChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Color palette matching the design system
+    const colors = {
+        primary: '#58A6FF',
+        secondary: '#8957E5',
+        success: '#238636',
+        warning: '#D29922',
+        danger: '#F85149',
+        info: '#79C0FF',
+        text: '#E6EDF3',
+        textSecondary: '#8b949e',
+        bgTertiary: 'rgba(45, 51, 59, 0.5)'
+    };
+    
+    const chartColors = [
+        colors.primary,
+        colors.secondary, 
+        colors.success,
+        colors.warning,
+        colors.danger,
+        colors.info,
+        '#F778BA',
+        '#A5D6FF'
+    ];
+
+    // Chart.js global defaults
+    Chart.defaults.color = colors.textSecondary;
+    Chart.defaults.borderColor = 'rgba(139, 148, 158, 0.1)';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+
+    // Project Status Chart (Doughnut)
+    const projectStatusData = {{ project_status_data|safe if project_status_data else '{"labels": ["Planning", "In Progress", "Completed"], "values": [2, 3, 1]}' }};
+    new Chart(document.getElementById('projectStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: projectStatusData.labels,
+            datasets: [{
+                data: projectStatusData.values,
+                backgroundColor: chartColors,
+                borderWidth: 0,
+                spacing: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+
+    // Issue Priority Chart (Bar)
+    const issuePriorityData = {{ issue_priority_data|safe if issue_priority_data else '{"labels": ["Critical", "High", "Medium", "Low"], "values": [2, 5, 8, 4]}' }};
+    new Chart(document.getElementById('issuePriorityChart'), {
+        type: 'bar',
+        data: {
+            labels: issuePriorityData.labels,
+            datasets: [{
+                label: 'Issues',
+                data: issuePriorityData.values,
+                backgroundColor: [colors.danger, colors.warning, colors.primary, colors.success],
+                borderRadius: 6,
+                barThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(139, 148, 158, 0.1)'
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // Issue Status Chart (Doughnut)
+    const issueStatusData = {{ issue_status_data|safe if issue_status_data else '{"labels": ["Open", "In Progress", "In Review", "Done"], "values": [5, 8, 3, 12]}' }};
+    new Chart(document.getElementById('issueStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: issueStatusData.labels,
+            datasets: [{
+                data: issueStatusData.values,
+                backgroundColor: [colors.primary, colors.warning, colors.secondary, colors.success],
+                borderWidth: 0,
+                spacing: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+
+    // Team Performance Chart (Horizontal Bar)
+    const teamPerformanceData = {{ team_performance_data|safe if team_performance_data else '{"labels": ["Development", "Design", "QA", "DevOps"], "values": [85, 72, 90, 68]}' }};
+    new Chart(document.getElementById('teamPerformanceChart'), {
+        type: 'bar',
+        data: {
+            labels: teamPerformanceData.labels,
+            datasets: [{
+                label: 'Completion %',
+                data: teamPerformanceData.values,
+                backgroundColor: chartColors,
+                borderRadius: 6,
+                barThickness: 25
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: 'rgba(139, 148, 158, 0.1)'
+                    }
+                },
+                y: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // Activity Chart (Line)
+    const activityData = {{ activity_data|safe if activity_data else '{"labels": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], "issues_created": [3, 5, 2, 8, 4, 1, 0], "issues_resolved": [2, 4, 3, 5, 6, 2, 1]}' }};
+    new Chart(document.getElementById('activityChart'), {
+        type: 'line',
+        data: {
+            labels: activityData.labels,
+            datasets: [{
+                label: 'Issues Created',
+                data: activityData.issues_created,
+                borderColor: colors.primary,
+                backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }, {
+                label: 'Issues Resolved',
+                data: activityData.issues_resolved,
+                borderColor: colors.success,
+                backgroundColor: 'rgba(35, 134, 54, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 20
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(139, 148, 158, 0.1)'
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    // Issue Types Chart (Pie)
+    const issueTypesData = {{ issue_types_data|safe if issue_types_data else '{"labels": ["Bug", "Feature", "Task", "Improvement", "Epic"], "values": [8, 12, 15, 5, 3]}' }};
+    new Chart(document.getElementById('issueTypesChart'), {
+        type: 'pie',
+        data: {
+            labels: issueTypesData.labels,
+            datasets: [{
+                data: issueTypesData.values,
+                backgroundColor: chartColors,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+
+    // Project Progress Chart (Bar)
+    const projectProgressData = {{ project_progress_data|safe if project_progress_data else '{"labels": ["Project A", "Project B", "Project C"], "values": [75, 45, 90]}' }};
+    new Chart(document.getElementById('projectProgressChart'), {
+        type: 'bar',
+        data: {
+            labels: projectProgressData.labels,
+            datasets: [{
+                label: 'Progress %',
+                data: projectProgressData.values,
+                backgroundColor: projectProgressData.values.map(v => v >= 75 ? colors.success : v >= 50 ? colors.warning : colors.primary),
+                borderRadius: 6,
+                barThickness: 35
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: 'rgba(139, 148, 158, 0.1)'
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+
+function exportAnalytics() {
+    alert('Analytics export functionality coming soon!');
+}
+</script>
+{% endblock %}

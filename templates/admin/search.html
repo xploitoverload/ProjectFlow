@@ -1,0 +1,206 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Advanced Search{% endblock %}
+{% block breadcrumb %}Tools / Search{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 32px;">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">
+                <i data-lucide="search" style="width: 28px; height: 28px; display: inline-block; vertical-align: middle; margin-right: 12px; color: #F85149;"></i>
+                Advanced Search
+            </h1>
+            <p class="page-subtitle">Search across all projects, issues, users, and more</p>
+        </div>
+    </div>
+</div>
+
+<!-- Search Box -->
+<div class="admin-card" style="margin-bottom: 24px;">
+    <div class="admin-card-body">
+        <form method="GET" action="{{ url_for('admin.admin_search') }}">
+            <div style="display: flex; gap: 12px;">
+                <div style="flex: 1; position: relative;">
+                    <i data-lucide="search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--admin-text-secondary);"></i>
+                    <input type="text" name="q" value="{{ query }}" placeholder="Search for users, projects, issues..." 
+                           style="width: 100%; padding: 14px 16px 14px 48px; border: 1px solid var(--admin-border); border-radius: 10px; background: var(--admin-bg-tertiary); color: var(--admin-text); font-size: 15px;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="padding: 14px 28px;">
+                    <i data-lucide="search" style="width: 18px; height: 18px;"></i>
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if query %}
+<!-- Search Results -->
+<div style="margin-bottom: 24px;">
+    <h2 style="font-size: 16px; font-weight: 600; color: var(--admin-text); margin-bottom: 16px;">
+        Search results for "{{ query }}"
+    </h2>
+</div>
+
+<!-- Users Results -->
+{% if results.users %}
+<div class="admin-card" style="margin-bottom: 24px;">
+    <div class="admin-card-header">
+        <h2 class="admin-card-title">
+            <i data-lucide="users" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Users ({{ results.users|length }})
+        </h2>
+    </div>
+    <div class="admin-card-body" style="padding: 0;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--admin-border);">
+                        <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;">User</th>
+                        <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;">Email</th>
+                        <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;">Role</th>
+                        <th style="padding: 14px 20px; text-align: right; font-weight: 600; font-size: 12px; text-transform: uppercase;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in results.users %}
+                    <tr style="border-bottom: 1px solid var(--admin-border);">
+                        <td style="padding: 14px 20px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, var(--admin-accent), #8957E5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white;">
+                                    {{ user.username[:2].upper() }}
+                                </div>
+                                <span style="font-weight: 500;">{{ user.username }}</span>
+                            </div>
+                        </td>
+                        <td style="padding: 14px 20px; color: var(--admin-text-secondary);">{{ user.email }}</td>
+                        <td style="padding: 14px 20px;">
+                            <span style="background: rgba(88, 166, 255, 0.15); color: #58A6FF; padding: 4px 12px; border-radius: 20px; font-size: 12px;">{{ user.role }}</span>
+                        </td>
+                        <td style="padding: 14px 20px; text-align: right;">
+                            <a href="{{ url_for('admin.admin_users') }}" class="btn btn-ghost btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Projects Results -->
+{% if results.projects %}
+<div class="admin-card" style="margin-bottom: 24px;">
+    <div class="admin-card-header">
+        <h2 class="admin-card-title">
+            <i data-lucide="folder" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Projects ({{ results.projects|length }})
+        </h2>
+    </div>
+    <div class="admin-card-body" style="padding: 0;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--admin-border);">
+                        <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;">Project</th>
+                        <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;">Key</th>
+                        <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;">Status</th>
+                        <th style="padding: 14px 20px; text-align: right; font-weight: 600; font-size: 12px; text-transform: uppercase;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in results.projects %}
+                    <tr style="border-bottom: 1px solid var(--admin-border);">
+                        <td style="padding: 14px 20px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #58A6FF, #8957E5); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white;">
+                                    {{ project.name[:2].upper() }}
+                                </div>
+                                <span style="font-weight: 500;">{{ project.name }}</span>
+                            </div>
+                        </td>
+                        <td style="padding: 14px 20px; font-family: monospace; color: var(--admin-accent);">{{ project.key }}</td>
+                        <td style="padding: 14px 20px;">
+                            <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 4px 12px; border-radius: 20px; font-size: 12px;">{{ project.status }}</span>
+                        </td>
+                        <td style="padding: 14px 20px; text-align: right;">
+                            <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="btn btn-ghost btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Issues Results -->
+{% if results.issues %}
+<div class="admin-card" style="margin-bottom: 24px;">
+    <div class="admin-card-header">
+        <h2 class="admin-card-title">
+            <i data-lucide="list-todo" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Issues ({{ results.issues|length }})
+        </h2>
+    </div>
+    <div class="admin-card-body" style="padding: 0;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--admin-border);">
+                        <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;">Key</th>
+                        <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;">Summary</th>
+                        <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;">Status</th>
+                        <th style="padding: 14px 20px; text-align: right; font-weight: 600; font-size: 12px; text-transform: uppercase;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in results.issues %}
+                    <tr style="border-bottom: 1px solid var(--admin-border);">
+                        <td style="padding: 14px 20px; font-family: monospace; color: var(--admin-accent); font-weight: 500;">{{ issue.key }}</td>
+                        <td style="padding: 14px 20px;">{{ issue.title[:60] }}{% if issue.title|length > 60 %}...{% endif %}</td>
+                        <td style="padding: 14px 20px;">
+                            <span style="background: {{ 'rgba(35, 134, 54, 0.15)' if issue.status == 'Done' else 'rgba(210, 153, 34, 0.15)' if issue.status == 'In Progress' else 'rgba(88, 166, 255, 0.15)' }}; color: {{ '#7EE787' if issue.status == 'Done' else '#D29922' if issue.status == 'In Progress' else '#58A6FF' }}; padding: 4px 12px; border-radius: 20px; font-size: 12px;">{{ issue.status }}</span>
+                        </td>
+                        <td style="padding: 14px 20px; text-align: right;">
+                            <a href="{{ url_for('projects.issue_detail', project_id=issue.project_id, issue_id=issue.id) }}" class="btn btn-ghost btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if not results.users and not results.projects and not results.issues %}
+<div class="admin-card">
+    <div class="admin-card-body" style="text-align: center; padding: 60px 20px;">
+        <div style="width: 80px; height: 80px; background: var(--admin-bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <i data-lucide="search-x" style="width: 36px; height: 36px; color: var(--admin-text-secondary);"></i>
+        </div>
+        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: var(--admin-text);">No results found</h3>
+        <p style="margin: 0; color: var(--admin-text-secondary);">Try adjusting your search terms</p>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty State -->
+<div class="admin-card">
+    <div class="admin-card-body" style="text-align: center; padding: 80px 20px;">
+        <div style="width: 100px; height: 100px; background: var(--admin-bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <i data-lucide="search" style="width: 44px; height: 44px; color: var(--admin-text-secondary);"></i>
+        </div>
+        <h3 style="margin: 0 0 8px; font-size: 20px; font-weight: 600; color: var(--admin-text);">Search Everything</h3>
+        <p style="margin: 0; color: var(--admin-text-secondary); max-width: 400px; margin-left: auto; margin-right: auto;">
+            Enter a search term above to find users, projects, issues, and more across your entire workspace
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
