@@ -159,6 +159,11 @@ def get_client_ip():
     """
     Get client IP address, handling proxies securely.
     """
+    from flask import has_request_context
+    
+    if not has_request_context():
+        return '127.0.0.1'
+    
     # Check X-Forwarded-For header (from reverse proxy)
     if request.environ.get('HTTP_X_FORWARDED_FOR'):
         # Take the first IP (client IP)
@@ -202,14 +207,23 @@ def log_security_event(event_type, user_id=None, details=None, severity='INFO'):
     """
     Log security events for audit trail.
     """
+    from flask import has_request_context
+    
     audit_logger = logging.getLogger('audit')
+    
+    # Safely get request context info
+    ip_address = 'N/A'
+    user_agent = 'N/A'
+    if has_request_context():
+        ip_address = get_client_ip()
+        user_agent = request.headers.get('User-Agent', 'Unknown')[:200]
     
     log_data = {
         'timestamp': datetime.utcnow().isoformat(),
         'event_type': event_type,
         'user_id': user_id,
-        'ip_address': get_client_ip(),
-        'user_agent': request.headers.get('User-Agent', 'Unknown')[:200],
+        'ip_address': ip_address,
+        'user_agent': user_agent,
         'details': details,
         'severity': severity
     }

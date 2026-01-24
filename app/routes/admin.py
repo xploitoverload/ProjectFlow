@@ -548,3 +548,111 @@ def security_dashboard():
                           failed_logins=failed_logins,
                           suspicious=suspicious,
                           stats=stats)
+
+
+@admin_bp.route('/database')
+@admin_required
+def db_management():
+    """Database management dashboard."""
+    from app.models import User, Team, Project, Issue, db
+    import os
+    
+    # Get database stats
+    db_path = 'instance/project_mgmt.db'
+    db_size = 0
+    if os.path.exists(db_path):
+        db_size = os.path.getsize(db_path) / (1024 * 1024)  # Convert to MB
+    
+    stats = {
+        'users': User.query.count(),
+        'teams': Team.query.count(),
+        'projects': Project.query.count(),
+        'issues': Issue.query.count(),
+        'db_size': round(db_size, 2)
+    }
+    
+    return render_template('admin/database.html', stats=stats)
+
+
+@admin_bp.route('/settings')
+@admin_required
+def system_settings():
+    """System settings page."""
+    from flask import current_app
+    
+    settings = {
+        'app_name': current_app.config.get('APP_NAME', 'ProjectFlow'),
+        'debug_mode': current_app.config.get('DEBUG', False),
+        'secret_key_set': bool(current_app.config.get('SECRET_KEY')),
+        'encryption_enabled': True,
+        'max_upload_size': current_app.config.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024) / (1024 * 1024)
+    }
+    
+    return render_template('admin/settings.html', settings=settings)
+
+
+@admin_bp.route('/backup')
+@admin_required
+def backup_restore():
+    """Backup and restore page."""
+    import os
+    from datetime import datetime
+    
+    # List existing backups
+    backup_dir = 'backups'
+    backups = []
+    
+    if os.path.exists(backup_dir):
+        for filename in os.listdir(backup_dir):
+            if filename.endswith('.db') or filename.endswith('.sql'):
+                filepath = os.path.join(backup_dir, filename)
+                backups.append({
+                    'name': filename,
+                    'size': round(os.path.getsize(filepath) / (1024 * 1024), 2),
+                    'date': datetime.fromtimestamp(os.path.getmtime(filepath))
+                })
+    
+    backups.sort(key=lambda x: x['date'], reverse=True)
+    
+    return render_template('admin/backup.html', backups=backups)
+
+
+@admin_bp.route('/backup/create', methods=['POST'])
+@admin_required
+def create_backup():
+    """Create a database backup."""
+    import shutil
+    import os
+    from datetime import datetime
+    
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash('Security error. Please try again.', 'error')
+        return redirect(url_for('admin.backup_restore'))
+    
+    # Create backup directory if not exists
+    backup_dir = 'backups'
+    if not os.path.exists(backup_dir):
+        os.makedirs(backup_dir)
+    
+    # Create backup filename with timestamp
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_name = f'backup_{timestamp}.db'
+    backup_path = os.path.join(backup_dir, backup_name)
+    
+    try:
+        # Copy database file
+        shutil.copy('instance/project_mgmt.db', backup_path)
+        
+        AuditService.log_event(
+            'BACKUP_CREATED',
+            user_id=session.get('user_id'),
+            details=f'Created backup: {backup_name}',
+            category='SYSTEM'
+        )
+        
+        flash(f'Backup created successfully: {backup_name}', 'success')
+    except Exception as e:
+        flash(f'Failed to create backup: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.backup_restore'))

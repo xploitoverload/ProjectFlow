@@ -1,0 +1,172 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Database Management{% endblock %}
+{% block breadcrumb %}Database{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">Database Management</h1>
+            <p class="page-subtitle">Monitor and manage your database</p>
+        </div>
+    </div>
+</div>
+
+<!-- Database Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon primary">
+                <i data-lucide="users"></i>
+            </div>
+        </div>
+        <div class="stat-card-value">{{ stats.users }}</div>
+        <div class="stat-card-label">Total Users</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon success">
+                <i data-lucide="users-round"></i>
+            </div>
+        </div>
+        <div class="stat-card-value">{{ stats.teams }}</div>
+        <div class="stat-card-label">Total Teams</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon info">
+                <i data-lucide="folder"></i>
+            </div>
+        </div>
+        <div class="stat-card-value">{{ stats.projects }}</div>
+        <div class="stat-card-label">Total Projects</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon warning">
+                <i data-lucide="list-todo"></i>
+            </div>
+        </div>
+        <div class="stat-card-value">{{ stats.issues }}</div>
+        <div class="stat-card-label">Total Issues</div>
+    </div>
+</div>
+
+<!-- Database Info -->
+<div class="admin-grid grid-2 mb-6">
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">Database Info</h2>
+        </div>
+        <div class="admin-card-body">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--admin-bg-tertiary); border-radius: 8px;">
+                    <span class="text-secondary">Database Type</span>
+                    <span class="font-semibold">SQLite</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--admin-bg-tertiary); border-radius: 8px;">
+                    <span class="text-secondary">Database Size</span>
+                    <span class="font-semibold">{{ stats.db_size }} MB</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--admin-bg-tertiary); border-radius: 8px;">
+                    <span class="text-secondary">Location</span>
+                    <span class="font-semibold">instance/project_mgmt.db</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--admin-bg-tertiary); border-radius: 8px;">
+                    <span class="text-secondary">Status</span>
+                    <span class="text-success font-semibold">
+                        <i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                        Connected
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">Quick Actions</h2>
+        </div>
+        <div class="admin-card-body">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <a href="{{ url_for('admin.backup_restore') }}" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                    <i data-lucide="hard-drive-download" style="width: 18px; height: 18px;"></i>
+                    Create Backup
+                </a>
+                <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                    <i data-lucide="scroll-text" style="width: 18px; height: 18px;"></i>
+                    View Audit Logs
+                </a>
+                <button class="btn btn-ghost" style="display: flex; align-items: center; gap: 8px; justify-content: center;" onclick="alert('Database optimization feature coming soon!')">
+                    <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                    Optimize Database
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Table Stats -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h2 class="admin-card-title">Table Statistics</h2>
+    </div>
+    <div class="admin-card-body" style="padding: 0;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--admin-border);">
+                    <th style="padding: 12px 20px; text-align: left; font-size: 12px; font-weight: 600; color: var(--admin-text-muted); text-transform: uppercase;">Table</th>
+                    <th style="padding: 12px 20px; text-align: right; font-size: 12px; font-weight: 600; color: var(--admin-text-muted); text-transform: uppercase;">Records</th>
+                    <th style="padding: 12px 20px; text-align: center; font-size: 12px; font-weight: 600; color: var(--admin-text-muted); text-transform: uppercase;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid var(--admin-border);">
+                    <td style="padding: 12px 20px; display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="users" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
+                        <span>Users</span>
+                    </td>
+                    <td style="padding: 12px 20px; text-align: right; font-weight: 600;">{{ stats.users }}</td>
+                    <td style="padding: 12px 20px; text-align: center;">
+                        <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 4px 10px; border-radius: 20px; font-size: 12px;">Healthy</span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--admin-border);">
+                    <td style="padding: 12px 20px; display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="users-round" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
+                        <span>Teams</span>
+                    </td>
+                    <td style="padding: 12px 20px; text-align: right; font-weight: 600;">{{ stats.teams }}</td>
+                    <td style="padding: 12px 20px; text-align: center;">
+                        <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 4px 10px; border-radius: 20px; font-size: 12px;">Healthy</span>
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--admin-border);">
+                    <td style="padding: 12px 20px; display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="folder" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
+                        <span>Projects</span>
+                    </td>
+                    <td style="padding: 12px 20px; text-align: right; font-weight: 600;">{{ stats.projects }}</td>
+                    <td style="padding: 12px 20px; text-align: center;">
+                        <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 4px 10px; border-radius: 20px; font-size: 12px;">Healthy</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 20px; display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="list-todo" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
+                        <span>Issues</span>
+                    </td>
+                    <td style="padding: 12px 20px; text-align: right; font-weight: 600;">{{ stats.issues }}</td>
+                    <td style="padding: 12px 20px; text-align: center;">
+                        <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 4px 10px; border-radius: 20px; font-size: 12px;">Healthy</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

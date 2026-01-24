@@ -204,34 +204,34 @@ def _register_error_handlers(app):
     @app.errorhandler(400)
     def bad_request(e):
         return render_template('error.html', 
-                              error='400 Bad Request',
-                              message='The request was invalid or malformed.'), 400
+                              error_code=400,
+                              error_message='The request was invalid or malformed.'), 400
     
     @app.errorhandler(403)
     def forbidden(e):
         return render_template('error.html',
-                              error='403 Forbidden',
-                              message='You do not have permission to access this resource.'), 403
+                              error_code=403,
+                              error_message='You do not have permission to access this resource.'), 403
     
     @app.errorhandler(404)
     def not_found(e):
         return render_template('error.html',
-                              error='404 Not Found',
-                              message='The requested resource was not found.'), 404
+                              error_code=404,
+                              error_message='The requested resource was not found.'), 404
     
     @app.errorhandler(429)
     def rate_limit_exceeded(e):
         return render_template('error.html',
-                              error='429 Too Many Requests',
-                              message='Rate limit exceeded. Please try again later.'), 429
+                              error_code=429,
+                              error_message='Rate limit exceeded. Please try again later.'), 429
     
     @app.errorhandler(500)
     def internal_error(e):
         db.session.rollback()
         app.logger.error(f'Internal error: {str(e)}')
         return render_template('error.html',
-                              error='500 Internal Server Error',
-                              message='An unexpected error occurred.'), 500
+                              error_code=500,
+                              error_message='An unexpected error occurred.'), 500
 
 
 def _register_context_processors(app):

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-dashboard.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="admin-layout" id="adminLayout">
+        <!-- Mobile Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar" role="navigation" aria-label="Admin Navigation">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-brand">
+                    <div class="sidebar-brand-icon">
+                        <i data-lucide="layers"></i>
+                    </div>
+                    <span class="sidebar-brand-text">ProjectFlow</span>
+                </a>
+                <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+                    <i data-lucide="panel-left-close" id="toggleIcon"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-link" data-tooltip="Dashboard">
+                        <i data-lucide="layout-dashboard" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_dashboard' %}active{% endif %}" data-tooltip="Overview">
+                        <i data-lucide="gauge" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Overview</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_projects' %}active{% endif %}" data-tooltip="Projects">
+                        <i data-lucide="folder" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Projects</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_users' %}active{% endif %}" data-tooltip="Users">
+                        <i data-lucide="users" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_teams' %}active{% endif %}" data-tooltip="Teams">
+                        <i data-lucide="users-round" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Teams</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Security & Monitoring</div>
+                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.security_dashboard' %}active{% endif %}" data-tooltip="Security">
+                        <i data-lucide="shield" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Security</span>
+                    </a>
+                    <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link {% if request.endpoint == 'admin.audit_logs' %}active{% endif %}" data-tooltip="Audit Logs">
+                        <i data-lucide="scroll-text" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Audit Logs</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Tools</div>
+                    <a href="{{ url_for('admin.db_management') }}" class="sidebar-link {% if request.endpoint == 'admin.db_management' %}active{% endif %}" data-tooltip="Database">
+                        <i data-lucide="database" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Database</span>
+                    </a>
+                    <a href="{{ url_for('admin.system_settings') }}" class="sidebar-link {% if request.endpoint == 'admin.system_settings' %}active{% endif %}" data-tooltip="Settings">
+                        <i data-lucide="settings" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Settings</span>
+                    </a>
+                    <a href="{{ url_for('admin.backup_restore') }}" class="sidebar-link {% if request.endpoint == 'admin.backup_restore' %}active{% endif %}" data-tooltip="Backup">
+                        <i data-lucide="hard-drive-download" class="sidebar-link-icon"></i>
+                        <span class="sidebar-link-text">Backup & Restore</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user" data-tooltip="Profile">
+                    <div class="sidebar-user-avatar">
+                        {{ session.get('username', 'U')[:2].upper() }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ session.get('username', 'User') }}</div>
+                        <div class="sidebar-user-role">Administrator</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-main" id="adminMain">
+            <!-- Top Header -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Open Menu">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <nav class="breadcrumb" aria-label="Breadcrumb">
+                        <a href="{{ url_for('admin.admin_dashboard') }}" class="breadcrumb-item">Admin</a>
+                        <i data-lucide="chevron-right" class="breadcrumb-separator"></i>
+                        <span class="breadcrumb-item current">{% block breadcrumb %}Dashboard{% endblock %}</span>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <button class="header-btn" id="themeToggle" title="Toggle Theme">
+                        <i data-lucide="moon"></i>
+                    </button>
+                    <button class="header-btn" id="notificationBtn" title="Notifications">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge" id="notifBadge">0</span>
+                    </button>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        <span class="btn-text">Sign out</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="admin-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="flash-message flash-{{ category }}">
+                                    <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' if category == 'error' else 'info' }}"></i>
+                                    <span>{{ message }}</span>
+                                    <button class="flash-close" onclick="this.parentElement.remove()">
+                                        <i data-lucide="x"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Sidebar state management
+        const sidebar = document.getElementById('adminSidebar');
+        const main = document.getElementById('adminMain');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const layout = document.getElementById('adminLayout');
+        
+        // Check for saved state
+        const sidebarState = localStorage.getItem('adminSidebarCollapsed');
+        if (sidebarState === 'true' && window.innerWidth > 768) {
+            layout.classList.add('sidebar-collapsed');
+        }
+
+        function toggleSidebar() {
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('active');
+                document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+            } else {
+                layout.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('adminSidebarCollapsed', layout.classList.contains('sidebar-collapsed'));
+            }
+            
+            // Update icon
+            updateToggleIcon();
+            lucide.createIcons();
+        }
+
+        function updateToggleIcon() {
+            const isCollapsed = layout.classList.contains('sidebar-collapsed');
+            toggleIcon.setAttribute('data-lucide', isCollapsed ? 'panel-left-open' : 'panel-left-close');
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Theme toggle
+        document.getElementById('themeToggle')?.addEventListener('click', function() {
+            document.body.classList.toggle('dark-theme');
+            const icon = this.querySelector('i');
+            const isDark = document.body.classList.contains('dark-theme');
+            icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        });
+
+        // Close flash messages after 5 seconds
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            setTimeout(() => msg.remove(), 5000);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
