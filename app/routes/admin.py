@@ -434,11 +434,7 @@ def edit_project(project_id):
 @admin_required
 def update_project_status(project_id):
     """Update project status."""
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_projects'))
-    
+    # CSRF validated by Flask-WTF
     status = request.form.get('status')
     
     success, project, message = ProjectService.update_project(
@@ -459,11 +455,7 @@ def update_project_status(project_id):
 @admin_required
 def delete_project(project_id):
     """Delete a project."""
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.admin_projects'))
-    
+    # CSRF validated by Flask-WTF
     success, message = ProjectService.delete_project(
         project_id=project_id,
         deleted_by=session.get('user_id')
@@ -589,11 +581,7 @@ def create_backup():
     import os
     from datetime import datetime
     
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('admin.backup_restore'))
-    
+    # CSRF validated by Flask-WTF
     # Create backup directory if not exists
     backup_dir = 'backups'
     if not os.path.exists(backup_dir):
