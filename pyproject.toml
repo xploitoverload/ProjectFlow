@@ -64,7 +64,7 @@ pm-migrate = "run:run_migrations"
 pm-routes = "run:show_routes"
 
 [tool.setuptools]
-py-modules = ["run", "config", "models", "security", "app"]
+py-modules = ["run", "config", "models", "security"]
 packages = ["app", "app.middleware", "app.models", "app.routes", "app.services", "app.utils", "app.security"]
 
 [tool.setuptools.package-data]

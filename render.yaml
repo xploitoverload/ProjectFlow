@@ -2,7 +2,10 @@ services:
   - type: web
     name: project-management
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    # Option 1: Install as package (recommended)
+    buildCommand: pip install .
+    # Option 2: Traditional installation (legacy)
+    # buildCommand: pip install -r requirements.txt
     startCommand: gunicorn run:app --bind 0.0.0.0:$PORT
     envVars:
       - key: FLASK_ENV

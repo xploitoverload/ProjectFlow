@@ -29,9 +29,6 @@ recursive-include static *.woff
 recursive-include static *.woff2
 recursive-include static *.ttf
 
-# Include migration scripts
-recursive-include migrations *.py
-
 # Exclude unnecessary files
 global-exclude *.pyc
 global-exclude *.pyo
