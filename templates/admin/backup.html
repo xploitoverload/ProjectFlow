@@ -65,7 +65,7 @@
                     <span>Last Backup</span>
                     <span class="text-secondary">
                         {% if backups %}
-                            {{ backups[0].created }}
+                            {{ backups[0].date.strftime('%Y-%m-%d %H:%M') }}
                         {% else %}
                             Never
                         {% endif %}
@@ -102,8 +102,8 @@
                                 <span style="font-weight: 500;">{{ backup.name }}</span>
                             </div>
                         </td>
-                        <td style="padding: 14px 20px; border-bottom: 1px solid var(--admin-border); color: var(--admin-text-secondary);">{{ backup.size }}</td>
-                        <td style="padding: 14px 20px; border-bottom: 1px solid var(--admin-border); color: var(--admin-text-secondary);">{{ backup.created }}</td>
+                        <td style="padding: 14px 20px; border-bottom: 1px solid var(--admin-border); color: var(--admin-text-secondary);">{{ backup.size }} MB</td>
+                        <td style="padding: 14px 20px; border-bottom: 1px solid var(--admin-border); color: var(--admin-text-secondary);">{{ backup.date.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td style="padding: 14px 20px; border-bottom: 1px solid var(--admin-border); text-align: right;">
                             <a href="#" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">
                                 <i data-lucide="download" style="width: 14px; height: 14px;"></i>

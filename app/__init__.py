@@ -199,7 +199,18 @@ def _register_blueprints(app):
 def _register_error_handlers(app):
     """Register error handlers."""
     
-    from flask import render_template
+    from flask import render_template, request, redirect, url_for, flash
+    from flask_wtf.csrf import CSRFError
+    
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        """Handle CSRF token errors gracefully."""
+        flash('Session expired or security token invalid. Please try again.', 'warning')
+        # Try to redirect back to the previous page
+        referrer = request.headers.get('Referer')
+        if referrer:
+            return redirect(referrer)
+        return redirect(url_for('main.dashboard'))
     
     @app.errorhandler(400)
     def bad_request(e):

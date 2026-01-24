@@ -1,436 +1,287 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - ProjectFlow</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
-    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
-    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
-</head>
-<body>
-    <div class="app-shell">
-        <!-- Sidebar -->
-        <aside class="app-sidebar">
-            <div class="sidebar-header">
-                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">
-                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
-                    </div>
-                    <span class="sidebar-logo-text">ProjectFlow</span>
-                </a>
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">Admin Dashboard</h1>
+            <p class="page-subtitle">System overview and management</p>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px;">
+    <div class="admin-card">
+        <div class="admin-card-body" style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(88, 166, 255, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="folder" style="width: 24px; height: 24px; color: var(--admin-accent);"></i>
             </div>
-
-            <nav class="sidebar-nav">
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">Main</div>
-                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">Administration</div>
-                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item active">
-                        <i data-lucide="gauge" class="nav-icon"></i>
-                        <span>Overview</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item">
-                        <i data-lucide="folder" class="nav-icon"></i>
-                        <span>Projects</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
-                        <i data-lucide="users" class="nav-icon"></i>
-                        <span>Users</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
-                        <i data-lucide="users-round" class="nav-icon"></i>
-                        <span>Teams</span>
-                    </a>
-                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="shield" class="nav-icon"></i>
-                        <span>Security</span>
-                    </a>
-                    <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-nav-item">
-                        <i data-lucide="scroll-text" class="nav-icon"></i>
-                        <span>Audit Logs</span>
-                    </a>
-                </div>
-            </nav>
-
-            <div class="sidebar-footer">
-                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
-                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
-                    <div class="sidebar-user-info">
-                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
-                        <div class="sidebar-user-role">Administrator</div>
-                    </div>
-                </a>
+            <div>
+                <div style="font-size: 28px; font-weight: 700; color: var(--admin-text);">{{ projects|length if projects is defined else project_count|default(0) }}</div>
+                <div style="font-size: 14px; color: var(--admin-text-secondary);">Total Projects</div>
             </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="app-main">
-            <header class="app-header">
-                <div class="header-left">
-                    <div class="header-breadcrumb">
-                        <span>Admin</span>
-                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
-                        <span class="header-breadcrumb-current">Dashboard</span>
-                    </div>
-                </div>
-                <div class="header-right">
-                    <!-- Theme Toggle -->
-                    <button class="header-icon-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
-                        <i data-lucide="moon"></i>
-                    </button>
-                    
-                    <!-- Notifications -->
-                    <button class="header-icon-btn" id="notificationBtn" title="Notifications" style="position: relative;">
-                        <i data-lucide="bell"></i>
-                        <span class="notification-badge">0</span>
-                    </button>
-                    
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
-                        <i data-lucide="log-out" class="icon-sm"></i>
-                        Sign out
-                    </a>
-                </div>
-            </header>
-
-            <div class="app-content">
-                <!-- Page Header -->
-                <div class="page-header">
-                    <div class="page-header-top">
-                        <div>
-                            <h1 class="page-title">Admin Dashboard</h1>
-                            <p class="page-subtitle">System overview and management</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-4 mb-8">
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon primary">
-                                <i data-lucide="folder" class="icon-lg"></i>
-                            </div>
-                        </div>
-                        <div class="stat-card-value">{{ projects|length if projects is defined else project_count|default(0) }}</div>
-                        <div class="stat-card-label">Total Projects</div>
-                        <div class="stat-card-footer">
-                            <span class="text-xs text-success">
-                                <i data-lucide="trending-up" style="width: 12px; height: 12px;"></i>
-                                +{{ (project_count * 0.12)|round|int }} this month
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon info">
-                                <i data-lucide="users" class="icon-lg"></i>
-                            </div>
-                        </div>
-                        <div class="stat-card-value">{{ users|length if users is defined else user_count|default(0) }}</div>
-                        <div class="stat-card-label">Total Users</div>
-                        <div class="stat-card-footer">
-                            <span class="text-xs text-info">
-                                <i data-lucide="activity" style="width: 12px; height: 12px;"></i>
-                                {{ active_users_count|default(0) }} active today
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon success">
-                                <i data-lucide="users-round" class="icon-lg"></i>
-                            </div>
-                        </div>
-                        <div class="stat-card-value">{{ teams|length if teams is defined else team_count|default(0) }}</div>
-                        <div class="stat-card-label">Teams</div>
-                        <div class="stat-card-footer">
-                            <span class="text-xs text-secondary">
-                                <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i>
-                                All operational
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon warning">
-                                <i data-lucide="list-todo" class="icon-lg"></i>
-                            </div>
-                        </div>
-                        <div class="stat-card-value">{{ total_issues if total_issues is defined else issue_count|default(0) }}</div>
-                        <div class="stat-card-label">Total Issues</div>
-                        <div class="stat-card-footer">
-                            <span class="text-xs text-warning">
-                                <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
-                                {{ (total_issues * 0.25)|round|int }} in progress
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Advanced Analytics Section -->
-                <div class="grid grid-cols-3 mb-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">Project Status Distribution</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="flex flex-col gap-3">
-                                {% if project_status %}
-                                    {% for status, count in project_status.items() %}
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-3">
-                                            <span class="badge badge-{{ 'success' if status == 'Completed' else 'warning' if status == 'In Progress' else 'gray' }}">
-                                                {{ status }}
-                                            </span>
-                                        </div>
-                                        <span class="font-semibold">{{ count }}</span>
-                                    </div>
-                                    {% endfor %}
-                                {% else %}
-                                <p class="text-secondary text-sm">No project data available</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">Recent Activity</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="flex flex-col gap-3">
-                                {% if recent_users %}
-                                    {% for user in recent_users[:3] %}
-                                    <div class="flex items-center gap-3">
-                                        <div class="avatar avatar-sm">{{ user.username[:2].upper() }}</div>
-                                        <div class="flex-1">
-                                            <div class="font-medium text-sm">{{ user.username }}</div>
-                                            <div class="text-xs text-secondary">{{ user.role|title }}</div>
-                                        </div>
-                                        <span class="badge badge-sm badge-success">New</span>
-                                    </div>
-                                    {% endfor %}
-                                {% else %}
-                                <p class="text-secondary text-sm">No recent activity</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">Security Overview</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="flex flex-col gap-3">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm">Security Events (24h)</span>
-                                    <span class="badge badge-{{ 'success' if (security_events|length) < 5 else 'warning' }}">
-                                        {{ security_events|length if security_events else 0 }}
-                                    </span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm">Suspicious Activity</span>
-                                    <span class="badge badge-{{ 'success' if (suspicious|length) == 0 else 'danger' }}">
-                                        {{ suspicious|length if suspicious else 0 }}
-                                    </span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm">System Health</span>
-                                    <span class="badge badge-success">
-                                        <span class="status-dot active"></span>
-                                        Healthy
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-3 mb-8">
-                    <a href="{{ url_for('admin.admin_projects') }}" class="card card-hover p-6">
-                        <div class="flex items-center gap-4">
-                            <div class="stat-card-icon primary">
-                                <i data-lucide="folder-plus" class="icon-lg"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold">Manage Projects</h3>
-                                <p class="text-sm text-secondary">Create, edit, and delete projects</p>
-                            </div>
-                        </div>
-                    </a>
-
-                    <a href="{{ url_for('admin.admin_users') }}" class="card card-hover p-6">
-                        <div class="flex items-center gap-4">
-                            <div class="stat-card-icon info">
-                                <i data-lucide="user-plus" class="icon-lg"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold">Manage Users</h3>
-                                <p class="text-sm text-secondary">Add and manage user accounts</p>
-                            </div>
-                        </div>
-                    </a>
-
-                    <a href="{{ url_for('admin.admin_teams') }}" class="card card-hover p-6">
-                        <div class="flex items-center gap-4">
-                            <div class="stat-card-icon success">
-                                <i data-lucide="users-round" class="icon-lg"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold">Manage Teams</h3>
-                                <p class="text-sm text-secondary">Create and organize teams</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Recent Activity & System Info -->
-                <div class="grid" style="grid-template-columns: 2fr 1fr; gap: var(--space-6);">
-                    <!-- Recent Projects -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">Recent Projects</h2>
-                            <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-ghost btn-sm">View all</a>
-                        </div>
-                        <div class="card-body" style="padding: 0;">
-                            {% if projects %}
-                            <div class="table-container" style="border: none; border-radius: 0;">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Project</th>
-                                            <th>Status</th>
-                                            <th>Team</th>
-                                            <th>Created</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for project in projects[:5] %}
-                                        <tr>
-                                            <td>
-                                                <div class="flex items-center gap-3">
-                                                    <div class="avatar avatar-sm">{{ project.name[:2].upper() }}</div>
-                                                    <span class="font-medium">{{ project.name }}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge badge-{{ 'success' if project.status == 'Completed' else 'warning' if project.status == 'In Progress' else 'gray' }}">
-                                                    {{ project.status }}
-                                                </span>
-                                            </td>
-                                            <td class="text-secondary">{{ project.team.name if project.team else 'Unassigned' }}</td>
-                                            <td class="text-tertiary text-sm">{{ project.created_at.strftime('%b %d') if project.created_at else 'N/A' }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="empty-state">
-                                <i data-lucide="folder-open" class="empty-state-icon"></i>
-                                <p class="text-secondary">No projects yet</p>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- System Info -->
-                    <div class="flex flex-col gap-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title">System Status</h2>
-                            </div>
-                            <div class="card-body">
-                                <div class="flex flex-col gap-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-secondary">Database</span>
-                                        <span class="badge badge-success">
-                                            <span class="status-dot active"></span>
-                                            Healthy
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-secondary">Security</span>
-                                        <span class="badge badge-success">
-                                            <span class="status-dot active"></span>
-                                            Active
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-secondary">Encryption</span>
-                                        <span class="badge badge-success">
-                                            <span class="status-dot active"></span>
-                                            Enabled
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title">Quick Links</h2>
-                            </div>
-                            <div class="card-body">
-                                <div class="flex flex-col gap-2">
-                                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
-                                        <i data-lucide="shield" class="nav-icon"></i>
-                                        <span>Security Settings</span>
-                                    </a>
-                                    <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-nav-item">
-                                        <i data-lucide="scroll-text" class="nav-icon"></i>
-                                        <span>Audit Logs</span>
-                                    </a>
-                                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
-                                        <i data-lucide="file-text" class="nav-icon"></i>
-                                        <span>Reports</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
 
-    <script>
-        lucide.createIcons();
-    </script>
+    <div class="admin-card">
+        <div class="admin-card-body" style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(136, 87, 229, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="users" style="width: 24px; height: 24px; color: #8957E5;"></i>
+            </div>
+            <div>
+                <div style="font-size: 28px; font-weight: 700; color: var(--admin-text);">{{ users|length if users is defined else user_count|default(0) }}</div>
+                <div style="font-size: 14px; color: var(--admin-text-secondary);">Total Users</div>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        // Initialize Lucide icons
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+    <div class="admin-card">
+        <div class="admin-card-body" style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(35, 134, 54, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="users-round" style="width: 24px; height: 24px; color: #238636;"></i>
+            </div>
+            <div>
+                <div style="font-size: 28px; font-weight: 700; color: var(--admin-text);">{{ teams|length if teams is defined else team_count|default(0) }}</div>
+                <div style="font-size: 14px; color: var(--admin-text-secondary);">Teams</div>
+            </div>
+        </div>
+    </div>
 
-        // Initialize theme toggle
-        document.getElementById('themeToggle')?.addEventListener('click', () => {
-            window.themeManager.toggleTheme();
-        });
+    <div class="admin-card">
+        <div class="admin-card-body" style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(210, 153, 34, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="list-todo" style="width: 24px; height: 24px; color: #D29922;"></i>
+            </div>
+            <div>
+                <div style="font-size: 28px; font-weight: 700; color: var(--admin-text);">{{ total_issues if total_issues is defined else issue_count|default(0) }}</div>
+                <div style="font-size: 14px; color: var(--admin-text-secondary);">Total Issues</div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // Initialize notification button
-        document.getElementById('notificationBtn')?.addEventListener('click', () => {
-            window.notificationManager?.togglePanel();
-        });
-    </script>
-</body>
-</html>
+<!-- Analytics Section -->
+<div class="admin-grid grid-3" style="margin-bottom: 32px;">
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">Project Status</h2>
+        </div>
+        <div class="admin-card-body">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% if project_status %}
+                    {% for status, count in project_status.items() %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--admin-bg-tertiary); border-radius: 8px;">
+                        <span style="font-size: 14px;">{{ status }}</span>
+                        <span style="background: {{ 'rgba(35, 134, 54, 0.15)' if status == 'Completed' else 'rgba(210, 153, 34, 0.15)' if status == 'In Progress' else 'rgba(88, 166, 255, 0.15)' }}; color: {{ '#7EE787' if status == 'Completed' else '#D29922' if status == 'In Progress' else 'var(--admin-accent)' }}; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                            {{ count }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="text-secondary" style="font-size: 14px;">No project data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">Recent Activity</h2>
+        </div>
+        <div class="admin-card-body">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% if recent_users %}
+                    {% for user in recent_users[:4] %}
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--admin-bg-tertiary); border-radius: 8px;">
+                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, var(--admin-accent), #8957E5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white;">
+                            {{ user.username[:2].upper() }}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 14px; font-weight: 500;">{{ user.username }}</div>
+                            <div style="font-size: 12px; color: var(--admin-text-secondary);">{{ user.role|title }}</div>
+                        </div>
+                        <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">New</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="text-secondary" style="font-size: 14px;">No recent activity</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h2 class="admin-card-title">Security Overview</h2>
+        </div>
+        <div class="admin-card-body">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--admin-bg-tertiary); border-radius: 8px;">
+                    <span style="font-size: 14px;">Security Events (24h)</span>
+                    <span style="background: {{ 'rgba(35, 134, 54, 0.15)' if (security_events|length if security_events else 0) < 5 else 'rgba(210, 153, 34, 0.15)' }}; color: {{ '#7EE787' if (security_events|length if security_events else 0) < 5 else '#D29922' }}; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                        {{ security_events|length if security_events else 0 }}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--admin-bg-tertiary); border-radius: 8px;">
+                    <span style="font-size: 14px;">Suspicious Activity</span>
+                    <span style="background: {{ 'rgba(35, 134, 54, 0.15)' if (suspicious|length if suspicious else 0) == 0 else 'rgba(248, 81, 73, 0.15)' }}; color: {{ '#7EE787' if (suspicious|length if suspicious else 0) == 0 else '#F85149' }}; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                        {{ suspicious|length if suspicious else 0 }}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--admin-bg-tertiary); border-radius: 8px;">
+                    <span style="font-size: 14px;">System Health</span>
+                    <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                        Healthy
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="admin-grid grid-3" style="margin-bottom: 32px;">
+    <a href="{{ url_for('admin.admin_projects') }}" class="admin-card" style="text-decoration: none; transition: all 0.2s ease;">
+        <div class="admin-card-body" style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(88, 166, 255, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="folder-plus" style="width: 24px; height: 24px; color: var(--admin-accent);"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 600; color: var(--admin-text);">Manage Projects</h3>
+                <p style="margin: 0; font-size: 13px; color: var(--admin-text-secondary);">Create, edit, and delete projects</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="{{ url_for('admin.admin_users') }}" class="admin-card" style="text-decoration: none; transition: all 0.2s ease;">
+        <div class="admin-card-body" style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(136, 87, 229, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="user-plus" style="width: 24px; height: 24px; color: #8957E5;"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 600; color: var(--admin-text);">Manage Users</h3>
+                <p style="margin: 0; font-size: 13px; color: var(--admin-text-secondary);">Add and manage user accounts</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="{{ url_for('admin.admin_teams') }}" class="admin-card" style="text-decoration: none; transition: all 0.2s ease;">
+        <div class="admin-card-body" style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(35, 134, 54, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="users-round" style="width: 24px; height: 24px; color: #238636;"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 600; color: var(--admin-text);">Manage Teams</h3>
+                <p style="margin: 0; font-size: 13px; color: var(--admin-text-secondary);">Create and organize teams</p>
+            </div>
+        </div>
+    </a>
+</div>
+
+<!-- Recent Projects & System Info -->
+<div class="admin-grid" style="grid-template-columns: 2fr 1fr; gap: 24px;">
+    <!-- Recent Projects -->
+    <div class="admin-card">
+        <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="admin-card-title">Recent Projects</h2>
+            <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">View all</a>
+        </div>
+        <div class="admin-card-body" style="padding: 0;">
+            {% if projects %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--admin-border);">
+                            <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--admin-text-secondary);">Project</th>
+                            <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--admin-text-secondary);">Status</th>
+                            <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--admin-text-secondary);">Team</th>
+                            <th style="padding: 14px 20px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--admin-text-secondary);">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects[:5] %}
+                        <tr style="border-bottom: 1px solid var(--admin-border);">
+                            <td style="padding: 14px 20px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 36px; height: 36px; background: linear-gradient(135deg, var(--admin-accent), #8957E5); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white;">
+                                        {{ project.name[:2].upper() }}
+                                    </div>
+                                    <span style="font-weight: 500;">{{ project.name }}</span>
+                                </div>
+                            </td>
+                            <td style="padding: 14px 20px;">
+                                <span style="background: {{ 'rgba(35, 134, 54, 0.15)' if project.status == 'Completed' else 'rgba(210, 153, 34, 0.15)' if project.status == 'In Progress' else 'rgba(88, 166, 255, 0.15)' }}; color: {{ '#7EE787' if project.status == 'Completed' else '#D29922' if project.status == 'In Progress' else 'var(--admin-accent)' }}; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                                    {{ project.status }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 20px; color: var(--admin-text-secondary);">{{ project.team.name if project.team else 'Unassigned' }}</td>
+                            <td style="padding: 14px 20px; color: var(--admin-text-secondary); font-size: 13px;">{{ project.created_at.strftime('%b %d') if project.created_at else 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="width: 64px; height: 64px; background: var(--admin-bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                    <i data-lucide="folder-open" style="width: 28px; height: 28px; color: var(--admin-text-secondary);"></i>
+                </div>
+                <p style="margin: 0; color: var(--admin-text-secondary);">No projects yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- System Info Sidebar -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h2 class="admin-card-title">System Status</h2>
+            </div>
+            <div class="admin-card-body">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; color: var(--admin-text-secondary);">Database</span>
+                        <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">Healthy</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; color: var(--admin-text-secondary);">Security</span>
+                        <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">Active</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; color: var(--admin-text-secondary);">Encryption</span>
+                        <span style="background: rgba(35, 134, 54, 0.15); color: #7EE787; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">Enabled</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h2 class="admin-card-title">Quick Links</h2>
+            </div>
+            <div class="admin-card-body">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="{{ url_for('admin.security_dashboard') }}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--admin-bg-tertiary); border-radius: 8px; text-decoration: none; color: var(--admin-text); transition: all 0.2s ease;">
+                        <i data-lucide="shield" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
+                        <span style="font-size: 14px;">Security Settings</span>
+                    </a>
+                    <a href="{{ url_for('admin.audit_logs') }}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--admin-bg-tertiary); border-radius: 8px; text-decoration: none; color: var(--admin-text); transition: all 0.2s ease;">
+                        <i data-lucide="scroll-text" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
+                        <span style="font-size: 14px;">Audit Logs</span>
+                    </a>
+                    <a href="{{ url_for('admin.db_management') }}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--admin-bg-tertiary); border-radius: 8px; text-decoration: none; color: var(--admin-text); transition: all 0.2s ease;">
+                        <i data-lucide="database" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
+                        <span style="font-size: 14px;">Database</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
