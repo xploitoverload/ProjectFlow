@@ -1208,9 +1208,16 @@
                         <label class="form-label">Team</label>
                         <select name="team_id" id="editUserTeamId" class="form-select">
                             <option value="">No Team</option>
-                            {% for team in teams %}
+                            <optgroup label="🏢 Core/Department Teams">
+                            {% for team in teams if team.is_core_team %}
                             <option value="{{ team.id }}">{{ team.name }}</option>
                             {% endfor %}
+                            </optgroup>
+                            <optgroup label="📁 Project Teams">
+                            {% for team in teams if not team.is_core_team %}
+                            <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{ team.team_type|title }}){% endif %}</option>
+                            {% endfor %}
+                            </optgroup>
                         </select>
                     </div>
                 </div>
