@@ -124,11 +124,14 @@ class Project(db.Model):
     status = db.Column(db.String(50), nullable=False, index=True)
     workflow_type = db.Column(db.String(20), default='agile')
     team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'))
+    lead_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))  # Project lead
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     
+    # Relationships
+    lead = db.relationship('User', foreign_keys=[lead_id], backref='led_projects')
     updates = db.relationship('ProjectUpdate', backref='project_ref', lazy=True, cascade='all, delete-orphan')
     sprints = db.relationship('Sprint', backref='project', lazy=True, cascade='all, delete-orphan')
     epics = db.relationship('Epic', backref='project', lazy=True, cascade='all, delete-orphan')

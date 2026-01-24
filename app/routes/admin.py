@@ -321,6 +321,139 @@ def delete_team(team_id):
     return redirect(url_for('admin.admin_teams'))
 
 
+@admin_bp.route('/team/<int:team_id>')
+@admin_required
+def team_detail(team_id):
+    """Team detail page with member management."""
+    from app.models import Team, User, Project
+    
+    team = Team.query.get_or_404(team_id)
+    # Get all users not in this team for adding
+    available_users = User.query.filter(
+        (User.team_id != team_id) | (User.team_id == None)
+    ).all()
+    # Get team's assigned projects
+    assigned_projects = team.assigned_projects.all() if team.assigned_projects else []
+    assigned_project_ids = [p.id for p in assigned_projects]
+    # Get all projects for assignment dropdown
+    all_projects = Project.query.all()
+    
+    return render_template('admin/team_detail.html', 
+                          team=team, 
+                          available_users=available_users,
+                          projects=assigned_projects,
+                          all_projects=all_projects,
+                          assigned_project_ids=assigned_project_ids)
+
+
+@admin_bp.route('/team/<int:team_id>/add-member', methods=['POST'])
+@admin_required
+def add_team_member(team_id):
+    """Add a member to a team."""
+    from app.models import Team, User, db
+    
+    team = Team.query.get_or_404(team_id)
+    user_id = request.form.get('user_id')
+    
+    if not user_id:
+        flash('Please select a user to add', 'error')
+        return redirect(url_for('admin.team_detail', team_id=team_id))
+    
+    user = User.query.get(int(user_id))
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('admin.team_detail', team_id=team_id))
+    
+    # Assign user to team
+    user.team_id = team_id
+    db.session.commit()
+    
+    AuditService.log_event(
+        'TEAM_MEMBER_ADDED',
+        user_id=session.get('user_id'),
+        details=f'Added {user.username} to team: {team.name}',
+        category='DATA_MODIFICATION'
+    )
+    
+    flash(f'{user.username} added to team successfully', 'success')
+    return redirect(url_for('admin.team_detail', team_id=team_id))
+
+
+@admin_bp.route('/team/<int:team_id>/remove-member/<int:user_id>', methods=['POST'])
+@admin_required
+def remove_team_member(team_id, user_id):
+    """Remove a member from a team."""
+    from app.models import Team, User, db
+    
+    team = Team.query.get_or_404(team_id)
+    user = User.query.get_or_404(user_id)
+    
+    if user.team_id != team_id:
+        flash('User is not a member of this team', 'error')
+        return redirect(url_for('admin.team_detail', team_id=team_id))
+    
+    username = user.username
+    user.team_id = None
+    db.session.commit()
+    
+    AuditService.log_event(
+        'TEAM_MEMBER_REMOVED',
+        user_id=session.get('user_id'),
+        details=f'Removed {username} from team: {team.name}',
+        category='DATA_MODIFICATION'
+    )
+    
+    flash(f'{username} removed from team', 'success')
+    return redirect(url_for('admin.team_detail', team_id=team_id))
+
+
+@admin_bp.route('/team/<int:team_id>/assign-project', methods=['POST'])
+@admin_required
+def assign_project_to_team(team_id):
+    """Assign a project to a team."""
+    from app.models import Team, Project, db
+    
+    team = Team.query.get_or_404(team_id)
+    project_id = request.form.get('project_id')
+    
+    if not project_id:
+        flash('Please select a project', 'error')
+        return redirect(url_for('admin.team_detail', team_id=team_id))
+    
+    project = Project.query.get(int(project_id))
+    if not project:
+        flash('Project not found', 'error')
+        return redirect(url_for('admin.team_detail', team_id=team_id))
+    
+    if project not in team.assigned_projects.all():
+        team.assigned_projects.append(project)
+        db.session.commit()
+        flash(f'Project "{project.name}" assigned to team', 'success')
+    else:
+        flash('Project is already assigned to this team', 'info')
+    
+    return redirect(url_for('admin.team_detail', team_id=team_id))
+
+
+@admin_bp.route('/team/<int:team_id>/unassign-project/<int:project_id>', methods=['POST'])
+@admin_required
+def unassign_project_from_team(team_id, project_id):
+    """Remove a project from a team."""
+    from app.models import Team, Project, db
+    
+    team = Team.query.get_or_404(team_id)
+    project = Project.query.get_or_404(project_id)
+    
+    if project in team.assigned_projects.all():
+        team.assigned_projects.remove(project)
+        db.session.commit()
+        flash(f'Project "{project.name}" removed from team', 'success')
+    else:
+        flash('Project is not assigned to this team', 'error')
+    
+    return redirect(url_for('admin.team_detail', team_id=team_id))
+
+
 @admin_bp.route('/projects')
 @admin_required
 def admin_projects():

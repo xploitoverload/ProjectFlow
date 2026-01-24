@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ team.name }} - Team Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Administration</div>
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="gauge" class="nav-icon"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
+                        <i data-lucide="users" class="nav-icon"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item active">
+                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span>Teams</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item">
+                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span>Projects</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <a href="{{ url_for('admin.admin_teams') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="arrow-left" class="icon-sm"></i>
+                        Back to Teams
+                    </a>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
+                        <i data-lucide="log-out" class="icon-sm"></i>
+                        Sign out
+                    </a>
+                </div>
+            </header>
+
+            <div class="app-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}" style="margin-bottom: 16px;">
+                                <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
+                                <div class="alert-content">{{ message }}</div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Team Header -->
+                <div class="card mb-6">
+                    <div class="card-body" style="padding: 24px;">
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div class="avatar avatar-xl" style="background: {{ team.color or '#6366f1' }}; color: white; width: 80px; height: 80px; font-size: 24px;">
+                                {% if team.is_core_team %}
+                                <i data-lucide="building-2" style="width: 32px; height: 32px;"></i>
+                                {% else %}
+                                <i data-lucide="users-round" style="width: 32px; height: 32px;"></i>
+                                {% endif %}
+                            </div>
+                            <div style="flex: 1;">
+                                <h1 style="font-size: 24px; font-weight: 700; margin: 0;">{{ team.name }}</h1>
+                                <p style="color: var(--gray-500); margin: 4px 0;">
+                                    {{ team.team_type|title if team.team_type else 'General' }} Team
+                                    {% if team.is_core_team %}<span class="badge badge-primary" style="margin-left: 8px;">Core Team</span>{% endif %}
+                                </p>
+                                {% if team.description %}
+                                <p style="color: var(--gray-600); margin-top: 8px;">{{ team.description }}</p>
+                                {% endif %}
+                            </div>
+                            <div style="display: flex; gap: 12px;">
+                                <div style="text-align: center; padding: 12px 20px; background: var(--gray-50); border-radius: 8px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--primary-600);">{{ team.members|length }}</div>
+                                    <div style="font-size: 12px; color: var(--gray-500);">Members</div>
+                                </div>
+                                <div style="text-align: center; padding: 12px 20px; background: var(--gray-50); border-radius: 8px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--success-600);">{{ projects|length }}</div>
+                                    <div style="font-size: 12px; color: var(--gray-500);">Projects</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <!-- Team Members Section -->
+                    <div class="card">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--gray-200);">
+                            <h2 style="font-size: 16px; font-weight: 600; margin: 0;">
+                                <i data-lucide="users" style="width: 18px; height: 18px; display: inline; vertical-align: -3px;"></i>
+                                Team Members ({{ team.members|length }})
+                            </h2>
+                            <button class="btn btn-primary btn-sm" onclick="document.getElementById('addMemberModal').style.display='flex'">
+                                <i data-lucide="user-plus" class="icon-sm"></i>
+                                Add Member
+                            </button>
+                        </div>
+                        <div class="card-body" style="padding: 0; max-height: 500px; overflow-y: auto;">
+                            {% if team.members %}
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tbody>
+                                {% for member in team.members %}
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 12px 20px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div class="avatar avatar-md" style="background: {{ member.avatar_color or '#667eea' }}; color: white;">
+                                                {{ member.username[:2].upper() }}
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 500;">{{ member.username }}</div>
+                                                <div style="font-size: 12px; color: var(--gray-500);">{{ member.role|replace('_', ' ')|title }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 20px; text-align: center;">
+                                        {% if member.is_active %}
+                                        <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                        <span class="badge badge-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 12px 20px; text-align: right;">
+                                        <form method="POST" action="{{ url_for('admin.remove_team_member', team_id=team.id, user_id=member.id) }}" style="display: inline;" onsubmit="return confirm('Remove {{ member.username }} from this team?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--error-600);" title="Remove from team">
+                                                <i data-lucide="user-minus" class="icon-sm"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <div style="padding: 40px; text-align: center; color: var(--gray-500);">
+                                <i data-lucide="users" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+                                <p>No members in this team yet</p>
+                                <button class="btn btn-primary btn-sm" onclick="document.getElementById('addMemberModal').style.display='flex'" style="margin-top: 12px;">
+                                    <i data-lucide="user-plus" class="icon-sm"></i>
+                                    Add First Member
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Assigned Projects Section -->
+                    <div class="card">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--gray-200);">
+                            <h2 style="font-size: 16px; font-weight: 600; margin: 0;">
+                                <i data-lucide="folder" style="width: 18px; height: 18px; display: inline; vertical-align: -3px;"></i>
+                                Assigned Projects ({{ projects|length }})
+                            </h2>
+                            <button class="btn btn-primary btn-sm" onclick="document.getElementById('assignProjectModal').style.display='flex'">
+                                <i data-lucide="folder-plus" class="icon-sm"></i>
+                                Assign Project
+                            </button>
+                        </div>
+                        <div class="card-body" style="padding: 0; max-height: 500px; overflow-y: auto;">
+                            {% if projects %}
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tbody>
+                                {% for project in projects %}
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 12px 20px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--primary-100); color: var(--primary-600); display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                                                {{ project.key[:3] }}
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 500;">{{ project.name }}</div>
+                                                <div style="font-size: 12px; color: var(--gray-500);">{{ project.key }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 20px; text-align: center;">
+                                        <span class="badge badge-{{ 'success' if project.status == 'Active' else 'warning' if project.status == 'In Progress' else 'secondary' }}">
+                                            {{ project.status }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px 20px; text-align: right;">
+                                        <form method="POST" action="{{ url_for('admin.unassign_project_from_team', team_id=team.id, project_id=project.id) }}" style="display: inline;" onsubmit="return confirm('Remove this project from the team?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--error-600);" title="Unassign project">
+                                                <i data-lucide="folder-minus" class="icon-sm"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <div style="padding: 40px; text-align: center; color: var(--gray-500);">
+                                <i data-lucide="folder" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+                                <p>No projects assigned to this team</p>
+                                <button class="btn btn-primary btn-sm" onclick="document.getElementById('assignProjectModal').style.display='flex'" style="margin-top: 12px;">
+                                    <i data-lucide="folder-plus" class="icon-sm"></i>
+                                    Assign First Project
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="addMemberModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 10000;">
+        <div style="background: white; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow: hidden;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-weight: 600;">Add Team Member</h3>
+                <button onclick="document.getElementById('addMemberModal').style.display='none'" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.add_team_member', team_id=team.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div style="padding: 20px; max-height: 400px; overflow-y: auto;">
+                    {% if available_users %}
+                    <div class="form-group">
+                        <label class="form-label">Select User</label>
+                        <select name="user_id" class="form-select" required style="width: 100%;">
+                            <option value="">-- Select a user --</option>
+                            {% for user in available_users %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|replace('_', ' ')|title }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 20px; color: var(--gray-500);">
+                        <i data-lucide="users" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+                        <p>All users are already assigned to teams</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div style="padding: 16px 20px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" onclick="document.getElementById('addMemberModal').style.display='none'" class="btn btn-secondary">Cancel</button>
+                    {% if available_users %}
+                    <button type="submit" class="btn btn-primary">Add to Team</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assign Project Modal -->
+    <div id="assignProjectModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 10000;">
+        <div style="background: white; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow: hidden;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-weight: 600;">Assign Project to Team</h3>
+                <button onclick="document.getElementById('assignProjectModal').style.display='none'" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.assign_project_to_team', team_id=team.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div style="padding: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">Select Project</label>
+                        <select name="project_id" class="form-select" required style="width: 100%;">
+                            <option value="">-- Select a project --</option>
+                            {% for project in all_projects %}
+                                {% if project.id not in assigned_project_ids %}
+                                <option value="{{ project.id }}">{{ project.name }} ({{ project.key }})</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div style="padding: 16px 20px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" onclick="document.getElementById('assignProjectModal').style.display='none'" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Assign Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

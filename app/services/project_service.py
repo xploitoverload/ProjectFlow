@@ -19,7 +19,7 @@ class ProjectService:
     @staticmethod
     def create_project(name, key=None, description=None, status='Not Started',
                       workflow_type='agile', team_id=None, start_date=None,
-                      end_date=None, created_by=None):
+                      end_date=None, created_by=None, lead_id=None):
         """
         Create a new project.
         
@@ -62,6 +62,7 @@ class ProjectService:
                 status=status,
                 workflow_type=workflow_type,
                 team_id=int(team_id) if team_id else None,
+                lead_id=int(lead_id) if lead_id else None,
                 start_date=start_date or datetime.utcnow(),
                 end_date=end_date,
                 created_by=created_by

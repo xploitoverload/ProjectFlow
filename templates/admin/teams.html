@@ -253,15 +253,17 @@
                             </div>
 
                             <div class="flex items-center gap-2 mt-4">
-                                <button type="button" class="btn btn-secondary btn-sm flex-1 edit-team-btn" data-team-id="{{ team.id }}" data-team-name="{{ team.name }}" data-team-description="{{ team.description }}">
+                                <a href="{{ url_for('admin.team_detail', team_id=team.id) }}" class="btn btn-primary btn-sm flex-1">
+                                    <i data-lucide="eye" class="icon-sm"></i>
+                                    Manage
+                                </a>
+                                <button type="button" class="btn btn-secondary btn-sm edit-team-btn" data-team-id="{{ team.id }}" data-team-name="{{ team.name }}" data-team-description="{{ team.description }}">
                                     <i data-lucide="pencil" class="icon-sm"></i>
-                                    Edit
                                 </button>
-                                <form method="POST" action="{{ url_for('admin.delete_team', team_id=team.id) }}" style="flex: 1;" onsubmit="return confirm('Delete this team? Members will be unassigned.');">
+                                <form method="POST" action="{{ url_for('admin.delete_team', team_id=team.id) }}" style="display: inline;" onsubmit="return confirm('Delete this team? Members will be unassigned.');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-ghost btn-sm" style="width: 100%; color: var(--error-600);">
+                                    <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--error-600);">
                                         <i data-lucide="trash-2" class="icon-sm"></i>
-                                        Delete
                                     </button>
                                 </form>
                             </div>

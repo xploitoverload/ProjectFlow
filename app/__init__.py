@@ -249,7 +249,6 @@ def _register_context_processors(app):
     """Register template context processors."""
     
     from datetime import datetime
-    from app.utils.security import generate_csrf_token
     
     @app.context_processor
     def inject_globals():
@@ -259,10 +258,8 @@ def _register_context_processors(app):
             'app_version': app.config.get('APP_VERSION', '2.0.0')
         }
     
-    # CSRF token available in all templates
-    @app.context_processor
-    def inject_csrf_token():
-        return dict(csrf_token=generate_csrf_token)
+    # Note: CSRF token is provided by Flask-WTF's CSRFProtect extension
+    # Do NOT override csrf_token() - let Flask-WTF handle it
     
     # Template filter to format role names nicely
     @app.template_filter('format_role')
