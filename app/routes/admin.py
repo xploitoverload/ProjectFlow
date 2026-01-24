@@ -224,17 +224,18 @@ def unlock_user(user_id):
 @admin_required
 def admin_teams():
     """Team management page."""
-    from app.models import Team
+    from app.models import Team, Project
     
     teams = Team.query.all()
-    return render_template('admin/teams.html', teams=teams)
+    projects = Project.query.all()
+    return render_template('admin/teams.html', teams=teams, projects=projects)
 
 
 @admin_bp.route('/team/add', methods=['POST'])
 @admin_required
 def add_team():
-    """Add a new team."""
-    from app.models import Team, db
+    """Add a new team with type and project assignments."""
+    from app.models import Team, Project, db
     
     csrf_token = request.form.get('csrf_token')
     if not validate_csrf_token(csrf_token):
@@ -243,13 +244,31 @@ def add_team():
     
     name = sanitize_input(request.form.get('name', '').strip())
     description = sanitize_input(request.form.get('description', '').strip())
+    team_type = sanitize_input(request.form.get('team_type', 'general').strip())
+    color = request.form.get('color', '#6366f1')
+    project_ids = request.form.getlist('project_ids')
     
     if not name:
         flash('Team name is required', 'error')
         return redirect(url_for('admin.admin_teams'))
     
-    team = Team(name=name)
+    team = Team(
+        name=name, 
+        team_type=team_type,
+        is_core_team=False  # Project teams are not core teams
+    )
     team.description = description
+    team.color = color
+    
+    # Assign projects to team (many-to-many)
+    if project_ids:
+        for pid in project_ids:
+            try:
+                project = Project.query.get(int(pid))
+                if project:
+                    team.assigned_projects.append(project)
+            except (ValueError, TypeError):
+                pass
     
     db.session.add(team)
     db.session.commit()
@@ -257,7 +276,7 @@ def add_team():
     AuditService.log_event(
         'TEAM_CREATED',
         user_id=session.get('user_id'),
-        details=f'Created team: {name}',
+        details=f'Created team: {name} (Type: {team_type})',
         category='DATA_MODIFICATION'
     )
     
@@ -334,12 +353,13 @@ def delete_team(team_id):
 @admin_required
 def admin_projects():
     """Project management page."""
-    from app.models import Project, Team
+    from app.models import Project, Team, User
     
     projects = Project.query.all()
     teams = Team.query.all()
+    users = User.query.filter(User.is_active == True).all()
     
-    return render_template('admin/projects.html', projects=projects, teams=teams)
+    return render_template('admin/projects.html', projects=projects, teams=teams, users=users)
 
 
 @admin_bp.route('/project/add', methods=['POST'])
@@ -356,9 +376,10 @@ def add_project():
     description = request.form.get('description', '').strip()
     status = request.form.get('status', 'Not Started')
     workflow_type = request.form.get('workflow_type', 'agile')
-    team_id = request.form.get('team_id')
+    team_ids = request.form.getlist('team_ids')  # Multi-select for teams
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
+    lead_id = request.form.get('lead_id')
     
     success, project, message = ProjectService.create_project(
         name=name,
@@ -366,11 +387,22 @@ def add_project():
         description=description,
         status=status,
         workflow_type=workflow_type,
-        team_id=team_id,
+        team_id=None,  # Keep for backward compatibility
         start_date=start_date,
         end_date=end_date,
-        created_by=session.get('user_id')
+        created_by=session.get('user_id'),
+        lead_id=lead_id if lead_id else None
     )
+    
+    # Handle many-to-many team assignment
+    if success and project and team_ids:
+        from models import Team
+        for tid in team_ids:
+            team = Team.query.get(int(tid))
+            if team:
+                project.teams.append(team)
+        from app import db
+        db.session.commit()
     
     if success:
         flash(message, 'success')
@@ -394,9 +426,10 @@ def edit_project(project_id):
     description = request.form.get('description', '').strip()
     status = request.form.get('status')
     workflow_type = request.form.get('workflow_type')
-    team_id = request.form.get('team_id')
+    team_ids = request.form.getlist('team_ids')  # Multi-select for teams
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
+    lead_id = request.form.get('lead_id')
     
     success, project, message = ProjectService.update_project(
         project_id=project_id,
@@ -406,12 +439,26 @@ def edit_project(project_id):
             'description': description,
             'status': status,
             'workflow_type': workflow_type,
-            'team_id': team_id,
+            'team_id': None,  # Keep for backward compatibility
             'start_date': start_date,
-            'end_date': end_date
+            'end_date': end_date,
+            'lead_id': lead_id if lead_id else None
         },
         updated_by=session.get('user_id')
     )
+    
+    # Handle many-to-many team assignment
+    if success and project:
+        from models import Team
+        from app import db
+        # Clear existing team assignments and reassign
+        project.teams.clear()
+        if team_ids:
+            for tid in team_ids:
+                team = Team.query.get(int(tid))
+                if team:
+                    project.teams.append(team)
+        db.session.commit()
     
     if success:
         flash(message, 'success')

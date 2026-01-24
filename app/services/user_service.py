@@ -10,6 +10,7 @@ from app.utils.validators import (
     validate_required, validate_length,
     validate_enum, ValidationError
 )
+from app.utils.department import get_department_from_role, get_department_color
 
 
 class UserService:
@@ -43,18 +44,33 @@ class UserService:
             if not is_strong:
                 return False, None, msg
             
-            if role not in UserService.VALID_ROLES:
-                return False, None, f'Invalid role. Must be one of: {", ".join(UserService.VALID_ROLES)}'
+            if not role or not role.strip():
+                return False, None, 'Role is required'
             
             # Check for duplicate username
             if User.query.filter_by(username=username).first():
                 return False, None, 'Username already exists'
             
+            # Auto-detect department from role
+            department = get_department_from_role(role)
+            
+            # Auto-assign to core team if no team specified
+            final_team_id = int(team_id) if team_id else None
+            if not final_team_id and department:
+                from models import Team
+                core_team = Team.query.filter_by(
+                    department=department,
+                    is_core_team=True
+                ).first()
+                if core_team:
+                    final_team_id = core_team.id
+            
             # Create user
             user = User(
                 username=username,
                 role=role,
-                team_id=int(team_id) if team_id else None,
+                department=department,
+                team_id=final_team_id,
                 avatar_color=UserService._generate_avatar_color()
             )
             user.email = email
@@ -105,12 +121,24 @@ class UserService:
                 user.email = data['email']
             
             if 'role' in data:
-                if data['role'] not in UserService.VALID_ROLES:
-                    return False, None, 'Invalid role'
+                if not data['role'] or not data['role'].strip():
+                    return False, None, 'Role is required'
                 user.role = data['role']
+                # Auto-update department when role changes
+                user.department = get_department_from_role(data['role'])
             
             if 'team_id' in data:
                 user.team_id = int(data['team_id']) if data['team_id'] else None
+            
+            # If role changed and no team assigned, auto-assign to core team
+            if 'role' in data and not user.team_id and user.department:
+                from models import Team
+                core_team = Team.query.filter_by(
+                    department=user.department,
+                    is_core_team=True
+                ).first()
+                if core_team:
+                    user.team_id = core_team.id
             
             if 'avatar_color' in data:
                 user.avatar_color = data['avatar_color']

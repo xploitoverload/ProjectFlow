@@ -37,6 +37,13 @@ def decrypt_field(data):
     except:
         return None
 
+# Many-to-many relationship between Projects and Teams
+project_teams = db.Table('project_teams',
+    db.Column('project_id', db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('team_id', db.Integer, db.ForeignKey('team.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow)
+)
+
 class User(UserMixin, db.Model):
     """User model with encrypted email"""
     __tablename__ = 'user'
@@ -46,7 +53,8 @@ class User(UserMixin, db.Model):
     email_encrypted = db.Column(db.Text, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False, index=True)  # Extended for more roles
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'))
+    department = db.Column(db.String(50), index=True)  # Auto-derived from role: software, hardware, mechanical, etc.
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'))  # Core team assignment
     avatar_color = db.Column(db.String(7), default='#667eea')  # For avatar gradients
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     failed_login_attempts = db.Column(db.Integer, default=0)
@@ -74,15 +82,22 @@ class User(UserMixin, db.Model):
         return f'<User {self.username}>'
 
 class Team(db.Model):
-    """Team model"""
+    """Team model with type and many-to-many project relationship"""
     __tablename__ = 'team'
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    team_type = db.Column(db.String(50), default='general')  # android, web, embedded, etc.
+    department = db.Column(db.String(50))  # For core teams: software, hardware, mechanical, etc.
+    is_core_team = db.Column(db.Boolean, default=False)  # True = Department core team, False = Project team
     description_encrypted = db.Column(db.Text)
+    color = db.Column(db.String(7), default='#6366f1')  # Team color for UI
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     members = db.relationship('User', backref='team', lazy=True)
-    projects = db.relationship('Project', backref='team', lazy=True)
+    # Many-to-many relationship with projects
+    assigned_projects = db.relationship('Project', secondary='project_teams', 
+                                        backref=db.backref('teams', lazy='dynamic'),
+                                        lazy='dynamic')
     
     @property
     def description(self):

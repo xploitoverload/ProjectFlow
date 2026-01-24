@@ -723,13 +723,21 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Team</label>
-                            <select name="team_id" class="form-select">
-                                <option value="">No Team</option>
-                                {% for team in teams %}
-                                <option value="{{ team.id }}">{{ team.name }}</option>
+                            <label class="form-label">Core Team (Optional)</label>
+                            <select name="team_id" class="form-select" id="addUserTeamSelect">
+                                <option value="">Auto-assign based on role</option>
+                                <optgroup label="🏢 Core/Department Teams">
+                                {% for team in teams if team.is_core_team %}
+                                <option value="{{ team.id }}" data-department="{{ team.department }}">{{ team.name }}</option>
                                 {% endfor %}
+                                </optgroup>
+                                <optgroup label="📁 Project Teams">
+                                {% for team in teams if not team.is_core_team %}
+                                <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{ team.team_type|title }}){% endif %}</option>
+                                {% endfor %}
+                                </optgroup>
                             </select>
+                            <p class="form-hint">Leave empty to auto-assign to core team based on role</p>
                         </div>
                     </div>
                 </div>

@@ -260,7 +260,8 @@
                                                     data-project-description="{{ project.description }}"
                                                     data-project-status="{{ project.status }}"
                                                     data-project-workflow="{{ project.workflow_type }}"
-                                                    data-project-team-id="{{ project.team_id or '' }}"
+                                                    data-project-team-ids="{{ project.teams.all()|map(attribute='id')|join(',') }}"
+                                                    data-project-lead-id="{{ project.lead_id or '' }}"
                                                     data-project-start="{{ project.start_date or '' }}"
                                                     data-project-end="{{ project.end_date or '' }}">
                                                     <i data-lucide="pencil" class="icon-sm"></i>
@@ -329,27 +330,42 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-textarea" rows="3" placeholder="Brief description of the project"></textarea>
+                        <textarea name="description" class="form-textarea" rows="2" placeholder="Brief description of the project"></textarea>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label class="form-label">Project Lead</label>
-                            <select name="lead_id" class="form-select">
-                                <option value="">Select Lead</option>
-                                {% for user in users %}
-                                <option value="{{ user.id }}">{{ user.username }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Team</label>
-                            <select name="team_id" class="form-select">
-                                <option value="">No Team</option>
-                                {% for team in teams %}
-                                <option value="{{ team.id }}">{{ team.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">Project Lead</label>
+                        <select name="lead_id" class="form-select" id="addProjectLeadSelect">
+                            <option value="">Select Lead</option>
+                            <optgroup label="👑 Team Leads & Managers">
+                            {% for user in users if 'lead' in user.role or 'manager' in user.role or 'director' in user.role %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                            {% endfor %}
+                            </optgroup>
+                            <optgroup label="🏗️ Architects & Principals">
+                            {% for user in users if 'architect' in user.role or 'principal' in user.role %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                            {% endfor %}
+                            </optgroup>
+                            <optgroup label="👨‍💻 Senior Engineers">
+                            {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager' not in user.role %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                            {% endfor %}
+                            </optgroup>
+                            <optgroup label="👤 All Other Users">
+                            {% for user in users if 'lead' not in user.role and 'manager' not in user.role and 'director' not in user.role and 'architect' not in user.role and 'principal' not in user.role and 'senior' not in user.role %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                            {% endfor %}
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Assign Teams</label>
+                        <select name="team_ids" class="form-select" multiple size="4" style="height: auto; min-height: 100px;">
+                            {% for team in teams %}
+                            <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{ team.team_type|title }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="form-hint">Hold Ctrl/Cmd to select multiple teams. One project can have multiple teams working on it.</p>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-group">
@@ -417,12 +433,38 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Team</label>
-                        <select name="team_id" id="editProjectTeamId" class="form-select">
-                            <option value="">No Team</option>
+                        <label class="form-label">Assign Teams</label>
+                        <select name="team_ids" id="editProjectTeamIds" class="form-select" multiple size="4" style="height: auto; min-height: 100px;">
                             {% for team in teams %}
-                            <option value="{{ team.id }}">{{ team.name }}</option>
+                            <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{ team.team_type|title }}){% endif %}</option>
                             {% endfor %}
+                        </select>
+                        <p class="form-hint">Hold Ctrl/Cmd to select multiple teams.</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Project Lead</label>
+                        <select name="lead_id" id="editProjectLeadId" class="form-select">
+                            <option value="">Select Lead</option>
+                            <optgroup label="👑 Team Leads & Managers">
+                            {% for user in users if 'lead' in user.role or 'manager' in user.role or 'director' in user.role %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                            {% endfor %}
+                            </optgroup>
+                            <optgroup label="🏗️ Architects & Principals">
+                            {% for user in users if 'architect' in user.role or 'principal' in user.role %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                            {% endfor %}
+                            </optgroup>
+                            <optgroup label="👨‍💻 Senior Engineers">
+                            {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager' not in user.role %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                            {% endfor %}
+                            </optgroup>
+                            <optgroup label="👤 All Other Users">
+                            {% for user in users if 'lead' not in user.role and 'manager' not in user.role and 'director' not in user.role and 'architect' not in user.role and 'principal' not in user.role and 'senior' not in user.role %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                            {% endfor %}
+                            </optgroup>
                         </select>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -458,7 +500,7 @@
             document.getElementById('addProjectModal').style.display = 'none';
         }
 
-        function openEditProjectModal(projectId, name, key, description, status, workflow, teamId, startDate, endDate) {
+        function openEditProjectModal(projectId, name, key, description, status, workflow, teamIds, leadId, startDate, endDate) {
             const modal = document.getElementById('editProjectModal');
             const form = document.getElementById('editProjectForm');
             
@@ -468,9 +510,22 @@
             document.getElementById('editProjectDescription').value = description || '';
             document.getElementById('editProjectStatus').value = status || 'Not Started';
             document.getElementById('editProjectWorkflow').value = workflow || 'agile';
-            document.getElementById('editProjectTeamId').value = teamId || '';
+            document.getElementById('editProjectLeadId').value = leadId || '';
             document.getElementById('editProjectStart').value = startDate || '';
             document.getElementById('editProjectEnd').value = endDate || '';
+            
+            // Handle multi-select for teams
+            const teamSelect = document.getElementById('editProjectTeamIds');
+            // Clear previous selections
+            Array.from(teamSelect.options).forEach(opt => opt.selected = false);
+            // Select current teams
+            if (teamIds) {
+                const ids = teamIds.split(',').map(id => id.trim());
+                ids.forEach(id => {
+                    const opt = teamSelect.querySelector(`option[value="${id}"]`);
+                    if (opt) opt.selected = true;
+                });
+            }
             
             modal.style.display = 'flex';
             lucide.createIcons();
@@ -491,7 +546,8 @@
                         this.dataset.projectDescription,
                         this.dataset.projectStatus,
                         this.dataset.projectWorkflow,
-                        this.dataset.projectTeamId,
+                        this.dataset.projectTeamIds,
+                        this.dataset.projectLeadId,
                         this.dataset.projectStart,
                         this.dataset.projectEnd
                     );

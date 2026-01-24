@@ -162,9 +162,47 @@
                 </div>
 
                 <!-- Teams Grid -->
-                {% if teams %}
-                <div class="grid grid-cols-3 gap-6">
-                    {% for team in teams %}
+                <!-- Core/Department Teams -->
+                {% set core_teams = teams|selectattr('is_core_team', 'equalto', true)|list %}
+                {% if core_teams %}
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i data-lucide="building-2" class="icon-sm"></i>
+                        Core Teams (Department-based)
+                    </h2>
+                    <div class="grid grid-cols-4 gap-4">
+                        {% for team in core_teams %}
+                        <div class="card card-hover" style="border-left: 4px solid {{ team.color or '#6366f1' }};">
+                            <div class="card-body p-4">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="avatar avatar-md" style="background: {{ team.color or '#6366f1' }}; color: white;">
+                                        <i data-lucide="building-2" class="icon-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-primary text-sm">{{ team.name }}</h3>
+                                        <p class="text-xs text-secondary">{{ team.department or 'Core Team' }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs text-secondary mt-2">
+                                    <span><i data-lucide="users" class="icon-xs"></i> {{ team.members|length }} members</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Project Teams -->
+                {% set project_teams = teams|selectattr('is_core_team', 'equalto', false)|list %}
+                {% if project_teams %}
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i data-lucide="folder-kanban" class="icon-sm"></i>
+                        Project Teams
+                    </h2>
+                    <div class="grid grid-cols-3 gap-6">
+                    {% for team in project_teams %}
                     <div class="card card-hover">
                         <div class="card-body">
                             <div class="flex items-start justify-between mb-4">
@@ -174,7 +212,7 @@
                                     </div>
                                     <div>
                                         <h3 class="font-semibold text-primary">{{ team.name }}</h3>
-                                        <p class="text-sm text-secondary">{{ team.description if team.description else 'No description' }}</p>
+                                        <p class="text-sm text-secondary">{{ team.team_type|title if team.team_type else 'General' }}</p>
                                     </div>
                                 </div>
                                 <div class="dropdown">
@@ -191,7 +229,7 @@
                                 </div>
                                 <div class="flex items-center gap-2 text-sm text-secondary">
                                     <i data-lucide="folder" class="icon-xs"></i>
-                                    <span>{{ team.projects|length if team.projects else 0 }} projects</span>
+                                    <span>{{ team.assigned_projects.count() if team.assigned_projects else 0 }} projects</span>
                                 </div>
                             </div>
 
@@ -230,8 +268,11 @@
                         </div>
                     </div>
                     {% endfor %}
+                    </div>
                 </div>
-                {% else %}
+                {% endif %}
+                
+                {% if not core_teams and not project_teams %}
                 <div class="card">
                     <div class="card-body">
                         <div class="empty-state">
@@ -252,7 +293,7 @@
 
     <!-- Add Team Modal -->
     <div class="modal-backdrop" id="addTeamModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
-        <div class="modal" style="max-width: 500px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+        <div class="modal" style="max-width: 600px; width: 100%; max-height: 85vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
             <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
                 <h3 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Create New Team</h3>
                 <button class="modal-close" onclick="closeAddTeamModal()" style="background: none; border: none; cursor: pointer; padding: 4px;">
@@ -262,20 +303,118 @@
             <form method="POST" action="{{ url_for('admin.add_team') }}" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
-                    <div class="form-group">
-                        <label class="form-label">Team Name</label>
-                        <input type="text" name="name" class="form-input" placeholder="Enter team name" required>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Team Name</label>
+                            <input type="text" name="name" class="form-input" placeholder="Enter team name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Team Type</label>
+                            <select name="team_type" class="form-select" required>
+                                <optgroup label="Software Development">
+                                    <option value="frontend">Frontend Team</option>
+                                    <option value="backend">Backend Team</option>
+                                    <option value="fullstack">Fullstack Team</option>
+                                    <option value="web_development">Web Development Team</option>
+                                    <option value="mobile">Mobile Team</option>
+                                    <option value="android">Android Team</option>
+                                    <option value="ios">iOS Team</option>
+                                    <option value="cross_platform">Cross-Platform Team</option>
+                                </optgroup>
+                                <optgroup label="Embedded & Hardware">
+                                    <option value="embedded">Embedded Team</option>
+                                    <option value="firmware">Firmware Team</option>
+                                    <option value="bsp">Linux BSP Team</option>
+                                    <option value="hardware">Hardware Team</option>
+                                    <option value="pcb">PCB Design Team</option>
+                                    <option value="fpga">FPGA Team</option>
+                                    <option value="rf">RF Team</option>
+                                    <option value="power">Power Electronics Team</option>
+                                </optgroup>
+                                <optgroup label="Mechanical & Manufacturing">
+                                    <option value="mechanical">Mechanical Team</option>
+                                    <option value="cad">CAD Design Team</option>
+                                    <option value="thermal">Thermal Team</option>
+                                    <option value="manufacturing">Manufacturing Team</option>
+                                </optgroup>
+                                <optgroup label="AI/ML & Data">
+                                    <option value="ml">Machine Learning Team</option>
+                                    <option value="data_science">Data Science Team</option>
+                                    <option value="data_engineering">Data Engineering Team</option>
+                                    <option value="ai">AI Research Team</option>
+                                </optgroup>
+                                <optgroup label="Infrastructure & DevOps">
+                                    <option value="devops">DevOps Team</option>
+                                    <option value="cloud">Cloud Team</option>
+                                    <option value="sre">SRE Team</option>
+                                    <option value="infrastructure">Infrastructure Team</option>
+                                    <option value="security">Security Team</option>
+                                </optgroup>
+                                <optgroup label="Quality & Testing">
+                                    <option value="qa">QA Team</option>
+                                    <option value="automation">Automation Team</option>
+                                    <option value="performance">Performance Team</option>
+                                </optgroup>
+                                <optgroup label="Design & Product">
+                                    <option value="design">Design Team</option>
+                                    <option value="ux">UX Team</option>
+                                    <option value="product">Product Team</option>
+                                </optgroup>
+                                <optgroup label="Business & Support">
+                                    <option value="sales">Sales Team</option>
+                                    <option value="marketing">Marketing Team</option>
+                                    <option value="customer_success">Customer Success Team</option>
+                                    <option value="vendor">Vendor Management Team</option>
+                                    <option value="hr">HR Team</option>
+                                    <option value="finance">Finance Team</option>
+                                    <option value="operations">Operations Team</option>
+                                </optgroup>
+                                <optgroup label="Agile">
+                                    <option value="scrum">Scrum Team</option>
+                                    <option value="agile">Agile Team</option>
+                                    <option value="kanban">Kanban Team</option>
+                                    <option value="pod">Pod / Squad</option>
+                                    <option value="tribe">Tribe</option>
+                                </optgroup>
+                                <optgroup label="Other">
+                                    <option value="general" selected>General Team</option>
+                                    <option value="cross_functional">Cross-Functional Team</option>
+                                    <option value="tiger">Tiger Team</option>
+                                    <option value="platform">Platform Team</option>
+                                </optgroup>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-textarea" rows="3" placeholder="Brief description of the team"></textarea>
+                        <textarea name="description" class="form-textarea" rows="2" placeholder="Brief description of the team"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Team Color</label>
+                            <div class="flex items-center gap-3">
+                                <input type="color" name="color" value="#6366f1" class="form-color">
+                                <span class="text-sm text-secondary">Team color</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Workflow</label>
+                            <select name="workflow" class="form-select">
+                                <option value="agile">Agile/Scrum</option>
+                                <option value="kanban">Kanban</option>
+                                <option value="waterfall">Waterfall</option>
+                                <option value="hybrid">Hybrid</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Team Color</label>
-                        <div class="flex items-center gap-3">
-                            <input type="color" name="color" value="#6366f1" class="form-color">
-                            <span class="text-sm text-secondary">Choose a color to identify this team</span>
-                        </div>
+                        <label class="form-label">Assign to Projects</label>
+                        <select name="project_ids" class="form-select" multiple size="4" style="height: auto; min-height: 100px;">
+                            {% for project in projects %}
+                            <option value="{{ project.id }}">{{ project.key }} - {{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="form-hint">Hold Ctrl/Cmd to select multiple projects. Team can work on multiple projects.</p>
                     </div>
                 </div>
                 <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
