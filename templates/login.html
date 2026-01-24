@@ -6,32 +6,291 @@
     <title>Sign In - ProjectFlow</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/webify-theme.css') }}">
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <style>
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .auth-left {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--webify-space-8);
+            background: var(--webify-bg-primary);
+            position: relative;
+        }
+        
+        .auth-left::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse 100% 100% at 0% 0%, rgba(124, 58, 237, 0.1), transparent 70%);
+            pointer-events: none;
+        }
+        
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            padding: var(--webify-space-8);
+            background: var(--webify-bg-card);
+            border: 1px solid var(--webify-border-primary);
+            border-radius: var(--webify-radius-2xl);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: var(--webify-gradient-primary);
+            border-radius: 2px;
+        }
+        
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--webify-space-3);
+            margin-bottom: var(--webify-space-8);
+        }
+        
+        .auth-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--webify-gradient-primary);
+            border-radius: var(--webify-radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: var(--webify-shadow-glow);
+        }
+        
+        .auth-logo-text {
+            font-size: var(--webify-text-2xl);
+            font-weight: 800;
+            background: var(--webify-gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .auth-title {
+            font-size: var(--webify-text-2xl);
+            font-weight: 700;
+            color: var(--webify-text-primary);
+            text-align: center;
+            margin-bottom: var(--webify-space-2);
+        }
+        
+        .auth-subtitle {
+            font-size: var(--webify-text-sm);
+            color: var(--webify-text-tertiary);
+            text-align: center;
+            margin-bottom: var(--webify-space-8);
+        }
+        
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--webify-space-5);
+        }
+        
+        .auth-form .form-input {
+            padding-left: 48px;
+        }
+        
+        .auth-form .input-group-icon {
+            left: 16px;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: var(--webify-space-8);
+            padding-top: var(--webify-space-6);
+            border-top: 1px solid var(--webify-border-secondary);
+        }
+        
+        .auth-footer-badges {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--webify-space-6);
+            margin-top: var(--webify-space-4);
+        }
+        
+        .auth-badge {
+            display: flex;
+            align-items: center;
+            gap: var(--webify-space-2);
+            font-size: var(--webify-text-xs);
+            color: var(--webify-text-muted);
+        }
+        
+        .auth-badge .iconify {
+            color: var(--webify-accent-secondary);
+        }
+        
+        .auth-right {
+            flex: 1;
+            background: var(--webify-gradient-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--webify-space-12);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-right::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.4) 0%, transparent 60%);
+            animation: pulse-glow 4s ease-in-out infinite;
+        }
+        
+        .auth-right::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -30%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 60%);
+            animation: pulse-glow 5s ease-in-out infinite reverse;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+        
+        .auth-right-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 500px;
+            color: white;
+        }
+        
+        .auth-right-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--webify-space-8);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--webify-radius-2xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .auth-right-title {
+            font-size: var(--webify-text-4xl);
+            font-weight: 800;
+            margin-bottom: var(--webify-space-4);
+            line-height: 1.2;
+        }
+        
+        .auth-right-text {
+            font-size: var(--webify-text-lg);
+            opacity: 0.8;
+            line-height: 1.6;
+            margin-bottom: var(--webify-space-8);
+        }
+        
+        .auth-features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--webify-space-3);
+        }
+        
+        .auth-feature-pill {
+            display: flex;
+            align-items: center;
+            gap: var(--webify-space-2);
+            padding: var(--webify-space-2) var(--webify-space-4);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--webify-radius-full);
+            font-size: var(--webify-text-sm);
+            backdrop-filter: blur(10px);
+        }
+        
+        .auth-feature-pill .iconify {
+            color: var(--webify-accent-tertiary);
+        }
+        
+        .auth-stats {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--webify-text-sm);
+            color: rgba(255, 255, 255, 0.6);
+            z-index: 1;
+        }
+        
+        @media (max-width: 1024px) {
+            .auth-right {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .auth-left {
+                padding: var(--webify-space-4);
+            }
+            
+            .auth-card {
+                padding: var(--webify-space-6);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="auth-container">
         <!-- Left Side - Login Form -->
         <div class="auth-left">
-            <div class="auth-card">
+            <div class="auth-card animate-fadeInUp">
                 <!-- Logo -->
                 <div class="auth-logo">
                     <div class="auth-logo-icon">
-                        <i data-lucide="layers" style="width: 24px; height: 24px;"></i>
+                        <span class="iconify" data-icon="solar:layers-bold-duotone" style="width: 26px; height: 26px;"></span>
                     </div>
                     <span class="auth-logo-text">ProjectFlow</span>
                 </div>
 
                 <!-- Header -->
                 <h1 class="auth-title">Welcome back</h1>
-                <p class="auth-subtitle">Enter your credentials to access your account</p>
+                <p class="auth-subtitle">Enter your credentials to access your workspace</p>
 
                 <!-- Flash Messages -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}" style="margin-bottom: var(--space-6);">
-                                <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
+                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}" style="margin-bottom: var(--webify-space-6);">
+                                <span class="iconify alert-icon" data-icon="{{ 'solar:danger-triangle-bold' if category in ['danger', 'error'] else 'solar:check-circle-bold' }}"></span>
                                 <div class="alert-content">{{ message }}</div>
                             </div>
                         {% endfor %}
@@ -45,7 +304,7 @@
                     <div class="form-group">
                         <label class="form-label" for="username">Username</label>
                         <div class="input-group">
-                            <i data-lucide="user" class="input-group-icon"></i>
+                            <span class="iconify input-group-icon" data-icon="solar:user-bold" style="width: 18px; height: 18px;"></span>
                             <input 
                                 type="text" 
                                 id="username" 
@@ -62,10 +321,10 @@
                     <div class="form-group">
                         <div class="flex items-center justify-between mb-2">
                             <label class="form-label mb-0" for="password">Password</label>
-                            <a href="{{ url_for('auth.forgot_password') }}" class="text-sm" style="color: var(--primary-600);">Forgot password?</a>
+                            <a href="{{ url_for('auth.forgot_password') }}" class="text-sm" style="color: var(--webify-accent-secondary);">Forgot password?</a>
                         </div>
                         <div class="input-group">
-                            <i data-lucide="lock" class="input-group-icon"></i>
+                            <span class="iconify input-group-icon" data-icon="solar:lock-password-bold" style="width: 18px; height: 18px;"></span>
                             <input 
                                 type="password" 
                                 id="password" 
@@ -85,25 +344,27 @@
                         </label>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-full" style="margin-top: var(--space-2);">
-                        <i data-lucide="log-in" class="icon-sm"></i>
-                        Sign in
+                    <button type="submit" class="btn btn-primary btn-lg w-full">
+                        <span class="iconify icon-sm" data-icon="solar:login-2-bold"></span>
+                        Sign in to workspace
                     </button>
                 </form>
 
                 <!-- Footer -->
-                <div class="auth-footer" style="margin-top: var(--space-8); text-align: center;">
-                    <p class="text-sm text-secondary">
-                        Protected by enterprise-grade security
-                    </p>
-                    <div class="flex items-center justify-center gap-4 mt-4">
-                        <span class="flex items-center gap-1 text-xs text-tertiary">
-                            <i data-lucide="shield-check" class="icon-xs"></i>
+                <div class="auth-footer">
+                    <p class="text-sm text-secondary">Protected by enterprise-grade security</p>
+                    <div class="auth-footer-badges">
+                        <span class="auth-badge">
+                            <span class="iconify" data-icon="solar:shield-check-bold" style="width: 14px; height: 14px;"></span>
                             256-bit SSL
                         </span>
-                        <span class="flex items-center gap-1 text-xs text-tertiary">
-                            <i data-lucide="lock" class="icon-xs"></i>
+                        <span class="auth-badge">
+                            <span class="iconify" data-icon="solar:lock-bold" style="width: 14px; height: 14px;"></span>
                             Encrypted
+                        </span>
+                        <span class="auth-badge">
+                            <span class="iconify" data-icon="solar:verified-check-bold" style="width: 14px; height: 14px;"></span>
+                            SOC 2
                         </span>
                     </div>
                 </div>
@@ -113,8 +374,8 @@
         <!-- Right Side - Decorative -->
         <div class="auth-right">
             <div class="auth-right-content">
-                <div style="margin-bottom: var(--space-8);">
-                    <i data-lucide="kanban" style="width: 64px; height: 64px; opacity: 0.9;"></i>
+                <div class="auth-right-icon">
+                    <span class="iconify" data-icon="solar:widget-5-bold-duotone" style="width: 40px; height: 40px;"></span>
                 </div>
                 <h2 class="auth-right-title">Manage projects with clarity</h2>
                 <p class="auth-right-text">
@@ -122,26 +383,30 @@
                 </p>
                 
                 <!-- Feature Pills -->
-                <div class="flex flex-wrap justify-center gap-3 mt-8">
-                    <span style="background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 9999px; font-size: 14px;">
-                        <i data-lucide="check" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i>
+                <div class="auth-features">
+                    <span class="auth-feature-pill">
+                        <span class="iconify" data-icon="solar:check-circle-bold" style="width: 16px; height: 16px;"></span>
                         Kanban Boards
                     </span>
-                    <span style="background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 9999px; font-size: 14px;">
-                        <i data-lucide="check" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i>
+                    <span class="auth-feature-pill">
+                        <span class="iconify" data-icon="solar:check-circle-bold" style="width: 16px; height: 16px;"></span>
                         Gantt Charts
                     </span>
-                    <span style="background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 9999px; font-size: 14px;">
-                        <i data-lucide="check" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i>
+                    <span class="auth-feature-pill">
+                        <span class="iconify" data-icon="solar:check-circle-bold" style="width: 16px; height: 16px;"></span>
                         Team Collaboration
+                    </span>
+                    <span class="auth-feature-pill">
+                        <span class="iconify" data-icon="solar:check-circle-bold" style="width: 16px; height: 16px;"></span>
+                        Real-time Updates
                     </span>
                 </div>
             </div>
 
-            <!-- Decorative Elements -->
-            <div style="position: absolute; bottom: 40px; left: 40px; right: 40px; display: flex; justify-content: space-between; opacity: 0.6;">
-                <span class="text-sm">Trusted by 10,000+ teams</span>
-                <span class="text-sm">99.9% uptime</span>
+            <!-- Stats -->
+            <div class="auth-stats">
+                <span>Trusted by 10,000+ teams</span>
+                <span>99.9% uptime guaranteed</span>
             </div>
         </div>
     </div>
@@ -150,7 +415,7 @@
         // Add subtle animation to form inputs
         document.querySelectorAll('.form-input').forEach(input => {
             input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.01)';
+                this.parentElement.style.transform = 'scale(1.02)';
                 this.parentElement.style.transition = 'transform 0.2s ease';
             });
             input.addEventListener('blur', function() {
@@ -158,7 +423,5 @@
             });
         });
     </script>
-    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
-    <script>lucide.createIcons();</script>
 </body>
 </html>

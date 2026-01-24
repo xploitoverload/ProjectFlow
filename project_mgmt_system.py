@@ -351,7 +351,7 @@ def add_project():
     start_date_str = request.form.get('start_date')
     end_date_str = request.form.get('end_date')
     
-    valid_statuses = ['Not Started', 'In Progress', 'On Hold', 'Completed']
+    valid_statuses = ['Not Started', 'In Progress', 'On Hold', 'Completed', 'Active', 'At Risk', 'Blocked']
     if status not in valid_statuses:
         flash('Invalid project status', 'error')
         return redirect(url_for('admin_projects'))
@@ -392,7 +392,7 @@ def update_project_status(project_id):
     project = Project.query.get_or_404(project_id)
     status = request.form.get('status')
     
-    valid_statuses = ['Not Started', 'In Progress', 'On Hold', 'Completed']
+    valid_statuses = ['Not Started', 'In Progress', 'On Hold', 'Completed', 'Active', 'At Risk', 'Blocked']
     if status not in valid_statuses:
         flash('Invalid project status', 'error')
         return redirect(url_for('admin_projects'))

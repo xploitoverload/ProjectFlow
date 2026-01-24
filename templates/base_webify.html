@@ -29,6 +29,7 @@
     <!-- Iconify Icons -->
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     
+    <!-- Scripts -->
     <script defer src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
@@ -201,7 +202,7 @@
                     </div>
                     
                     <!-- Notifications Button -->
-                    <button class="header-icon-btn" id="notificationBtn" style="position: relative;" title="Notifications">
+                    <button class="header-icon-btn" id="notificationBtn" title="Notifications">
                         <span class="iconify" data-icon="solar:bell-bold"></span>
                         <span class="notification-badge">0</span>
                     </button>
@@ -267,40 +268,28 @@
     <!-- Base JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Base: DOM Content Loaded');
+            console.log('Webify Theme: DOM Content Loaded');
             
-            // Initialize Lucide icons
+            // Initialize Lucide icons (fallback)
             if (typeof lucide !== 'undefined' && lucide.createIcons) {
                 lucide.createIcons();
-                console.log('Base: Lucide icons initialized');
-            } else {
-                console.error('Base: Lucide not loaded');
+                console.log('Lucide icons initialized');
             }
 
-            // Initialize Theme Manager
-            if (typeof window.themeManager !== 'undefined') {
-                console.log('Base: Theme manager ready');
-            } else {
-                console.error('Base: Theme manager not loaded');
-            }
-
-            // Initialize Notification Manager
-            if (typeof window.notificationManager !== 'undefined') {
-                console.log('Base: Notification manager ready');
-            } else {
-                console.error('Base: Notification manager not loaded');
-            }
-
-            // Theme Toggle Button
+            // Theme Toggle
             const themeToggle = document.getElementById('themeToggle');
-            if (themeToggle && window.themeManager) {
+            if (themeToggle) {
                 themeToggle.addEventListener('click', function() {
-                    window.themeManager.toggleTheme();
+                    document.body.classList.toggle('light-mode');
+                    const icon = this.querySelector('.iconify');
+                    if (icon) {
+                        const isLight = document.body.classList.contains('light-mode');
+                        icon.setAttribute('data-icon', isLight ? 'solar:sun-bold' : 'solar:moon-bold');
+                    }
                 });
-                console.log('Base: Theme toggle button initialized');
             }
 
-            // Notification Button
+            // Notification Panel
             const notificationBtn = document.getElementById('notificationBtn');
             const notificationPanel = document.getElementById('notificationPanel');
             const closeNotifications = document.getElementById('closeNotifications');
@@ -309,7 +298,6 @@
                 notificationBtn.addEventListener('click', function() {
                     notificationPanel.classList.toggle('show');
                 });
-                console.log('Base: Notification button initialized');
             }
             
             if (closeNotifications && notificationPanel) {
@@ -327,16 +315,18 @@
                 });
             }
 
+            // Mobile Sidebar Toggle
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('open');
+                });
+            }
+
             // Keyboard shortcuts
             document.addEventListener('keydown', function(e) {
-                // Ctrl/Cmd + D - Toggle theme
-                if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-                    e.preventDefault();
-                    if (window.themeManager) {
-                        window.themeManager.toggleTheme();
-                    }
-                }
-
                 // Ctrl/Cmd + K - Focus search
                 if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                     e.preventDefault();
@@ -345,9 +335,24 @@
                         searchInput.focus();
                     }
                 }
+                
+                // Escape - Close panels
+                if (e.key === 'Escape') {
+                    notificationPanel?.classList.remove('show');
+                    sidebar?.classList.remove('open');
+                }
             });
 
-            console.log('Base: All event listeners attached');
+            // Close notification panel when clicking outside
+            document.addEventListener('click', function(e) {
+                if (notificationPanel && notificationPanel.classList.contains('show')) {
+                    if (!notificationPanel.contains(e.target) && !notificationBtn.contains(e.target)) {
+                        notificationPanel.classList.remove('show');
+                    }
+                }
+            });
+
+            console.log('Webify Theme: All event listeners attached');
         });
     </script>
 

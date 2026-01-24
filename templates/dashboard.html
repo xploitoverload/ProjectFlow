@@ -6,10 +6,11 @@
     <title>Dashboard - ProjectFlow</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/webify-theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global-navigation.css') }}">
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <script defer src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
@@ -31,7 +32,7 @@
             <div class="sidebar-header">
                 <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
                     <div class="sidebar-logo-icon">
-                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                        <span class="iconify" data-icon="solar:layers-bold-duotone" style="width: 22px; height: 22px;"></span>
                     </div>
                     <span class="sidebar-logo-text">ProjectFlow</span>
                 </a>
@@ -42,15 +43,15 @@
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">For you</div>
                     <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item active">
-                        <i data-lucide="home" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:home-2-bold-duotone"></span>
                         <span>Home</span>
                     </a>
                     <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="clock" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:clock-circle-bold-duotone"></span>
                         <span>Recent</span>
                     </a>
                     <a href="javascript:void(0)" id="sidebarNotifications" class="sidebar-nav-item">
-                        <i data-lucide="bell" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:bell-bold-duotone"></span>
                         <span>Notifications</span>
                         <span class="notification-badge ml-auto">0</span>
                     </a>
@@ -60,15 +61,15 @@
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Work</div>
                     <a href="{{ url_for('admin.admin_teams') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
-                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:users-group-rounded-bold-duotone"></span>
                         <span>Teams</span>
                     </a>
                     <a href="#" class="sidebar-nav-item">
-                        <i data-lucide="target" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:target-bold-duotone"></span>
                         <span>Goals</span>
                     </a>
                     <a href="{{ url_for('admin.admin_projects') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
-                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:folder-with-files-bold-duotone"></span>
                         <span>Projects</span>
                     </a>
                 </div>
@@ -77,27 +78,27 @@
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Tools</div>
                     <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
-                        <i data-lucide="bar-chart-3" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:chart-bold-duotone"></span>
                         <span>Reports</span>
                     </a>
                     <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item">
-                        <i data-lucide="gantt-chart" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:chart-2-bold-duotone"></span>
                         <span>Timeline</span>
                     </a>
                     <a href="{{ url_for('main.issues') }}" class="sidebar-nav-item">
-                        <i data-lucide="list-checks" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:checklist-minimalistic-bold-duotone"></span>
                         <span>Issues</span>
                     </a>
                     <a href="{{ url_for('main.board') }}" class="sidebar-nav-item">
-                        <i data-lucide="kanban-square" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:widget-5-bold-duotone"></span>
                         <span>Board</span>
                     </a>
                     <a href="{{ url_for('main.backlog') }}" class="sidebar-nav-item">
-                        <i data-lucide="list" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:list-bold-duotone"></span>
                         <span>Backlog</span>
                     </a>
                     <a href="{{ url_for('main.calendar') }}" class="sidebar-nav-item">
-                        <i data-lucide="calendar" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:calendar-bold-duotone"></span>
                         <span>Calendar</span>
                     </a>
                 </div>
@@ -107,15 +108,15 @@
                     <div class="sidebar-section-title">Your projects</div>
                     {% for project in projects[:5] %}
                     <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item">
-                        <span class="avatar avatar-xs" style="background: {{ project.color or 'var(--primary-100)' }}; color: {{ project.color or 'var(--primary-700)' }}; font-size: 10px;">
+                        <span class="avatar avatar-xs" style="background: {{ project.color or 'var(--webify-gradient-primary)' }}; color: white; font-size: 10px;">
                             {{ project.name[:2].upper() }}
                         </span>
                         <span class="truncate">{{ project.name }}</span>
                     </a>
                     {% endfor %}
                     {% if projects|length > 5 %}
-                    <a href="{{ url_for('admin.admin_projects') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item" style="color: var(--primary-600); font-size: 13px;">
-                        <i data-lucide="plus-circle" class="nav-icon"></i>
+                    <a href="{{ url_for('admin.admin_projects') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item" style="color: var(--webify-accent-secondary); font-size: 13px;">
+                        <span class="iconify nav-icon" data-icon="solar:add-circle-bold-duotone"></span>
                         <span>View all projects</span>
                     </a>
                     {% endif %}
@@ -125,24 +126,24 @@
                 <!-- Administration -->
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Administration</div>
-                    <a href="{{ url_for('admin.admin_tools') }}" class="sidebar-nav-item" style="background: linear-gradient(90deg, rgba(88, 166, 255, 0.15), transparent); border-left: 3px solid var(--primary-500);">
-                        <i data-lucide="wrench" class="nav-icon" style="color: var(--primary-500);"></i>
+                    <a href="{{ url_for('admin.admin_tools') }}" class="sidebar-nav-item active" style="background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), transparent);">
+                        <span class="iconify nav-icon" data-icon="solar:settings-minimalistic-bold-duotone" style="color: var(--webify-accent-secondary);"></span>
                         <span style="font-weight: 600;">Admin Tools</span>
                     </a>
                     <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="gauge" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:graph-new-bold-duotone"></span>
                         <span>Admin Dashboard</span>
                     </a>
                     <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
-                        <i data-lucide="users" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:users-group-two-rounded-bold-duotone"></span>
                         <span>Users</span>
                     </a>
                     <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
-                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:users-group-rounded-bold-duotone"></span>
                         <span>Teams</span>
                     </a>
                     <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span class="iconify nav-icon" data-icon="solar:shield-check-bold-duotone"></span>
                         <span>Security</span>
                     </a>
                 </div>
@@ -151,14 +152,14 @@
 
             <div class="sidebar-footer">
                 <a href="{{ url_for('main.profile') }}" class="sidebar-user">
-                    <div class="sidebar-user-avatar" style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--primary-100)' }};">
+                    <div class="sidebar-user-avatar" style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--webify-gradient-primary)' }};">
                         {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
                     </div>
                     <div class="sidebar-user-info">
                         <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
                         <div class="sidebar-user-role">{{ current_user.role.title() if current_user.is_authenticated and current_user.role else 'Guest' }}</div>
                     </div>
-                    <i data-lucide="chevron-right" style="width: 16px; height: 16px; color: var(--text-tertiary);"></i>
+                    <span class="iconify" data-icon="solar:alt-arrow-right-linear" style="width: 16px; height: 16px; color: var(--webify-text-tertiary);"></span>
                 </a>
             </div>
         </aside>
@@ -171,25 +172,25 @@
                     <!-- Product Switcher -->
                     <div style="position: relative;">
                         <button class="header-icon-btn" id="productSwitcherBtn" title="Product Switcher">
-                            <i data-lucide="grid"></i>
+                            <span class="iconify" data-icon="solar:widget-2-bold"></span>
                         </button>
                     </div>
                     
                     <button class="header-icon-btn" id="sidebarToggle" style="display: none;">
-                        <i data-lucide="menu"></i>
+                        <span class="iconify" data-icon="solar:hamburger-menu-bold"></span>
                     </button>
                     <div class="header-breadcrumb">
                         <span>Home</span>
-                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
                         <span class="header-breadcrumb-current">Dashboard</span>
                     </div>
                 </div>
                 <div class="header-right">
                     <!-- Global Search with CMD+K -->
                     <div class="header-search" style="position: relative; cursor: pointer;" onclick="window.globalNavigation?.openCommandPalette()">
-                        <i data-lucide="search" class="header-search-icon"></i>
+                        <span class="iconify header-search-icon" data-icon="solar:magnifer-linear"></span>
                         <input type="text" class="header-search-input" placeholder="Search or jump to..." readonly style="cursor: pointer;">
-                        <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--jira-text-secondary); background: var(--jira-dark-bg); border: 1px solid var(--jira-border); border-radius: 4px; padding: 2px 6px; pointer-events: none;">
+                        <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--webify-text-tertiary); background: var(--webify-bg-tertiary); border: 1px solid var(--webify-border-primary); border-radius: 4px; padding: 2px 6px; pointer-events: none;">
                             <kbd>⌘K</kbd>
                         </div>
                     </div>
