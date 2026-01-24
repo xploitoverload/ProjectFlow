@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced Search - ProjectFlow{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div id="searchContainer">
+        <div class="feature-loading">
+            <div class="feature-loading-spinner"></div>
+            <div class="feature-loading-text">Loading Advanced Search...</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { AdvancedSearchFilters } from '{{ url_for('static', filename='js/advanced-search-filters.js') }}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        try {
+            const searchSystem = new AdvancedSearchFilters();
+            const container = document.getElementById('searchContainer');
+            container.innerHTML = '';
+            
+            // Create professional header
+            const header = document.createElement('div');
+            header.className = 'feature-header';
+            header.innerHTML = `
+                <div class="feature-header-title">
+                    <i data-lucide="search" class="icon"></i>
+                    <h1>Advanced Search</h1>
+                </div>
+                <div class="feature-header-actions">
+                    <button class="btn btn-secondary">
+                        <i data-lucide="save"></i>
+                        Save Search
+                    </button>
+                    <button class="btn btn-primary">
+                        <i data-lucide="filter"></i>
+                        Add Filter
+                    </button>
+                </div>
+            `;
+            container.appendChild(header);
+            
+            // Create content area
+            const content = document.createElement('div');
+            content.className = 'feature-content fade-in';
+            container.appendChild(content);
+            
+            // Initialize search system
+            searchSystem.render(content);
+            
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        } catch (error) {
+            console.error('Error initializing search:', error);
+            document.getElementById('searchContainer').innerHTML = `
+                <div class="feature-error">
+                    <i data-lucide="alert-triangle" class="feature-error-icon"></i>
+                    <h2 class="feature-error-title">Failed to Load Search</h2>
+                    <p class="feature-error-description">
+                        We encountered an error while loading the search system.
+                    </p>
+                    <div class="feature-error-actions">
+                        <button class="btn btn-primary" onclick="location.reload()">
+                            <i data-lucide="refresh-cw"></i>
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }, 300);
+});
+</script>
+{% endblock %}

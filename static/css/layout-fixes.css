@@ -1,0 +1,390 @@
+/* ============================================
+   LAYOUT FIXES - NO BUGS ALLOWED
+   Fix all scrolling, sidebar, and form issues
+   ============================================ */
+
+/* Fix main content area to not hide under sidebar */
+.main-content {
+    margin-left: 260px !important;
+    width: calc(100% - 260px) !important;
+    min-height: 100vh;
+    overflow-y: auto !important;
+    padding: 24px !important;
+}
+
+/* Ensure modals and selects ignore the margin */
+.modal,
+.modal-backdrop,
+.modal-dialog,
+select {
+    margin-left: 0 !important;
+}
+
+/* Ensure sidebar doesn't overlap content */
+.sidebar {
+    position: fixed !important;
+    top: 60px !important;
+    left: 0 !important;
+    width: 260px !important;
+    height: calc(100vh - 60px) !important;
+    overflow-y: auto !important;
+    z-index: 100 !important;
+    background: white !important;
+    border-right: 1px solid #dfe1e6 !important;
+}
+
+/* Fix page containers to be scrollable */
+.page-container,
+.container {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Fix modal dialogs to show completely with scroll */
+.modal,
+.modal-dialog {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    z-index: 1050 !important;
+}
+
+.modal-content {
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.modal-body {
+    overflow-y: auto !important;
+    max-height: 60vh !important;
+    flex: 1 !important;
+}
+
+.modal-footer {
+    position: sticky !important;
+    bottom: 0 !important;
+    background: white !important;
+    border-top: 1px solid #dfe1e6 !important;
+    padding: 16px !important;
+    z-index: 10 !important;
+}
+
+/* Fix forms to show all content including buttons */
+form {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+}
+
+.form-group {
+    margin-bottom: 20px !important;
+    width: 100% !important;
+}
+
+/* Ensure save/submit buttons are always visible */
+.form-actions,
+.form-footer,
+.button-group,
+.btn-group {
+    position: sticky !important;
+    bottom: 0 !important;
+    background: white !important;
+    padding: 16px !important;
+    margin-top: 24px !important;
+    border-top: 1px solid #dfe1e6 !important;
+    z-index: 10 !important;
+    display: flex !important;
+    gap: 12px !important;
+    justify-content: flex-end !important;
+}
+
+/* Fix card layouts */
+.card,
+.panel {
+    width: 100% !important;
+    margin-bottom: 24px !important;
+    overflow: visible !important;
+}
+
+.card-body {
+    padding: 24px !important;
+    overflow: visible !important;
+}
+
+/* Fix issue detail panels */
+.issue-detail,
+.issue-panel {
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    padding-bottom: 80px !important;
+}
+
+/* Fix tables to be scrollable horizontally */
+.table-responsive {
+    overflow-x: auto !important;
+    width: 100% !important;
+    margin-bottom: 24px !important;
+}
+
+table {
+    width: 100% !important;
+    min-width: 600px !important;
+}
+
+/* Fix project forms and edit pages */
+.project-form,
+.issue-form,
+.edit-form {
+    padding-bottom: 100px !important;
+    overflow: visible !important;
+}
+
+/* Fix dropdown menus to show properly */
+.dropdown-menu {
+    position: absolute !important;
+    z-index: 1060 !important;
+    max-height: 400px !important;
+    overflow-y: auto !important;
+}
+
+/* Fix sticky headers */
+.page-header {
+    position: sticky !important;
+    top: 0 !important;
+    background: white !important;
+    z-index: 90 !important;
+    padding: 20px 24px !important;
+    border-bottom: 1px solid #dfe1e6 !important;
+    margin-bottom: 24px !important;
+}
+
+/* Fix content wrapper */
+.content-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 24px 24px 24px !important;
+    overflow: visible !important;
+}
+
+/* Fix sidebar scrolling */
+.sidebar-content {
+    height: calc(100vh - 120px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Ensure all sections are visible */
+.sidebar-section {
+    margin-bottom: 24px !important;
+}
+
+/* Fix navigation items */
+.sidebar-nav-item {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 16px !important;
+    color: #172b4d !important;
+    text-decoration: none !important;
+    border-radius: 4px !important;
+    margin-bottom: 2px !important;
+    transition: all 0.2s !important;
+}
+
+.sidebar-nav-item:hover {
+    background: #ebecf0 !important;
+    color: #0052cc !important;
+}
+
+.sidebar-nav-item.active {
+    background: #deebff !important;
+    color: #0052cc !important;
+    font-weight: 600 !important;
+}
+
+/* Fix icons */
+.nav-icon {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Fix feature pages */
+.feature-content {
+    padding: 24px !important;
+    overflow-y: auto !important;
+    max-height: none !important;
+    height: auto !important;
+}
+
+/* Fix board view */
+#boardView,
+#issueNavigator,
+#timelineContainer,
+#calendarContainer {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 600px !important;
+    overflow: visible !important;
+}
+
+/* Fix sprint planning view */
+.backlog-view,
+.sprint-view {
+    padding-bottom: 100px !important;
+}
+
+/* Ensure buttons are always accessible */
+button,
+.btn {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Fix input fields */
+input,
+textarea,
+select {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Fix responsive issues */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    .sidebar {
+        transform: translateX(-100%) !important;
+    }
+    
+    .sidebar.open {
+        transform: translateX(0) !important;
+    }
+}
+
+/* Fix z-index stacking */
+.navbar {
+    z-index: 1000 !important;
+}
+
+.sidebar {
+    z-index: 100 !important;
+}
+
+.main-content {
+    z-index: 1 !important;
+}
+
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+.modal {
+    z-index: 1050 !important;
+}
+
+.dropdown-menu {
+    z-index: 1060 !important;
+}
+
+.tooltip {
+    z-index: 1070 !important;
+}
+
+/* Prevent content from hiding */
+* {
+    box-sizing: border-box !important;
+}
+
+/* Fix overflow issues */
+html {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Fix kanban board columns */
+.board-column {
+    min-height: 500px !important;
+    max-height: calc(100vh - 200px) !important;
+    overflow-y: auto !important;
+}
+
+/* Fix issue cards */
+.issue-card {
+    margin-bottom: 12px !important;
+    overflow: visible !important;
+}
+
+/* Ensure all text is readable */
+.text-truncate {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+/* Fix pagination */
+.pagination {
+    position: sticky !important;
+    bottom: 20px !important;
+    background: white !important;
+    padding: 16px !important;
+    z-index: 50 !important;
+}
+
+/* CRITICAL: Fix save buttons always visible */
+input[type="submit"],
+button[type="submit"],
+.btn-primary,
+.btn-submit,
+.save-btn {
+    position: relative !important;
+    margin-top: 24px !important;
+    margin-bottom: 24px !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Fix edit forms specifically */
+.edit-issue-form,
+.edit-project-form,
+.create-issue-form {
+    padding-bottom: 120px !important;
+}
+
+.edit-issue-form .form-actions,
+.edit-project-form .form-actions,
+.create-issue-form .form-actions {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 260px !important;
+    right: 0 !important;
+    background: white !important;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1) !important;
+    padding: 16px 24px !important;
+    z-index: 999 !important;
+}
+
+/* Show all navigation items */
+.sidebar-section a {
+    display: flex !important;
+}

@@ -1,0 +1,520 @@
+/**
+ * Agile Metrics Styles
+ * Cycle time, lead time, throughput, WIP limits
+ */
+
+/* Metrics Modal */
+.metrics-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.metrics-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+}
+
+.metrics-modal-container {
+    position: relative;
+    width: 95%;
+    max-width: 1600px;
+    height: 90vh;
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+}
+
+.metrics-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.metrics-modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.header-controls {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.metrics-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-6);
+}
+
+/* Summary Cards */
+.metrics-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.metric-card {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: var(--color-bg-base);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.metric-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+}
+
+.metric-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.metric-icon.cycle-time {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3B82F6;
+}
+
+.metric-icon.lead-time {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+}
+
+.metric-icon.throughput {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8B5CF6;
+}
+
+.metric-icon.efficiency {
+    background: rgba(245, 158, 11, 0.1);
+    color: #F59E0B;
+}
+
+.metric-content {
+    flex: 1;
+}
+
+.metric-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-1);
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-1);
+}
+
+.metric-change {
+    font-size: 13px;
+}
+
+.change {
+    font-weight: 600;
+}
+
+.change.positive {
+    color: var(--color-green);
+}
+
+.change.negative {
+    color: var(--color-red);
+}
+
+/* Metrics Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+}
+
+.metric-chart-card {
+    background: var(--color-bg-base);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+}
+
+.metric-chart-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-4);
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.chart-container {
+    height: 250px;
+    position: relative;
+}
+
+/* WIP Status */
+.wip-status {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.wip-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.wip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wip-name {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.wip-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.wip-bar {
+    height: 8px;
+    background: var(--color-bg-subtle);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.wip-fill {
+    height: 100%;
+    background: var(--color-primary);
+    transition: width 0.3s, background 0.3s;
+}
+
+.wip-fill.warning {
+    background: var(--color-yellow);
+}
+
+.wip-fill.danger {
+    background: var(--color-red);
+}
+
+/* Flow Efficiency */
+.efficiency-breakdown {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--space-5);
+    align-items: center;
+}
+
+.efficiency-chart {
+    height: 250px;
+}
+
+.efficiency-legend {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.legend-color {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+}
+
+.legend-color.active-time {
+    background: #10B981;
+}
+
+.legend-color.wait-time {
+    background: #F59E0B;
+}
+
+.legend-color.blocked-time {
+    background: #EF4444;
+}
+
+.legend-content {
+    flex: 1;
+}
+
+.legend-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.legend-value {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* WIP Configuration Dialog */
+.metrics-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.metrics-dialog-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+}
+
+.metrics-dialog-container {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+.metrics-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.metrics-dialog-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.metrics-dialog-body {
+    padding: var(--space-5);
+}
+
+.metrics-dialog-footer {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: flex-end;
+    padding: var(--space-5);
+    border-top: 1px solid var(--color-border);
+}
+
+.hint-text {
+    margin-bottom: var(--space-4);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.wip-config-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.wip-config-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3);
+    background: var(--color-bg-base);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.wip-config-item label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.wip-config-item input {
+    width: 80px;
+}
+
+/* Form Elements */
+.form-input {
+    padding: var(--space-2-5) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    background: var(--color-bg-base);
+}
+
+.form-input:focus {
+    outline: 2px solid var(--color-primary);
+    border-color: transparent;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-dark);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.btn-ghost:hover {
+    background: var(--color-bg-subtle);
+    color: var(--color-text-primary);
+}
+
+.btn-sm {
+    padding: var(--space-1-5) var(--space-3);
+    font-size: 13px;
+}
+
+.btn-icon,
+.btn-icon-sm {
+    padding: var(--space-2);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+}
+
+.btn-icon-sm {
+    width: 28px;
+    height: 28px;
+}
+
+.btn-icon:hover,
+.btn-icon-sm:hover {
+    background: var(--color-bg-subtle);
+}
+
+.btn-icon svg,
+.btn-icon-sm svg {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-secondary);
+}
+
+.btn-icon-sm svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+    .metrics-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 968px) {
+    .metrics-modal-container {
+        width: 100%;
+        height: 100vh;
+        max-width: none;
+        border-radius: 0;
+    }
+
+    .metrics-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .efficiency-breakdown {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Dark Mode */
+[data-theme="dark"] .metrics-modal-backdrop,
+[data-theme="dark"] .metrics-dialog-backdrop {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+[data-theme="dark"] .form-input {
+    background: var(--color-bg-base);
+}

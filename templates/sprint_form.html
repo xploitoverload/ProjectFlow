@@ -9,6 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -148,6 +152,23 @@
 
     <script>
         lucide.createIcons();
+    </script>
+
+    <script>
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Initialize theme toggle
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            window.themeManager.toggleTheme();
+        });
+
+        // Initialize notification button
+        document.getElementById('notificationBtn')?.addEventListener('click', () => {
+            window.notificationManager?.togglePanel();
+        });
     </script>
 </body>
 </html>

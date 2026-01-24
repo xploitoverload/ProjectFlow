@@ -10,6 +10,7 @@ from app.services import ProjectService, IssueService, ReportService
 from app.utils.security import validate_csrf_token, sanitize_input
 from app.security.validation import sanitize_html, InputValidator, validate_file_upload
 from app.security.audit import log_security_event
+from app.models import db
 
 projects_bp = Blueprint('projects', __name__)
 
@@ -1027,3 +1028,127 @@ def delete_comment(project_id, issue_id, comment_id):
     
     flash('Comment deleted successfully', 'success')
     return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
+
+
+# =============================================
+# Additional Project View Routes
+# =============================================
+
+@projects_bp.route('/<int:project_id>/backlog')
+@login_required
+@project_access_required
+def project_backlog(project_id):
+    """Project backlog view - lists all issues not in active sprints."""
+    from app.models import Issue, Sprint
+    
+    project = ProjectService.get_project_by_id(project_id)
+    
+    # Get all issues that are not assigned to an active sprint or have no sprint
+    issues = Issue.query.filter_by(project_id=project_id)\
+        .filter((Issue.sprint_id.is_(None)) | 
+                (Issue.sprint_id.in_(
+                    db.session.query(Sprint.id)
+                    .filter(Sprint.project_id == project_id)
+                    .filter(Sprint.status.in_(['planning', 'completed']))
+                )))\
+        .order_by(Issue.created_at.desc())\
+        .all()
+    
+    return render_template('backlog.html', project=project, issues=issues)
+
+
+@projects_bp.route('/<int:project_id>/issues')
+@login_required
+@project_access_required
+def project_issues(project_id):
+    """List all issues for a project."""
+    from app.models import Issue
+    
+    project = ProjectService.get_project_by_id(project_id)
+    
+    # Get filter parameters
+    status_filter = request.args.get('status')
+    type_filter = request.args.get('type')
+    assignee_filter = request.args.get('assignee')
+    
+    query = Issue.query.filter_by(project_id=project_id)
+    
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+    if type_filter:
+        query = query.filter_by(type=type_filter)
+    if assignee_filter:
+        query = query.filter_by(assignee_id=int(assignee_filter))
+    
+    issues = query.order_by(Issue.created_at.desc()).all()
+    
+    return render_template('issues_list.html', project=project, issues=issues)
+
+
+@projects_bp.route('/<int:project_id>/board')
+@login_required
+@project_access_required
+def project_board(project_id):
+    """Alias for kanban board."""
+    return redirect(url_for('projects.project_kanban', project_id=project_id))
+
+
+@projects_bp.route('/<int:project_id>/code')
+@login_required
+@project_access_required
+def project_code(project_id):
+    """Project code repository view (placeholder)."""
+    project = ProjectService.get_project_by_id(project_id)
+    flash('Code repository integration coming soon!', 'info')
+    return redirect(url_for('projects.project_detail', project_id=project_id))
+
+
+@projects_bp.route('/<int:project_id>/security')
+@login_required
+@project_access_required
+def project_security(project_id):
+    """Project security dashboard (placeholder)."""
+    project = ProjectService.get_project_by_id(project_id)
+    flash('Security dashboard coming soon!', 'info')
+    return redirect(url_for('projects.project_detail', project_id=project_id))
+
+
+@projects_bp.route('/<int:project_id>/releases')
+@login_required
+@project_access_required
+def project_releases(project_id):
+    """Project releases view (placeholder)."""
+    project = ProjectService.get_project_by_id(project_id)
+    flash('Release management coming soon!', 'info')
+    return redirect(url_for('projects.project_detail', project_id=project_id))
+
+
+@projects_bp.route('/<int:project_id>/deployments')
+@login_required
+@project_access_required
+def project_deployments(project_id):
+    """Project deployments view (placeholder)."""
+    project = ProjectService.get_project_by_id(project_id)
+    flash('Deployment tracking coming soon!', 'info')
+    return redirect(url_for('projects.project_detail', project_id=project_id))
+
+
+@projects_bp.route('/<int:project_id>/settings')
+@login_required
+@project_access_required
+def project_settings(project_id):
+    """Project settings page."""
+    from app.models import User, Team
+    
+    project = ProjectService.get_project_by_id(project_id)
+    
+    # Check if user has permission to edit project settings
+    user = User.query.get(session['user_id'])
+    
+    if user.role not in ['admin', 'super_admin'] and project.owner_id != user.id:
+        flash('You do not have permission to edit project settings', 'error')
+        return redirect(url_for('projects.project_detail', project_id=project_id))
+    
+    teams = Team.query.all()
+    return render_template('project_settings.html', project=project, teams=teams)
+

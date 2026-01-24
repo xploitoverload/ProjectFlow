@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics & Reports - ProjectFlow{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div id="analyticsContainer">
+        <div class="feature-loading">
+            <div class="feature-loading-spinner"></div>
+            <div class="feature-loading-text">Loading Analytics Dashboard...</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { ReportsAnalyticsSystem } from '{{ url_for('static', filename='js/reports-analytics-system.js') }}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        try {
+            const analyticsSystem = new ReportsAnalyticsSystem();
+            const container = document.getElementById('analyticsContainer');
+            container.innerHTML = '';
+            
+            const header = document.createElement('div');
+            header.className = 'feature-header';
+            header.innerHTML = `
+                <div class="feature-header-title">
+                    <i data-lucide="bar-chart-3" class="icon"></i>
+                    <h1>Reports & Analytics</h1>
+                </div>
+                <div class="feature-header-actions">
+                    <button class="btn btn-secondary"><i data-lucide="calendar"></i> Date Range</button>
+                    <button class="btn btn-secondary"><i data-lucide="download"></i> Export</button>
+                    <button class="btn btn-primary"><i data-lucide="plus"></i> New Report</button>
+                </div>
+            `;
+            container.appendChild(header);
+            
+            const content = document.createElement('div');
+            content.className = 'feature-content fade-in';
+            container.appendChild(content);
+            
+            analyticsSystem.render(content);
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } catch (error) {
+            console.error('Error initializing analytics:', error);
+            document.getElementById('analyticsContainer').innerHTML = `
+                <div class="feature-error">
+                    <i data-lucide="alert-triangle" class="feature-error-icon"></i>
+                    <h2 class="feature-error-title">Failed to Load Analytics</h2>
+                    <p class="feature-error-description">We encountered an error while loading the analytics dashboard.</p>
+                    <div class="feature-error-actions">
+                        <button class="btn btn-primary" onclick="location.reload()"><i data-lucide="refresh-cw"></i> Try Again</button>
+                    </div>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }, 300);
+});
+</script>
+{% endblock %}

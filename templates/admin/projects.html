@@ -9,6 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -79,6 +83,17 @@
                     </div>
                 </div>
                 <div class="header-right">
+                    <!-- Theme Toggle -->
+                    <button class="header-icon-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
+                        <i data-lucide="moon"></i>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button class="header-icon-btn" id="notificationBtn" title="Notifications" style="position: relative;">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">0</span>
+                    </button>
+                    
                     <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
                         <i data-lucide="log-out" class="icon-sm"></i>
                         Sign out
@@ -238,7 +253,16 @@
                                                 <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="btn btn-ghost btn-sm btn-icon" title="Kanban">
                                                     <i data-lucide="kanban" class="icon-sm"></i>
                                                 </a>
-                                                <button class="btn btn-ghost btn-sm btn-icon" title="Edit">
+                                                <button class="btn btn-ghost btn-sm btn-icon edit-project-btn" title="Edit"
+                                                    data-project-id="{{ project.id }}"
+                                                    data-project-name="{{ project.name }}"
+                                                    data-project-key="{{ project.key }}"
+                                                    data-project-description="{{ project.description }}"
+                                                    data-project-status="{{ project.status }}"
+                                                    data-project-workflow="{{ project.workflow_type }}"
+                                                    data-project-team-id="{{ project.team_id or '' }}"
+                                                    data-project-start="{{ project.start_date or '' }}"
+                                                    data-project-end="{{ project.end_date or '' }}">
                                                     <i data-lucide="pencil" class="icon-sm"></i>
                                                 </button>
                                                 <form method="POST" action="{{ url_for('admin.delete_project', project_id=project.id) }}" style="margin: 0;" onsubmit="return confirm('Delete this project? This cannot be undone.');">
@@ -272,17 +296,17 @@
     </div>
 
     <!-- Add Project Modal -->
-    <div class="modal-backdrop" id="addProjectModal">
-        <div class="modal" style="max-width: 560px;">
-            <div class="modal-header">
-                <h3 class="modal-title">Create New Project</h3>
-                <button class="modal-close" onclick="closeAddProjectModal()">
+    <div class="modal-backdrop" id="addProjectModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+        <div class="modal" style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;">
+                <h3 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Create New Project</h3>
+                <button class="modal-close" onclick="closeAddProjectModal()" style="background: none; border: none; cursor: pointer; padding: 4px;">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form method="POST" action="{{ url_for('admin.add_project') }}">
+            <form method="POST" action="{{ url_for('admin.add_project') }}" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="modal-body">
+                <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
                     <div class="form-group">
                         <label class="form-label">Project Name</label>
                         <input type="text" name="name" class="form-input" placeholder="Enter project name" required>
@@ -338,11 +362,85 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeAddProjectModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
+                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddProjectModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
                         <i data-lucide="plus" class="icon-sm"></i>
                         Create Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Project Modal -->
+    <div class="modal-backdrop" id="editProjectModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+        <div class="modal" style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;">
+                <h3 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Edit Project</h3>
+                <button class="modal-close" onclick="closeEditProjectModal()" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form method="POST" id="editProjectForm" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
+                    <div class="form-group">
+                        <label class="form-label">Project Name</label>
+                        <input type="text" name="name" id="editProjectName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Project Key</label>
+                        <input type="text" name="key" id="editProjectKey" class="form-input" placeholder="e.g., PROJ">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" id="editProjectDescription" class="form-textarea" rows="3"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select name="status" id="editProjectStatus" class="form-select">
+                                <option value="Not Started">Not Started</option>
+                                <option value="Active">Active</option>
+                                <option value="On Hold">On Hold</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Workflow Type</label>
+                            <select name="workflow_type" id="editProjectWorkflow" class="form-select">
+                                <option value="agile">Agile</option>
+                                <option value="kanban">Kanban</option>
+                                <option value="waterfall">Waterfall</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Team</label>
+                        <select name="team_id" id="editProjectTeamId" class="form-select">
+                            <option value="">No Team</option>
+                            {% for team in teams %}
+                            <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" id="editProjectStart" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" id="editProjectEnd" class="form-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditProjectModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        <i data-lucide="save" class="icon-sm"></i>
+                        Save Changes
                     </button>
                 </div>
             </form>
@@ -353,12 +451,53 @@
         lucide.createIcons();
 
         function openAddProjectModal() {
-            document.getElementById('addProjectModal').classList.add('active');
+            document.getElementById('addProjectModal').style.display = 'flex';
         }
 
         function closeAddProjectModal() {
-            document.getElementById('addProjectModal').classList.remove('active');
+            document.getElementById('addProjectModal').style.display = 'none';
         }
+
+        function openEditProjectModal(projectId, name, key, description, status, workflow, teamId, startDate, endDate) {
+            const modal = document.getElementById('editProjectModal');
+            const form = document.getElementById('editProjectForm');
+            
+            form.action = `/admin/project/${projectId}/edit`;
+            document.getElementById('editProjectName').value = name || '';
+            document.getElementById('editProjectKey').value = key || '';
+            document.getElementById('editProjectDescription').value = description || '';
+            document.getElementById('editProjectStatus').value = status || 'Not Started';
+            document.getElementById('editProjectWorkflow').value = workflow || 'agile';
+            document.getElementById('editProjectTeamId').value = teamId || '';
+            document.getElementById('editProjectStart').value = startDate || '';
+            document.getElementById('editProjectEnd').value = endDate || '';
+            
+            modal.style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        function closeEditProjectModal() {
+            document.getElementById('editProjectModal').style.display = 'none';
+        }
+
+        // Event listeners for edit buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.edit-project-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    openEditProjectModal(
+                        this.dataset.projectId,
+                        this.dataset.projectName,
+                        this.dataset.projectKey,
+                        this.dataset.projectDescription,
+                        this.dataset.projectStatus,
+                        this.dataset.projectWorkflow,
+                        this.dataset.projectTeamId,
+                        this.dataset.projectStart,
+                        this.dataset.projectEnd
+                    );
+                });
+            });
+        });
 
         // Search
         document.getElementById('projectSearch').addEventListener('input', (e) => {
@@ -387,11 +526,35 @@
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeAddProjectModal();
+            if (e.key === 'Escape') {
+                closeAddProjectModal();
+                closeEditProjectModal();
+            }
         });
 
         document.getElementById('addProjectModal').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) closeAddProjectModal();
+        });
+
+        document.getElementById('editProjectModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeEditProjectModal();
+        });
+    </script>
+
+    <script>
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Initialize theme toggle
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            window.themeManager.toggleTheme();
+        });
+
+        // Initialize notification button
+        document.getElementById('notificationBtn')?.addEventListener('click', () => {
+            window.notificationManager?.togglePanel();
         });
     </script>
 </body>

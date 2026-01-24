@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Backlog - {{ project.name }} - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global-navigation.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/backlog-view.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/issue-detail-modal.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/issue-detail-modal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/backlog-view.js') }}"></script>
+</head>
+<body>
+    <!-- Global Navigation -->
+    {% include 'nav4_navigation.html' %}
+
+    <div class="backlog-wrapper">
+        <!-- Backlog Header -->
+        <div class="backlog-header">
+            <h1>Product Backlog</h1>
+            <div class="backlog-controls">
+                <div class="backlog-filters">
+                    <select id="backlogGroupBy" class="filter-select">
+                        <option value="epic">Group by Epic</option>
+                        <option value="priority">Group by Priority</option>
+                        <option value="assignee">Group by Assignee</option>
+                        <option value="none">No Grouping</option>
+                    </select>
+
+                    <select id="backlogFilterEpic" class="filter-select">
+                        <option value="">All Epics</option>
+                    </select>
+
+                    <select id="backlogFilterPriority" class="filter-select">
+                        <option value="">All Priorities</option>
+                        <option value="Highest">Highest</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                        <option value="Lowest">Lowest</option>
+                    </select>
+                </div>
+
+                <div class="backlog-actions">
+                    <button class="btn btn-ghost" id="toggleEstimationMode">
+                        <i data-lucide="target"></i>
+                        Estimate
+                    </button>
+                    <button class="btn btn-ghost" id="createEpicBtn">
+                        <i data-lucide="layers"></i>
+                        Create Epic
+                    </button>
+                    <button class="btn btn-primary" id="createBacklogIssueBtn">
+                        <i data-lucide="plus"></i>
+                        Create Issue
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Actions Bar -->
+        <div id="bulkActionsBar">
+            <div class="bulk-actions-left">
+                <span><strong id="selectedCount">0</strong> issues selected</span>
+                <button class="btn-link" onclick="window.backlogView.selectedIssues.clear(); window.backlogView.updateBulkActionsBar(); window.backlogView.renderBacklog();">
+                    Clear Selection
+                </button>
+            </div>
+            <div class="bulk-actions-right">
+                <button class="btn btn-sm btn-ghost" id="bulkMoveToSprint">
+                    <i data-lucide="arrow-right"></i>
+                    Move to Sprint
+                </button>
+                <button class="btn btn-sm btn-ghost" id="bulkSetPriority">
+                    <i data-lucide="flag"></i>
+                    Set Priority
+                </button>
+                <button class="btn btn-sm btn-ghost" id="bulkEstimate">
+                    <i data-lucide="target"></i>
+                    Estimate
+                </button>
+            </div>
+        </div>
+
+        <!-- Backlog Container -->
+        <div id="backlogContainer">
+            <!-- Backlog items will be rendered here -->
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Set current project ID
+        window.currentProjectId = {{ project.id }};
+    </script>
+</body>
+</html>

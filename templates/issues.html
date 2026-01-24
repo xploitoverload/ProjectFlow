@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Issues - ProjectFlow{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div id="issueNavigator">
+        <div class="feature-loading">
+            <div class="feature-loading-spinner"></div>
+            <div class="feature-loading-text">Loading Issues Navigator...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('issueNavigator');
+    
+    setTimeout(() => {
+        if (typeof IssueTableAdvanced !== 'undefined') {
+            container.innerHTML = '';
+            const issueTable = new IssueTableAdvanced();
+            issueTable.render(container);
+        } else {
+            container.innerHTML = `
+                <div class="feature-error">
+                    <i data-lucide="alert-circle" class="feature-error-icon"></i>
+                    <div class="feature-error-title">Feature Not Loaded</div>
+                    <div class="feature-error-description">The Issue Navigator module failed to load. Please refresh the page.</div>
+                    <div class="feature-error-actions">
+                        <button class="btn btn-primary" onclick="location.reload()">Refresh Page</button>
+                    </div>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }, 100);
+});
+</script>
+{% endblock %}

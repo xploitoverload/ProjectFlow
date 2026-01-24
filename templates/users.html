@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - ProjectFlow{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div id="userManagementContainer"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('userManagementContainer');
+    if (typeof UserManagementSystem !== 'undefined') {
+        const userMgmt = new UserManagementSystem();
+        userMgmt.render(container);
+    }
+});
+</script>
+{% endblock %}

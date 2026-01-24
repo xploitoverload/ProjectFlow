@@ -1,0 +1,516 @@
+/* ============================================
+   MODAL & POPUP FIXES - ZERO BUGS POLICY
+   All modals, dialogs, dropdowns must appear properly
+   ============================================ */
+
+/* CRITICAL: Fix all modals to appear in center without scroll issues */
+.modal,
+.modal-overlay,
+.modal-backdrop,
+.dialog,
+.popup {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 10000 !important;
+    display: none !important;
+}
+
+.modal.show,
+.modal.open,
+.modal.active,
+.modal-backdrop.active,
+.modal-backdrop.show,
+.dialog.show,
+.popup.show {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    overflow-y: auto !important;
+    padding: 20px !important;
+}
+
+/* Modal content should be centered and scrollable */
+.modal-dialog,
+.modal-content,
+.dialog-content,
+.popup-content {
+    position: relative !important;
+    margin: auto !important;
+    max-width: 800px !important;
+    max-height: 85vh !important;
+    width: 90% !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    z-index: 10001 !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* CRITICAL: Fix for .modal inside .modal-backdrop */
+.modal-backdrop > .modal {
+    position: relative !important;
+    margin: auto !important;
+    max-width: 800px !important;
+    max-height: 85vh !important;
+    width: 90% !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Modal header */
+.modal-header,
+.dialog-header,
+.popup-header {
+    padding: 20px 24px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-shrink: 0 !important;
+    background: white !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+}
+
+.modal-title,
+.dialog-title,
+.popup-title {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #111827 !important;
+    margin: 0 !important;
+}
+
+/* Close button always visible */
+.modal-close,
+.dialog-close,
+.popup-close,
+.close {
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    color: #6b7280 !important;
+    transition: all 0.2s !important;
+}
+
+.modal-close:hover,
+.dialog-close:hover,
+.popup-close:hover {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+}
+
+/* Modal body must scroll */
+.modal-body,
+.dialog-body,
+.popup-body {
+    padding: 24px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    flex: 1 1 auto !important;
+    max-height: calc(85vh - 180px) !important;
+    min-height: 100px !important;
+}
+
+/* Fix forms inside modals */
+.modal form,
+.modal-body form {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    height: 100% !important;
+}
+
+/* Ensure modal form content scrolls properly */
+.modal-body > form {
+    margin: -24px !important;
+    padding: 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: auto !important;
+}
+
+/* Make sure form wraps modal-body and modal-footer correctly */
+.modal > form {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+}
+
+/* Fix select dropdowns in modals */
+.modal select,
+.modal .form-select,
+.modal-body select {
+    position: relative !important;
+    z-index: 10 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Modal footer always visible */
+.modal-footer,
+.dialog-footer,
+.popup-footer {
+    padding: 16px 24px !important;
+    border-top: 1px solid #e5e7eb !important;
+    display: flex !important;
+    gap: 12px !important;
+    justify-content: flex-end !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    background: white !important;
+    position: relative !important;
+    z-index: 20 !important;
+    margin-top: 0 !important;
+    min-height: 68px !important;
+}
+
+/* Ensure submit buttons in modals are always visible and clickable */
+.modal-footer button,
+.modal-footer .btn {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Dropdown menus must appear above everything */
+.dropdown,
+.dropdown-menu,
+.menu,
+.context-menu {
+    position: fixed !important;
+    z-index: 10050 !important;
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    min-width: 200px !important;
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    padding: 8px !important;
+}
+
+.dropdown.show,
+.dropdown-menu.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Dropdown items */
+.dropdown-item,
+.menu-item {
+    padding: 10px 12px !important;
+    cursor: pointer !important;
+    border-radius: 4px !important;
+    color: #374151 !important;
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    transition: all 0.15s !important;
+}
+
+.dropdown-item:hover,
+.menu-item:hover {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+}
+
+/* Tooltips */
+.tooltip,
+[data-tooltip] {
+    position: fixed !important;
+    z-index: 10100 !important;
+    background: #1f2937 !important;
+    color: white !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    pointer-events: none !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Popovers */
+.popover {
+    position: fixed !important;
+    z-index: 10075 !important;
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+    padding: 16px !important;
+    max-width: 320px !important;
+}
+
+/* Alerts and notifications */
+.alert,
+.notification,
+.toast {
+    position: fixed !important;
+    top: 80px !important;
+    right: 24px !important;
+    z-index: 10200 !important;
+    min-width: 320px !important;
+    max-width: 480px !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+    padding: 16px !important;
+    border-left: 4px solid #3b82f6 !important;
+}
+
+/* Sidepanels */
+.sidepanel,
+.drawer {
+    position: fixed !important;
+    top: 0 !important;
+    right: -100% !important;
+    width: 480px !important;
+    height: 100vh !important;
+    background: white !important;
+    z-index: 9999 !important;
+    box-shadow: -4px 0 25px rgba(0, 0, 0, 0.15) !important;
+    transition: right 0.3s ease !important;
+    overflow-y: auto !important;
+}
+
+.sidepanel.open,
+.drawer.open {
+    right: 0 !important;
+}
+
+/* Confirmation dialogs */
+.confirm-dialog,
+.alert-dialog {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10150 !important;
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 32px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    max-width: 480px !important;
+    width: 90% !important;
+}
+
+/* Loading overlays */
+.loading-overlay,
+.spinner-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 10500 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Context menus (right-click) */
+.context-menu {
+    position: fixed !important;
+    z-index: 10300 !important;
+}
+
+/* Select2 and similar dropdowns */
+.select2-container,
+.select2-dropdown {
+    z-index: 10080 !important;
+}
+
+.select2-container--open .select2-dropdown {
+    display: block !important;
+}
+
+/* Date pickers */
+.datepicker,
+.date-picker,
+.calendar-popup {
+    position: fixed !important;
+    z-index: 10090 !important;
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Color pickers */
+.color-picker,
+.colorpicker {
+    position: fixed !important;
+    z-index: 10095 !important;
+}
+
+/* CRITICAL: Prevent body scroll when modal is open */
+body.modal-open {
+    overflow: hidden !important;
+    padding-right: 0 !important;
+}
+
+/* Fix backdrop */
+.modal-backdrop,
+.overlay,
+.backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 9999 !important;
+}
+
+/* Fix for Bootstrap modals */
+.fade.in {
+    opacity: 1 !important;
+}
+
+.fade {
+    transition: opacity 0.3s ease !important;
+}
+
+/* Ensure modals work with sidebar */
+.modal.show ~ .sidebar,
+.dialog.show ~ .sidebar {
+    z-index: 9998 !important;
+}
+
+/* Fix form controls inside modals */
+.modal input,
+.modal textarea,
+.modal select,
+.dialog input,
+.dialog textarea,
+.dialog select {
+    width: 100% !important;
+    margin-bottom: 16px !important;
+}
+
+/* Fix buttons inside modals */
+.modal .btn,
+.dialog .btn,
+.popup .btn {
+    margin: 0 !important;
+    white-space: nowrap !important;
+}
+
+/* Image preview modals */
+.image-modal,
+.lightbox {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 10400 !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.image-modal img,
+.lightbox img {
+    max-width: 90% !important;
+    max-height: 90vh !important;
+    object-fit: contain !important;
+}
+
+/* Fix nested modals */
+.modal .modal {
+    z-index: 10200 !important;
+}
+
+/* Quick add forms */
+.quick-add,
+.inline-form {
+    position: relative !important;
+    z-index: 100 !important;
+}
+
+/* Autocomplete dropdowns */
+.autocomplete,
+.suggestions,
+.typeahead {
+    position: fixed !important;
+    z-index: 10085 !important;
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 6px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+}
+
+/* Mobile fixes */
+@media (max-width: 768px) {
+    .modal-dialog,
+    .modal-content,
+    .dialog-content {
+        max-width: 95% !important;
+        width: 95% !important;
+        max-height: 95vh !important;
+    }
+    
+    .sidepanel,
+    .drawer {
+        width: 100% !important;
+    }
+}
+
+/* Animation for modals */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal.show .modal-content,
+.dialog.show .dialog-content {
+    animation: modalFadeIn 0.2s ease-out !important;
+}
+
+/* Prevent click-through */
+.modal,
+.dialog,
+.popup,
+.dropdown-menu {
+    pointer-events: auto !important;
+}
+
+.modal-backdrop {
+    pointer-events: auto !important;
+}

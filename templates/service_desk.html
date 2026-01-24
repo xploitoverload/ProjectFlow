@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Service Desk - ProjectFlow{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div id="serviceDeskContainer">
+        <div class="feature-loading">
+            <div class="feature-loading-spinner"></div>
+            <div class="feature-loading-text">Loading Service Desk...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('serviceDeskContainer');
+    
+    setTimeout(() => {
+        if (typeof ServiceDeskSystem !== 'undefined') {
+            container.innerHTML = '';
+            const serviceDesk = new ServiceDeskSystem();
+            serviceDesk.render(container);
+        } else {
+            container.innerHTML = `
+                <div class="feature-error">
+                    <i data-lucide="headphones" class="feature-error-icon"></i>
+                    <div class="feature-error-title">Service Desk Not Available</div>
+                    <div class="feature-error-description">The Service Desk module failed to load.</div>
+                    <div class="feature-error-actions">
+                        <button class="btn btn-primary" onclick="location.reload()">Refresh Page</button>
+                    </div>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }, 100);
+});
+</script>
+{% endblock %}

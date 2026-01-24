@@ -129,6 +129,21 @@ def gantt_chart():
                           teams=teams)
 
 
+@main_bp.route('/calendar')
+@login_required
+def calendar():
+    """Calendar view for tasks and projects."""
+    from app.models import User, Team
+    
+    user = User.query.get(session['user_id'])
+    projects = ProjectService.get_user_accessible_projects(user)
+    teams = Team.query.all()
+    
+    return render_template('calendar.html',
+                          projects=projects,
+                          teams=teams)
+
+
 @main_bp.route('/profile')
 @login_required
 def profile():
@@ -147,6 +162,114 @@ def settings():
     
     user = User.query.get(session['user_id'])
     return render_template('settings.html', user=user)
+
+
+@main_bp.route('/issues')
+@login_required
+def issues():
+    """Issues navigator with advanced filters."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    projects = ProjectService.get_user_accessible_projects(user)
+    return render_template('issues.html', projects=projects)
+
+
+@main_bp.route('/board')
+@login_required
+def board():
+    """Kanban/Scrum board view."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    projects = ProjectService.get_user_accessible_projects(user)
+    return render_template('board.html', projects=projects)
+
+
+@main_bp.route('/backlog')
+@login_required
+def backlog():
+    """Backlog with sprint planning."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    projects = ProjectService.get_user_accessible_projects(user)
+    return render_template('backlog_new.html', projects=projects)
+
+
+@main_bp.route('/timeline')
+@login_required
+def timeline():
+    """Timeline/Roadmap Gantt view."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    projects = ProjectService.get_user_accessible_projects(user)
+    return render_template('timeline.html', projects=projects)
+
+
+@main_bp.route('/service-desk')
+@login_required
+def service_desk():
+    """Service Desk queue system."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    return render_template('service_desk.html')
+
+
+@main_bp.route('/analytics')
+@login_required
+def analytics():
+    """Reports & Analytics system."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    projects = ProjectService.get_user_accessible_projects(user)
+    return render_template('analytics.html', projects=projects)
+
+
+@main_bp.route('/automation')
+@login_required
+def automation():
+    """Automation & Workflows."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    return render_template('automation.html')
+
+
+@main_bp.route('/search')
+@login_required
+def search():
+    """Advanced Search & Filters."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    return render_template('search.html')
+
+
+@main_bp.route('/users')
+@login_required
+def users():
+    """User Management & Permissions."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    if user.role not in ['admin', 'super_admin']:
+        from flask import flash, abort
+        flash('Access denied. Admin access required.', 'error')
+        return redirect(url_for('main.dashboard'))
+    return render_template('users.html')
+
+
+@main_bp.route('/integrations')
+@login_required
+def integrations():
+    """Integrations & Apps."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    return render_template('integrations.html')
+
+
+@main_bp.route('/change-calendar')
+@login_required
+def change_calendar():
+    """Change Calendar & Risk Management."""
+    from app.models import User
+    user = User.query.get(session['user_id'])
+    return render_template('change_calendar.html')
 
 
 @main_bp.route('/profile/update', methods=['POST'])

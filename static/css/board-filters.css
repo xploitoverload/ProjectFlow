@@ -1,0 +1,254 @@
+/**
+ * Board Filters Styles - JIRA-style filtering panel
+ */
+
+/* Filter Panel */
+.filter-panel {
+    position: fixed;
+    top: 120px;
+    right: 24px;
+    width: 320px;
+    max-height: calc(100vh - 140px);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.filter-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+}
+
+.filter-panel-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.filter-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+}
+
+.filter-panel-footer {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border-top: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+}
+
+.filter-panel-footer .btn {
+    flex: 1;
+}
+
+/* Filter Sections */
+.filter-section {
+    margin-bottom: var(--space-5);
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+}
+
+.filter-input {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    transition: all 0.2s;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.filter-checkbox:hover {
+    background: var(--bg-secondary);
+}
+
+.filter-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--primary-500);
+}
+
+.filter-checkbox span {
+    flex: 1;
+    user-select: none;
+}
+
+.filter-empty {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-style: italic;
+    margin: 0;
+    padding: var(--space-2);
+}
+
+/* Filter Count Badge */
+.filter-count-badge {
+    display: inline-block;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    margin-left: var(--space-2);
+    background: var(--primary-500);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 10px;
+}
+
+/* Quick Filter Buttons */
+#myIssuesQuickFilter.active {
+    background: var(--primary-50);
+    color: var(--primary-700);
+    border: 1px solid var(--primary-300);
+}
+
+#myIssuesQuickFilter.active:hover {
+    background: var(--primary-100);
+}
+
+/* Filtered Cards */
+.kanban-card.filtered-out {
+    display: none !important;
+}
+
+/* Filter Toggle Button Enhancement */
+#filterToggleBtn {
+    position: relative;
+}
+
+#filterToggleBtn .filter-count-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    line-height: 16px;
+    font-size: 10px;
+    padding: 0 4px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .filter-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+    
+    .filter-panel-body {
+        padding: var(--space-3);
+    }
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .filter-panel {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .filter-checkbox:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .filter-input {
+    background: var(--gray-800);
+    border-color: var(--gray-700);
+}
+
+[data-theme="dark"] .filter-input:focus {
+    border-color: var(--primary-400);
+    box-shadow: 0 0 0 3px rgba(79, 132, 250, 0.2);
+}
+
+/* Animation */
+@keyframes filterPanelSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.filter-panel[style*="display: block"] {
+    animation: filterPanelSlide 0.2s ease-out;
+}
+
+/* Filter Results Message */
+.filter-results-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    margin: var(--space-4);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.filter-results-message i {
+    margin-right: var(--space-2);
+    color: var(--text-tertiary);
+}

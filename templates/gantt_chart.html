@@ -3,17 +3,603 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gantt Chart - ProjectFlow</title>
+    <title>Roadmap - ProjectFlow</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bulk-actions.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/advanced-search.js') }}"></script>
+    <style>
+        :root {
+            --jira-dark-bg: #1d2125;
+            --jira-darker-bg: #161a1d;
+            --jira-card-bg: #22272b;
+            --jira-border: #2c333a;
+            --jira-text: #b6c2cf;
+            --jira-text-secondary: #8c9bab;
+            --jira-hover: #2c3338;
+        }
+        
+        body {
+            background: var(--jira-dark-bg);
+            color: var(--jira-text);
+        }
+        
+        .app-sidebar {
+            background: var(--jira-darker-bg);
+            border-right: 1px solid var(--jira-border);
+            transition: width 0.3s ease, margin-left 0.3s ease;
+        }
+        
+        .app-sidebar.collapsed {
+            width: 60px;
+        }
+        
+        .app-sidebar.collapsed .sidebar-logo-text,
+        .app-sidebar.collapsed .sidebar-section-title,
+        .app-sidebar.collapsed .nav-icon + span,
+        .app-sidebar.collapsed .sidebar-user-info,
+        .app-sidebar.collapsed .beta-badge {
+            display: none;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            right: -12px;
+            top: 20px;
+            width: 24px;
+            height: 24px;
+            background: var(--jira-card-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-toggle:hover {
+            background: var(--jira-hover);
+        }
+        
+        .sidebar-nav-item {
+            color: var(--jira-text-secondary);
+        }
+        
+        .sidebar-nav-item:hover,
+        .sidebar-nav-item.active {
+            background: var(--jira-hover);
+            color: var(--jira-text);
+        }
+        
+        .sidebar-section-title {
+            color: var(--jira-text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .roadmap-header {
+            padding: 16px 24px;
+            background: var(--jira-darker-bg);
+            border-bottom: 1px solid var(--jira-border);
+        }
+        
+        .roadmap-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            background: var(--jira-darker-bg);
+            border-bottom: 1px solid var(--jira-border);
+        }
+        
+        .roadmap-container {
+            display: flex;
+            height: calc(100vh - 140px);
+            overflow: hidden;
+        }
+        
+        .roadmap-sidebar {
+            width: 280px;
+            background: var(--jira-card-bg);
+            border-right: 1px solid var(--jira-border);
+            overflow-y: auto;
+        }
+        
+        .roadmap-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--jira-border);
+        }
+        
+        .roadmap-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--jira-text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .roadmap-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .roadmap-item:hover {
+            background: var(--jira-hover);
+        }
+        
+        .roadmap-item-icon {
+            width: 16px;
+            height: 16px;
+            color: var(--jira-text-secondary);
+        }
+        
+        .roadmap-item-label {
+            font-size: 14px;
+            color: var(--jira-text);
+        }
+        
+        .roadmap-timeline {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: auto;
+            background: var(--jira-dark-bg);
+        }
+        
+        .timeline-header {
+            display: flex;
+            position: sticky;
+            top: 0;
+            background: var(--jira-darker-bg);
+            border-bottom: 1px solid var(--jira-border);
+            z-index: 10;
+        }
+        
+        .timeline-month {
+            min-width: 200px;
+            padding: 12px 16px;
+            text-align: center;
+            border-right: 1px solid var(--jira-border);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--jira-text-secondary);
+            text-transform: uppercase;
+        }
+        
+        .timeline-body {
+            padding: 16px;
+        }
+        
+        .timeline-row {
+            margin-bottom: 24px;
+            position: relative;
+        }
+        
+        .timeline-row-header {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--jira-text);
+            margin-bottom: 12px;
+            padding-left: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Issue Hierarchy Styles */
+        .timeline-row.epic {
+            border-left: 3px solid #6554c0;
+            padding-left: 12px;
+        }
+        
+        .timeline-row.story {
+            margin-left: 24px;
+            border-left: 3px solid #0052cc;
+            padding-left: 12px;
+        }
+        
+        .timeline-row.subtask {
+            margin-left: 48px;
+            border-left: 3px solid #00b8d9;
+            padding-left: 12px;
+        }
+        
+        .timeline-row.collapsed .timeline-items {
+            display: none;
+        }
+        
+        .hierarchy-toggle {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--jira-card-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .hierarchy-toggle:hover {
+            background: var(--jira-hover);
+            border-color: #0052cc;
+        }
+        
+        .hierarchy-toggle i {
+            width: 12px;
+            height: 12px;
+            color: var(--jira-text-secondary);
+            transition: transform 0.2s;
+        }
+        
+        .timeline-row.collapsed .hierarchy-toggle i {
+            transform: rotate(-90deg);
+        }
+        
+        .hierarchy-icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+        }
+        
+        .hierarchy-icon.epic {
+            background: rgba(101, 84, 192, 0.2);
+            color: #6554c0;
+        }
+        
+        .hierarchy-icon.story {
+            background: rgba(0, 82, 204, 0.2);
+            color: #0052cc;
+        }
+        
+        .hierarchy-icon.subtask {
+            background: rgba(0, 184, 217, 0.2);
+            color: #00b8d9;
+        }
+        
+        .hierarchy-icon i {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .hierarchy-count {
+            font-size: 11px;
+            color: var(--jira-text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .timeline-items {
+            position: relative;
+            min-height: 40px;
+        }
+        
+        .timeline-bar {
+            position: absolute;
+            height: 32px;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .timeline-bar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+        
+        .timeline-bar.sprint { background: #5e4db2; }
+        .timeline-bar.billing { background: #0052cc; }
+        .timeline-bar.accounts { background: #00b8d9; }
+        .timeline-bar.feedback { background: #ffab00; }
+        .timeline-bar.aws { background: #ff5630; }
+        .timeline-bar.forms { background: #6554c0; }
+        .timeline-bar.reporting { background: #ff5630; }
+        
+        .timeline-bar-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px 0 0 4px;
+            z-index: 1;
+        }
+        
+        .timeline-bar-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .timeline-bar-badge {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            padding: 4px;
+            background: var(--jira-card-bg);
+            border-radius: 6px;
+            border: 1px solid var(--jira-border);
+        }
+        
+        .zoom-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--jira-text-secondary);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .zoom-btn:hover {
+            background: var(--jira-hover);
+            color: var(--jira-text);
+        }
+        
+        .zoom-btn.active {
+            background: #0052cc;
+            color: white;
+        }
+        
+        .zoom-separator {
+            width: 1px;
+            height: 20px;
+            background: var(--jira-border);
+            margin: 0 4px;
+        }
+        
+        .milestone-marker {
+            position: absolute;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: #00b8d9;
+            z-index: 5;
+        }
+        
+        .milestone-marker::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -5px;
+            width: 12px;
+            height: 12px;
+            background: #00b8d9;
+            border: 2px solid var(--jira-dark-bg);
+            border-radius: 50%;
+        }
+        
+        .milestone-label {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-weight: 600;
+            color: #00b8d9;
+            white-space: nowrap;
+            background: var(--jira-darker-bg);
+            padding: 2px 8px;
+            border-radius: 3px;
+            border: 1px solid #00b8d9;
+        }
+        
+        .dependency-line {
+            position: absolute;
+            height: 2px;
+            background: var(--jira-text-secondary);
+            opacity: 0.4;
+            z-index: 1;
+        }
+        
+        .dependency-arrow {
+            position: absolute;
+            right: -4px;
+            top: -3px;
+            width: 0;
+            height: 0;
+            border-left: 4px solid var(--jira-text-secondary);
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            opacity: 0.4;
+        }
+        
+        .view-switcher {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+            align-items: center;
+        }
+        
+        .view-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: none;
+            color: var(--jira-text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .view-btn:hover {
+            background: var(--jira-hover);
+            color: var(--jira-text);
+        }
+        
+        .view-btn.active {
+            background: #0052cc;
+            color: white;
+        }
+        
+        .beta-badge {
+            background: #5e4db2;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        /* Dropdown menu styles */
+        .filter-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: var(--jira-card-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 4px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            min-width: 220px;
+            z-index: 1000;
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .filter-dropdown.show {
+            display: block;
+        }
+
+        .filter-dropdown-header {
+            padding: 12px;
+            border-bottom: 1px solid var(--jira-border);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--jira-text);
+        }
+
+        .filter-dropdown-search {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--jira-border);
+        }
+
+        .filter-dropdown-search input {
+            width: 100%;
+            padding: 6px 8px;
+            background: var(--jira-darker-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 3px;
+            color: var(--jira-text);
+            font-size: 13px;
+        }
+
+        .filter-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+            font-size: 13px;
+            color: var(--jira-text-secondary);
+        }
+
+        .filter-option:hover {
+            background: var(--jira-hover);
+            color: var(--jira-text);
+        }
+
+        .filter-option input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .filter-option.selected {
+            background: rgba(0, 82, 204, 0.1);
+            color: #4c9aff;
+        }
+
+        .filter-dropdown-footer {
+            padding: 8px 12px;
+            border-top: 1px solid var(--jira-border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-btn-apply {
+            flex: 1;
+            padding: 6px 12px;
+            background: #0052cc;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .filter-btn-clear {
+            padding: 6px 12px;
+            background: transparent;
+            color: var(--jira-text-secondary);
+            border: 1px solid var(--jira-border);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+    </style>
 </head>
 <body>
     <div class="app-shell">
         <!-- Sidebar -->
-        <aside class="app-sidebar">
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-toggle" id="sidebarToggle">
+                <i data-lucide="chevron-left" style="width: 14px; height: 14px; color: var(--jira-text-secondary);"></i>
+            </div>
             <div class="sidebar-header">
                 <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
                     <div class="sidebar-logo-icon">
@@ -25,38 +611,80 @@
 
             <nav class="sidebar-nav">
                 <div class="sidebar-section">
-                    <div class="sidebar-section-title">Main</div>
-                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
-                        <i data-lucide="bar-chart-3" class="nav-icon"></i>
-                        <span>Reports</span>
-                    </a>
-                </div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">Views</div>
+                    <div class="sidebar-section-title">PLANNING</div>
                     <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item active">
                         <i data-lucide="gantt-chart" class="nav-icon"></i>
-                        <span>Gantt Chart</span>
-                    </a>
-                    <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item">
-                        <i data-lucide="calendar" class="nav-icon"></i>
                         <span>Timeline</span>
+                    </a>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="list" class="nav-icon"></i>
+                        <span>Backlog</span>
+                    </a>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="trello" class="nav-icon"></i>
+                        <span>Board</span>
+                    </a>
+                    <a href="{{ url_for('main.calendar') }}" class="sidebar-nav-item">
+                        <i data-lucide="calendar" class="nav-icon"></i>
+                        <span>Calendar</span>
+                    </a>
+                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
+                        <i data-lucide="bar-chart-2" class="nav-icon"></i>
+                        <span>Reports</span>
+                    </a>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="alert-circle" class="nav-icon"></i>
+                        <span>Issues</span>
                     </a>
                 </div>
 
-                {% if current_user.is_authenticated and current_user.role == 'admin' %}
                 <div class="sidebar-section">
-                    <div class="sidebar-section-title">Administration</div>
-                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="settings" class="nav-icon"></i>
-                        <span>Admin Panel</span>
+                    <div class="sidebar-section-title">DEVELOPMENT</div>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="code" class="nav-icon"></i>
+                        <span>Code</span>
+                    </a>
+                    <a href="{{ url_for('admin.security_dashboard') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
+                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span>Security</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="package" class="nav-icon"></i>
+                        <span>Releases</span>
                     </a>
                 </div>
-                {% endif %}
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">OPERATIONS</div>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="rocket" class="nav-icon"></i>
+                        <span>Deployments</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="alert-triangle" class="nav-icon"></i>
+                        <span>Incidents</span>
+                        <span class="beta-badge">BETA</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="phone-call" class="nav-icon"></i>
+                        <span>On-call</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="file-text" class="nav-icon"></i>
+                        <span>Project Pages</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="bookmark-plus" class="nav-icon"></i>
+                        <span>Add shortcut</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
+                        <i data-lucide="settings" class="nav-icon"></i>
+                        <span>Project settings</span>
+                    </a>
+                </div>
             </nav>
 
             <div class="sidebar-footer">
@@ -72,158 +700,386 @@
 
         <!-- Main Content -->
         <main class="app-main">
-            <header class="app-header">
-                <div class="header-left">
-                    <div class="header-breadcrumb">
-                        <span>Views</span>
-                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
-                        <span class="header-breadcrumb-current">Gantt Chart</span>
+            <!-- Roadmap Header -->
+            <div class="roadmap-header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">
+                        BG
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: var(--jira-text-secondary); margin-bottom: 2px;">
+                            Projects / Beyond Gravity
+                        </div>
+                        <h1 style="font-size: 20px; font-weight: 600; color: var(--jira-text); margin: 0;">Roadmap</h1>
                     </div>
                 </div>
-                <div class="header-right">
-                    <div class="btn-group">
-                        <button class="btn btn-secondary btn-sm active" data-view="week">Week</button>
-                        <button class="btn btn-secondary btn-sm" data-view="month">Month</button>
-                        <button class="btn btn-secondary btn-sm" data-view="quarter">Quarter</button>
-                    </div>
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
-                        <i data-lucide="log-out" class="icon-sm"></i>
-                        Sign out
-                    </a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="view-btn">
+                        <i data-lucide="star" style="width: 16px; height: 16px;"></i>
+                    </button>
+                    <button class="view-btn">
+                        <i data-lucide="more-horizontal" style="width: 16px; height: 16px;"></i>
+                    </button>
                 </div>
-            </header>
+            </div>
 
-            <div class="app-content">
-                <!-- Page Header -->
-                <div class="page-header">
-                    <div class="page-header-top">
-                        <div>
-                            <h1 class="page-title">Gantt Chart</h1>
-                            <p class="page-subtitle">Visualize project timelines and task dependencies</p>
-                        </div>
-                        <div class="page-header-actions">
-                            <select class="form-select" id="projectFilter" style="width: 200px;">
-                                <option value="">All Projects</option>
-                                {% for project in projects %}
-                                <option value="{{ project.id }}">{{ project.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+            <!-- Roadmap Toolbar -->
+            <div class="roadmap-toolbar">
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                    <div style="position: relative; width: 280px;">
+                        <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--jira-text-secondary);"></i>
+                        <input type="text" placeholder="Search" style="width: 100%; padding: 6px 12px 6px 36px; background: var(--jira-card-bg); border: 1px solid var(--jira-border); border-radius: 4px; color: var(--jira-text); font-size: 14px;">
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: -8px; margin-left: 8px;">
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #ff5630; border: 2px solid var(--jira-darker-bg); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600;">JD</div>
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #00b8d9; border: 2px solid var(--jira-darker-bg); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; margin-left: -8px;">SK</div>
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #6554c0; border: 2px solid var(--jira-darker-bg); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; margin-left: -8px;">AL</div>
                     </div>
                 </div>
-
-                <!-- Gantt Chart Container -->
-                <div class="card">
-                    <div class="gantt-container">
-                        <!-- Left side: Task list -->
-                        <div class="gantt-tasks">
-                            <div class="gantt-header-row">
-                                <span>Task Name</span>
+                
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="position: relative;">
+                        <button class="view-btn" id="statusCategoryBtn">
+                            <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+                            Status category
+                            <i data-lucide="chevron-down" style="width: 12px; height: 12px; margin-left: 4px;"></i>
+                        </button>
+                        <div class="filter-dropdown" id="statusCategoryDropdown">
+                            <div class="filter-dropdown-header">Status Category</div>
+                            <div class="filter-option" data-value="to-do">
+                                <input type="checkbox" id="status-todo">
+                                <label for="status-todo">To Do</label>
                             </div>
-                            {% if tasks %}
-                            {% for task in tasks %}
-                            <div class="gantt-task-row" data-task-id="{{ task.id }}">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="{{ 'bug' if task.type == 'bug' else 'bookmark' if task.type == 'story' else 'circle-dot' }}" class="icon-sm text-tertiary"></i>
-                                    <span class="gantt-task-name">{{ task.title }}</span>
-                                </div>
+                            <div class="filter-option" data-value="in-progress">
+                                <input type="checkbox" id="status-progress">
+                                <label for="status-progress">In Progress</label>
                             </div>
-                            {% endfor %}
-                            {% else %}
-                            <!-- Sample tasks for demo -->
-                            <div class="gantt-task-row">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="bookmark" class="icon-sm text-tertiary"></i>
-                                    <span class="gantt-task-name">User Authentication</span>
-                                </div>
+                            <div class="filter-option" data-value="done">
+                                <input type="checkbox" id="status-done">
+                                <label for="status-done">Done</label>
                             </div>
-                            <div class="gantt-task-row">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="circle-dot" class="icon-sm text-tertiary"></i>
-                                    <span class="gantt-task-name">Dashboard Design</span>
-                                </div>
-                            </div>
-                            <div class="gantt-task-row">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="bug" class="icon-sm text-tertiary"></i>
-                                    <span class="gantt-task-name">Fix Login Bug</span>
-                                </div>
-                            </div>
-                            <div class="gantt-task-row">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="bookmark" class="icon-sm text-tertiary"></i>
-                                    <span class="gantt-task-name">API Integration</span>
-                                </div>
-                            </div>
-                            <div class="gantt-task-row">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="circle-dot" class="icon-sm text-tertiary"></i>
-                                    <span class="gantt-task-name">Database Migration</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Right side: Timeline -->
-                        <div class="gantt-timeline">
-                            <div class="gantt-timeline-header">
-                                <div class="gantt-date-headers" id="dateHeaders"></div>
-                            </div>
-                            <div class="gantt-timeline-body">
-                                <div class="gantt-grid" id="ganttGrid"></div>
-                                <div class="gantt-bars" id="ganttBars">
-                                    <!-- Sample bars for demo -->
-                                    <div class="gantt-bar" style="left: 0%; width: 28%; background: var(--primary-500);">
-                                        <span class="gantt-bar-progress" style="width: 70%;"></span>
-                                    </div>
-                                    <div class="gantt-bar" style="left: 14%; width: 35%; background: var(--success-500);">
-                                        <span class="gantt-bar-progress" style="width: 100%;"></span>
-                                    </div>
-                                    <div class="gantt-bar" style="left: 28%; width: 14%; background: var(--error-500);">
-                                        <span class="gantt-bar-progress" style="width: 50%;"></span>
-                                    </div>
-                                    <div class="gantt-bar" style="left: 35%; width: 42%; background: var(--warning-500);">
-                                        <span class="gantt-bar-progress" style="width: 25%;"></span>
-                                    </div>
-                                    <div class="gantt-bar" style="left: 50%; width: 28%; background: var(--info-500);">
-                                        <span class="gantt-bar-progress" style="width: 0%;"></span>
-                                    </div>
-                                </div>
+                            <div class="filter-dropdown-footer">
+                                <button class="filter-btn-apply">Apply</button>
+                                <button class="filter-btn-clear">Clear</button>
                             </div>
                         </div>
                     </div>
+                    
+                    <div style="position: relative;">
+                        <button class="view-btn" id="epicBtn">
+                            <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+                            Epic
+                            <i data-lucide="chevron-down" style="width: 12px; height: 12px; margin-left: 4px;"></i>
+                        </button>
+                        <div class="filter-dropdown" id="epicDropdown">
+                            <div class="filter-dropdown-header">Epic</div>
+                            <div class="filter-dropdown-search">
+                                <input type="text" placeholder="Search epics...">
+                            </div>
+                            <div class="filter-option" data-value="billing">
+                                <input type="checkbox" id="epic-billing">
+                                <label for="epic-billing">🔵 Billing System</label>
+                            </div>
+                            <div class="filter-option" data-value="accounts">
+                                <input type="checkbox" id="epic-accounts">
+                                <label for="epic-accounts">🟢 User Accounts</label>
+                            </div>
+                            <div class="filter-option" data-value="feedback">
+                                <input type="checkbox" id="epic-feedback">
+                                <label for="epic-feedback">🟡 Feedback Module</label>
+                            </div>
+                            <div class="filter-option" data-value="aws">
+                                <input type="checkbox" id="epic-aws">
+                                <label for="epic-aws">🔴 AWS Integration</label>
+                            </div>
+                            <div class="filter-dropdown-footer">
+                                <button class="filter-btn-apply">Apply</button>
+                                <button class="filter-btn-clear">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="position: relative;">
+                        <button class="view-btn" id="typeBtn">
+                            <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+                            Type
+                            <i data-lucide="chevron-down" style="width: 12px; height: 12px; margin-left: 4px;"></i>
+                        </button>
+                        <div class="filter-dropdown" id="typeDropdown">
+                            <div class="filter-dropdown-header">Issue Type</div>
+                            <div class="filter-option" data-value="story">
+                                <input type="checkbox" id="type-story">
+                                <label for="type-story">📘 Story</label>
+                            </div>
+                            <div class="filter-option" data-value="task">
+                                <input type="checkbox" id="type-task">
+                                <label for="type-task">✅ Task</label>
+                            </div>
+                            <div class="filter-option" data-value="bug">
+                                <input type="checkbox" id="type-bug">
+                                <label for="type-bug">🐛 Bug</label>
+                            </div>
+                            <div class="filter-option" data-value="epic">
+                                <input type="checkbox" id="type-epic">
+                                <label for="type-epic">⚡ Epic</label>
+                            </div>
+                            <div class="filter-dropdown-footer">
+                                <button class="filter-btn-apply">Apply</button>
+                                <button class="filter-btn-clear">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="position: relative;">
+                        <button class="view-btn" id="quickFiltersBtn">
+                            <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+                            Quick filters
+                            <i data-lucide="chevron-down" style="width: 12px; height: 12px; margin-left: 4px;"></i>
+                        </button>
+                        <div class="filter-dropdown" id="quickFiltersDropdown">
+                            <div class="filter-dropdown-header">Quick Filters</div>
+                            <div class="filter-option" data-value="my-issues">
+                                <input type="checkbox" id="quick-my">
+                                <label for="quick-my">🙋 My Issues</label>
+                            </div>
+                            <div class="filter-option" data-value="recently-updated">
+                                <input type="checkbox" id="quick-recent">
+                                <label for="quick-recent">🕐 Recently Updated</label>
+                            </div>
+                            <div class="filter-option" data-value="overdue">
+                                <input type="checkbox" id="quick-overdue">
+                                <label for="quick-overdue">⚠️ Overdue</label>
+                            </div>
+                            <div class="filter-option" data-value="high-priority">
+                                <input type="checkbox" id="quick-priority">
+                                <label for="quick-priority">🔥 High Priority</label>
+                            </div>
+                            <div class="filter-dropdown-footer">
+                                <button class="filter-btn-apply">Apply</button>
+                                <button class="filter-btn-clear">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="view-btn">
+                        <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+                        Quick filters
+                    </button>
+                    <div style="width: 1px; height: 20px; background: var(--jira-border);"></div>
+                    <div class="view-switcher">
+                        <button class="view-btn" data-view="today">Today</button>
+                        <button class="view-btn" data-view="weeks" class="active">Weeks</button>
+                        <button class="view-btn" data-view="months">Months</button>
+                        <button class="view-btn" data-view="quarters">Quarters</button>
+                    </div>
+                    <div style="width: 1px; height: 20px; background: var(--jira-border);"></div>
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" id="zoomOutBtn" title="Zoom Out">
+                            <i data-lucide="zoom-out" style="width: 14px; height: 14px;"></i>
+                        </button>
+                        <span style="font-size: 12px; color: var(--jira-text-secondary); min-width: 40px; text-align: center;" id="zoomLevel">100%</span>
+                        <button class="zoom-btn" id="zoomInBtn" title="Zoom In">
+                            <i data-lucide="zoom-in" style="width: 14px; height: 14px;"></i>
+                        </button>
+                        <div class="zoom-separator"></div>
+                        <button class="zoom-btn" id="fitToScreenBtn" title="Fit to Screen">
+                            <i data-lucide="maximize-2" style="width: 14px; height: 14px;"></i>
+                        </button>
+                    </div>
+                    <div style="width: 1px; height: 20px; background: var(--jira-border);"></div>
+                    <button class="view-btn">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                        View settings
+                    </button>
+                    <button class="view-btn">
+                        <i data-lucide="share-2" style="width: 14px; height: 14px;"></i>
+                        Share
+                    </button>
+                    <button class="view-btn" id="exportRoadmapBtn" title="Export Roadmap">
+                        <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                        Export
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button class="view-btn" id="notificationBtn" style="position: relative;" title="Notifications">
+                        <i data-lucide="bell" style="width: 14px; height: 14px;"></i>
+                        <span class="notification-badge">0</span>
+                    </button>
+                    
+                    <!-- Theme Toggle -->
+                    <button class="view-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
+                        <i data-lucide="moon" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Roadmap Container -->
+            <div class="roadmap-container">
+                <!-- Left Sidebar: Releases and Sprints -->
+                <div class="roadmap-sidebar">
+                    <div class="roadmap-section">
+                        <div class="roadmap-section-title">Sprints</div>
+                        <div class="roadmap-item">
+                            <i data-lucide="calendar" class="roadmap-item-icon"></i>
+                            <span class="roadmap-item-label">Sprint 2</span>
+                        </div>
+                    </div>
+                    
+                    <div class="roadmap-section">
+                        <div class="roadmap-section-title">Releases</div>
+                        <div class="roadmap-item">
+                            <i data-lucide="package" class="roadmap-item-icon"></i>
+                            <span class="roadmap-item-label">NUC-10 Billing</span>
+                        </div>
+                        <div class="roadmap-item">
+                            <i data-lucide="package" class="roadmap-item-icon"></i>
+                            <span class="roadmap-item-label">NUC-11 Accounts</span>
+                        </div>
+                        <div class="roadmap-item">
+                            <i data-lucide="package" class="roadmap-item-icon"></i>
+                            <span class="roadmap-item-label">NUC-12 Feedback</span>
+                        </div>
+                        <div class="roadmap-item">
+                            <i data-lucide="package" class="roadmap-item-icon"></i>
+                            <span class="roadmap-item-label">NUC-13 AWS Spike</span>
+                        </div>
+                        <div class="roadmap-item">
+                            <i data-lucide="package" class="roadmap-item-icon"></i>
+                            <span class="roadmap-item-label">NUC-14 Forms</span>
+                        </div>
+                        <div class="roadmap-item">
+                            <i data-lucide="package" class="roadmap-item-icon"></i>
+                            <span class="roadmap-item-label">NUC-15 Reporting</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Legend -->
-                <div class="card mt-6">
-                    <div class="card-body">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-6">
-                                <div class="flex items-center gap-2">
-                                    <div class="legend-dot" style="background: var(--primary-500);"></div>
-                                    <span class="text-sm text-secondary">In Progress</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="legend-dot" style="background: var(--success-500);"></div>
-                                    <span class="text-sm text-secondary">Completed</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="legend-dot" style="background: var(--warning-500);"></div>
-                                    <span class="text-sm text-secondary">Pending</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="legend-dot" style="background: var(--error-500);"></div>
-                                    <span class="text-sm text-secondary">Blocked</span>
+                <!-- Right Side: Timeline -->
+                <div class="roadmap-timeline">
+                    <!-- Timeline Header with Months -->
+                    <div class="timeline-header">
+                        <div class="timeline-month">FEB 2024</div>
+                        <div class="timeline-month">MAR 2024</div>
+                        <div class="timeline-month">APR 2024</div>
+                        <div class="timeline-month">MAY 2024</div>
+                    </div>
+
+                    <!-- Timeline Body with Bars -->
+                    <div class="timeline-body">
+                        <!-- Sprint Row -->
+                        <div class="timeline-row">
+                            <div class="timeline-row-header">Sprint 2</div>
+                            <div class="timeline-items">
+                                <div class="timeline-bar sprint" style="left: 5%; width: 25%;">
+                                    <div class="timeline-bar-progress" style="width: 60%;"></div>
+                                    <div class="timeline-bar-content">
+                                        <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                                        Sprint 2
+                                    </div>
+                                    <span class="timeline-bar-badge">60%</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button class="btn btn-ghost btn-sm" id="prevBtn">
-                                    <i data-lucide="chevron-left" class="icon-sm"></i>
-                                </button>
-                                <span class="text-sm font-medium" id="currentRange">Jan 1 - Jan 31, 2024</span>
-                                <button class="btn btn-ghost btn-sm" id="nextBtn">
-                                    <i data-lucide="chevron-right" class="icon-sm"></i>
-                                </button>
+                        </div>
+
+                        <!-- Billing Release -->
+                        <div class="timeline-row">
+                            <div class="timeline-row-header">NUC-10 Billing</div>
+                            <div class="timeline-items">
+                                <div class="timeline-bar billing" style="left: 8%; width: 22%;">
+                                    <div class="timeline-bar-progress" style="width: 80%;"></div>
+                                    <div class="timeline-bar-content">
+                                        <i data-lucide="package" style="width: 14px; height: 14px;"></i>
+                                        Billing Module
+                                    </div>
+                                    <span class="timeline-bar-badge">80%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accounts Release -->
+                        <div class="timeline-row">
+                            <div class="timeline-row-header">NUC-11 Accounts</div>
+                            <div class="timeline-items">
+                                <div class="timeline-bar accounts" style="left: 15%; width: 28%;">
+                                    <div class="timeline-bar-progress" style="width: 45%;"></div>
+                                    <div class="timeline-bar-content">
+                                        <i data-lucide="users" style="width: 14px; height: 14px;"></i>
+                                        Account Management
+                                    </div>
+                                    <span class="timeline-bar-badge">45%</span>
+                                </div>
+                                <!-- Milestone marker -->
+                                <div class="milestone-marker" style="left: calc(15% + 28%); height: 40px;">
+                                    <div class="milestone-label">v2.0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feedback Release -->
+                        <div class="timeline-row">
+                            <div class="timeline-row-header">NUC-12 Feedback</div>
+                            <div class="timeline-items">
+                                <div class="timeline-bar feedback" style="left: 32%; width: 20%;">
+                                    <div class="timeline-bar-progress" style="width: 25%;"></div>
+                                    <div class="timeline-bar-content">
+                                        <i data-lucide="message-square" style="width: 14px; height: 14px;"></i>
+                                        Feedback System
+                                    </div>
+                                    <span class="timeline-bar-badge">25%</span>
+                                </div>
+                                <!-- Dependency line from Accounts to Feedback -->
+                                <div class="dependency-line" style="left: calc(15% + 28%); top: -25px; width: calc(32% - (15% + 28%));">
+                                    <div class="dependency-arrow"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AWS Spike -->
+                        <div class="timeline-row">
+                            <div class="timeline-row-header">NUC-13 AWS Spike</div>
+                            <div class="timeline-items">
+                                <div class="timeline-bar aws" style="left: 45%; width: 15%;">
+                                    <div class="timeline-bar-progress" style="width: 90%;"></div>
+                                    <div class="timeline-bar-content">
+                                        <i data-lucide="cloud" style="width: 14px; height: 14px;"></i>
+                                        AWS Integration
+                                    </div>
+                                    <span class="timeline-bar-badge">90%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Forms Release -->
+                        <div class="timeline-row">
+                            <div class="timeline-row-header">NUC-14 Forms</div>
+                            <div class="timeline-items">
+                                <div class="timeline-bar forms" style="left: 55%; width: 25%;">
+                                    <div class="timeline-bar-progress" style="width: 10%;"></div>
+                                    <div class="timeline-bar-content">
+                                        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+                                        Form Builder
+                                    </div>
+                                    <span class="timeline-bar-badge">10%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reporting Release -->
+                        <div class="timeline-row">
+                            <div class="timeline-row-header">NUC-15 Reporting</div>
+                            <div class="timeline-items">
+                                <div class="timeline-bar reporting" style="left: 62%; width: 18%;">
+                                    <div class="timeline-bar-progress" style="width: 5%;"></div>
+                                    <div class="timeline-bar-content">
+                                        <i data-lucide="bar-chart" style="width: 14px; height: 14px;"></i>
+                                        Analytics Dashboard
+                                    </div>
+                                    <span class="timeline-bar-badge">5%</span>
+                                </div>
+                                <!-- Milestone marker -->
+                                <div class="milestone-marker" style="left: calc(62% + 18%); height: 40px;">
+                                    <div class="milestone-label">Release</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -232,184 +1088,546 @@
         </main>
     </div>
 
-    <style>
-        .btn-group {
-            display: flex;
-            border: 1px solid var(--gray-300);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
-        .btn-group .btn {
-            border-radius: 0;
-            border: none;
-            border-right: 1px solid var(--gray-300);
-        }
-        .btn-group .btn:last-child {
-            border-right: none;
-        }
-        .btn-group .btn.active {
-            background: var(--primary-500);
-            color: white;
-        }
-
-        .gantt-container {
-            display: flex;
-            min-height: 400px;
-            overflow: hidden;
-        }
-
-        .gantt-tasks {
-            width: 280px;
-            flex-shrink: 0;
-            border-right: 1px solid var(--gray-200);
-        }
-
-        .gantt-header-row {
-            height: 48px;
-            padding: 0 1rem;
-            display: flex;
-            align-items: center;
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--gray-500);
-            background: var(--gray-50);
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .gantt-task-row {
-            height: 48px;
-            padding: 0 1rem;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid var(--gray-100);
-            cursor: pointer;
-            transition: var(--transition-base);
-        }
-        .gantt-task-row:hover {
-            background: var(--gray-50);
-        }
-
-        .gantt-task-name {
-            font-size: 0.875rem;
-            color: var(--gray-900);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .gantt-timeline {
-            flex: 1;
-            overflow-x: auto;
-        }
-
-        .gantt-timeline-header {
-            height: 48px;
-            background: var(--gray-50);
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            align-items: center;
-        }
-
-        .gantt-date-headers {
-            display: flex;
-            width: 100%;
-            min-width: 800px;
-        }
-
-        .gantt-date-cell {
-            flex: 1;
-            text-align: center;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--gray-600);
-            padding: 0 0.5rem;
-        }
-
-        .gantt-timeline-body {
-            position: relative;
-            min-width: 800px;
-        }
-
-        .gantt-grid {
-            position: absolute;
-            inset: 0;
-            display: flex;
-        }
-
-        .gantt-grid-col {
-            flex: 1;
-            border-right: 1px solid var(--gray-100);
-        }
-        .gantt-grid-col.weekend {
-            background: var(--gray-50);
-        }
-
-        .gantt-bars {
-            position: relative;
-        }
-
-        .gantt-bar {
-            height: 24px;
-            margin: 12px 0;
-            border-radius: var(--radius-md);
-            position: relative;
-            cursor: pointer;
-            transition: var(--transition-base);
-        }
-        .gantt-bar:hover {
-            opacity: 0.9;
-            transform: scaleY(1.1);
-        }
-
-        .gantt-bar-progress {
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            background: rgba(255,255,255,0.3);
-            border-radius: var(--radius-md);
-        }
-
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-    </style>
-
     <script>
-        lucide.createIcons();
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Lucide icons
+            lucide.createIcons();
 
-        // Generate date headers
-        const dateHeaders = document.getElementById('dateHeaders');
-        const months = ['Jan', 'Feb', 'Mar', 'Apr'];
-        const weeks = [
-            'Jan 1-7', 'Jan 8-14', 'Jan 15-21', 'Jan 22-28',
-            'Jan 29 - Feb 4', 'Feb 5-11', 'Feb 12-18'
-        ];
-
-        weeks.forEach(week => {
-            const cell = document.createElement('div');
-            cell.className = 'gantt-date-cell';
-            cell.textContent = week;
-            dateHeaders.appendChild(cell);
-        });
-
-        // Generate grid
-        const grid = document.getElementById('ganttGrid');
-        for (let i = 0; i < 7; i++) {
-            const col = document.createElement('div');
-            col.className = 'gantt-grid-col' + (i % 7 === 5 || i % 7 === 6 ? ' weekend' : '');
-            grid.appendChild(col);
-        }
-
-        // View toggle
-        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            // View switcher functionality
+            document.querySelectorAll('.view-switcher .view-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.view-switcher .view-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             });
+        });
+
+        // Roadmap item click handlers
+        document.querySelectorAll('.roadmap-item').forEach(item => {
+            item.addEventListener('click', () => {
+                console.log('Clicked:', item.querySelector('.roadmap-item-label').textContent);
+            });
+        });
+
+        // Timeline bar click handlers
+        document.querySelectorAll('.timeline-bar').forEach(bar => {
+            bar.addEventListener('click', () => {
+                console.log('Clicked timeline bar:', bar.textContent.trim());
+            });
+        });
+
+        // Sidebar collapse toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const toggleIcon = sidebarToggle.querySelector('[data-lucide]');
+        
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
+            lucide.createIcons();
+        });
+        
+        // Initialize theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            window.themeManager.toggleTheme();
+            window.notificationManager.addNotification({
+                title: 'Theme Changed',
+                message: `Switched to ${window.themeManager.getTheme()} mode`,
+                type: 'success'
+            });
+        });
+        
+        // Initialize notification panel
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationPanel = document.createElement('div');
+        notificationPanel.className = 'notification-panel';
+        notificationPanel.innerHTML = `
+            <div class="notification-panel-header">
+                <div class="notification-panel-title">Notifications</div>
+                <div class="notification-actions">
+                    <button class="notification-action-btn" id="markAllRead">Mark all as read</button>
+                    <button class="notification-action-btn" id="clearNotifications">Clear all</button>
+                </div>
+            </div>
+            <div class="notification-panel-content" id="notificationList"></div>
+        `;
+        document.body.appendChild(notificationPanel);
+        
+        notificationBtn.addEventListener('click', () => {
+            notificationPanel.classList.toggle('show');
+            updateNotificationList();
+        });
+        
+        function updateNotificationList() {
+            const list = document.getElementById('notificationList');
+            const notifications = window.notificationManager.getNotifications();
+            
+            if (notifications.length === 0) {
+                list.innerHTML = `
+                    <div class="notification-empty">
+                        <i data-lucide="bell-off" class="notification-empty-icon"></i>
+                        <div class="notification-empty-text">No notifications</div>
+                    </div>
+                `;
+            } else {
+                list.innerHTML = notifications.map(n => `
+                    <div class="notification-item ${n.type} ${n.read ? '' : 'unread'}" data-id="${n.id}">
+                        <div class="notification-item-icon">
+                            <i data-lucide="${window.notificationManager.getIconForType(n.type)}"></i>
+                        </div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">${n.title}</div>
+                            <div class="notification-item-message">${n.message}</div>
+                            <div class="notification-item-time">${new Date(n.timestamp).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            lucide.createIcons();
+            
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const id = parseInt(item.dataset.id);
+                    window.notificationManager.markAsRead(id);
+                    updateNotificationList();
+                });
+            });
+        }
+        
+        document.getElementById('markAllRead').addEventListener('click', () => {
+            window.notificationManager.markAllAsRead();
+            updateNotificationList();
+        });
+        
+        document.getElementById('clearNotifications').addEventListener('click', () => {
+            if (confirm('Clear all notifications?')) {
+                window.notificationManager.clearAll();
+                updateNotificationList();
+            }
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!notificationPanel.contains(e.target) && e.target !== notificationBtn && !notificationBtn.contains(e.target)) {
+                notificationPanel.classList.remove('show');
+            }
+        });
+        
+        // Export roadmap functionality
+        document.getElementById('exportRoadmapBtn').addEventListener('click', () => {
+            const releases = [];
+            document.querySelectorAll('.timeline-bar').forEach(bar => {
+                releases.push({
+                    name: bar.textContent.trim(),
+                    type: bar.classList[1]
+                });
+            });
+            
+            const csv = 'Name,Type\\n' + releases.map(r => `"${r.name}",${r.type}`).join('\\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `roadmap-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            window.notificationManager.addNotification({
+                title: 'Export Complete',
+                message: 'Roadmap data exported successfully',
+                type: 'success'
+            });
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                window.themeManager.toggleTheme();
+            }
+        });
+        
+        // Welcome notification
+        setTimeout(() => {
+            window.notificationManager.addNotification({
+                title: 'Welcome to Roadmap',
+                message: 'View your project timeline and releases. Use Ctrl+D to toggle theme.',
+                type: 'info'
+            });
+        }, 1000);
+
+        // Search functionality
+        const searchInput = document.querySelector('input[placeholder="Search"]');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                console.log('Searching for:', searchTerm);
+                
+                // Filter roadmap items and timeline bars
+                document.querySelectorAll('.roadmap-item, .timeline-bar').forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        item.style.display = '';
+                        item.style.opacity = '1';
+                    } else {
+                        item.style.opacity = '0.3';
+                    }
+                });
+                
+                if (searchTerm) {
+                    window.notificationManager.addNotification({
+                        title: 'Search Active',
+                        message: `Filtering items containing "${e.target.value}"`,
+                        type: 'info'
+                    });
+                }
+            });
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+            });
+
+            console.log('Search functionality initialized');
+        }
+
+        // Filter buttons functionality
+        const filterButtons = document.querySelectorAll('.view-btn');
+        filterButtons.forEach(btn => {
+            const buttonText = btn.textContent.trim();
+            
+            if (buttonText.includes('Status category') || 
+                buttonText.includes('Epic') || 
+                buttonText.includes('Type') || 
+                buttonText.includes('Quick filters')) {
+                
+                btn.addEventListener('click', () => {
+                    console.log('Filter clicked:', buttonText);
+                    btn.classList.toggle('active');
+                    
+                    window.notificationManager.addNotification({
+                        title: 'Filter Applied',
+                        message: `${buttonText} filter ${btn.classList.contains('active') ? 'activated' : 'deactivated'}`,
+                        type: 'info'
+                    });
+                });
+            }
+            
+            if (buttonText.includes('View settings')) {
+                btn.addEventListener('click', () => {
+                    console.log('View settings clicked');
+                    window.notificationManager.addNotification({
+                        title: 'View Settings',
+                        message: 'View settings panel will open here',
+                        type: 'info'
+                    });
+                });
+            }
+            
+            if (buttonText.includes('Share')) {
+                btn.addEventListener('click', () => {
+                    console.log('Share clicked');
+                    const url = window.location.href;
+                    navigator.clipboard.writeText(url).then(() => {
+                        window.notificationManager.addNotification({
+                            title: 'Link Copied',
+                            message: 'Roadmap URL copied to clipboard',
+                            type: 'success'
+                        });
+                    });
+                });
+            }
+        });
+
+        console.log('All buttons initialized and ready');
+
+        // Dropdown functionality
+        const dropdowns = {
+            'statusCategoryBtn': 'statusCategoryDropdown',
+            'epicBtn': 'epicDropdown',
+            'typeBtn': 'typeDropdown',
+            'quickFiltersBtn': 'quickFiltersDropdown'
+        };
+
+        Object.keys(dropdowns).forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            const dropdown = document.getElementById(dropdowns[btnId]);
+            
+            if (btn && dropdown) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    // Close all other dropdowns and check their filter status
+                    document.querySelectorAll('.filter-dropdown').forEach(d => {
+                        if (d !== dropdown) {
+                            d.classList.remove('show');
+                            // Check if dropdown has any filters applied
+                            const relatedBtn = document.querySelector(`[aria-controls="${d.id}"]`) || 
+                                             Object.keys(dropdowns).find(k => dropdowns[k] === d.id);
+                            if (relatedBtn) {
+                                const hasActiveFilters = d.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+                                const btnElement = typeof relatedBtn === 'string' ? document.getElementById(relatedBtn) : relatedBtn;
+                                if (!hasActiveFilters && btnElement) {
+                                    btnElement.classList.remove('active');
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Toggle this dropdown
+                    dropdown.classList.toggle('show');
+                    console.log(`Dropdown ${btnId} toggled`);
+                });
+
+                // Handle checkbox changes
+                dropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', (e) => {
+                        const option = e.target.closest('.filter-option');
+                        if (e.target.checked) {
+                            option.classList.add('selected');
+                        } else {
+                            option.classList.remove('selected');
+                        }
+                        console.log('Filter option changed:', e.target.id, e.target.checked);
+                    });
+                });
+
+                // Apply button
+                const applyBtn = dropdown.querySelector('.filter-btn-apply');
+                if (applyBtn) {
+                    applyBtn.addEventListener('click', () => {
+                        const selected = [];
+                        dropdown.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                            selected.push(cb.id);
+                        });
+                        
+                        dropdown.classList.remove('show');
+                        btn.classList.add('active');
+                        
+                        window.notificationManager.addNotification({
+                            title: 'Filters Applied',
+                            message: `${selected.length} filter(s) applied`,
+                            type: 'success'
+                        });
+                        
+                        console.log('Applied filters:', selected);
+                    });
+                }
+
+                // Clear button
+                const clearBtn = dropdown.querySelector('.filter-btn-clear');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                            cb.checked = false;
+                        });
+                        dropdown.querySelectorAll('.filter-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        btn.classList.remove('active');
+                        
+                        window.notificationManager.addNotification({
+                            title: 'Filters Cleared',
+                            message: 'All filters removed',
+                            type: 'info'
+                        });
+                        
+                        console.log('Cleared filters');
+                    });
+                }
+
+                // Search within dropdown
+                const searchInput = dropdown.querySelector('.filter-dropdown-search input');
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        const searchTerm = e.target.value.toLowerCase();
+                        dropdown.querySelectorAll('.filter-option').forEach(option => {
+                            const text = option.textContent.toLowerCase();
+                            option.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+                        });
+                    });
+                }
+            }
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-dropdown') && !e.target.closest('.view-btn')) {
+                document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+                    dropdown.classList.remove('show');
+                    
+                    // Remove active state from button if no filters are selected
+                    const btnId = Object.keys(dropdowns).find(k => dropdowns[k] === dropdown.id);
+                    if (btnId) {
+                        const btn = document.getElementById(btnId);
+                        const hasActiveFilters = dropdown.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+                        if (!hasActiveFilters && btn) {
+                            btn.classList.remove('active');
+                        }
+                    }
+                });
+            }
+        });
+
+        console.log('Dropdown menus initialized with options');
+
+        // Zoom controls functionality
+        let zoomLevel = 100;
+        const zoomStep = 25;
+        const minZoom = 50;
+        const maxZoom = 200;
+        const timeline = document.querySelector('.roadmap-timeline');
+        const zoomLevelText = document.getElementById('zoomLevel');
+
+        function updateZoom(newLevel) {
+            zoomLevel = Math.max(minZoom, Math.min(maxZoom, newLevel));
+            timeline.style.transform = `scale(${zoomLevel / 100})`;
+            timeline.style.transformOrigin = 'top left';
+            zoomLevelText.textContent = `${zoomLevel}%`;
+            console.log('Zoom level:', zoomLevel);
+            
+            window.notificationManager.addNotification({
+                title: 'Zoom Changed',
+                message: `Timeline zoom set to ${zoomLevel}%`,
+                type: 'info',
+                duration: 2000
+            });
+        }
+
+        document.getElementById('zoomInBtn').addEventListener('click', () => {
+            updateZoom(zoomLevel + zoomStep);
+        });
+
+        document.getElementById('zoomOutBtn').addEventListener('click', () => {
+            updateZoom(zoomLevel - zoomStep);
+        });
+
+        document.getElementById('fitToScreenBtn').addEventListener('click', () => {
+            updateZoom(100);
+        });
+
+        // Keyboard shortcuts for zoom
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === '=' || e.key === '+') {
+                    e.preventDefault();
+                    updateZoom(zoomLevel + zoomStep);
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    updateZoom(zoomLevel - zoomStep);
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    updateZoom(100);
+                }
+            }
+        });
+
+        // View switcher enhanced functionality
+        const viewSwitcher = document.querySelectorAll('.view-switcher .view-btn');
+        viewSwitcher.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewSwitcher.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const view = btn.dataset.view || btn.textContent.trim().toLowerCase();
+                console.log('View changed to:', view);
+                
+                // Adjust timeline based on view
+                const timelineMonths = document.querySelectorAll('.timeline-month');
+                switch(view) {
+                    case 'today':
+                        timelineMonths.forEach(m => m.style.minWidth = '500px');
+                        updateZoom(150);
+                        break;
+                    case 'weeks':
+                        timelineMonths.forEach(m => m.style.minWidth = '200px');
+                        updateZoom(100);
+                        break;
+                    case 'months':
+                        timelineMonths.forEach(m => m.style.minWidth = '150px');
+                        updateZoom(75);
+                        break;
+                    case 'quarters':
+                        timelineMonths.forEach(m => m.style.minWidth = '100px');
+                        updateZoom(50);
+                        break;
+                }
+                
+                window.notificationManager.addNotification({
+                    title: 'View Changed',
+                    message: `Timeline view changed to ${btn.textContent.trim()}`,
+                    type: 'info'
+                });
+            });
+        });
+
+        // Drag timeline bars functionality
+        let draggedElement = null;
+        let dragStartX = 0;
+        let dragStartLeft = 0;
+
+        document.querySelectorAll('.timeline-bar').forEach(bar => {
+            bar.addEventListener('mousedown', (e) => {
+                if (e.button === 0) { // Left click only
+                    draggedElement = bar;
+                    dragStartX = e.clientX;
+                    dragStartLeft = parseFloat(bar.style.left);
+                    bar.style.cursor = 'grabbing';
+                    bar.style.zIndex = '100';
+                    e.preventDefault();
+                }
+            });
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (draggedElement) {
+                const timeline = draggedElement.closest('.roadmap-timeline');
+                const timelineWidth = timeline.offsetWidth;
+                const deltaX = e.clientX - dragStartX;
+                const deltaPercent = (deltaX / timelineWidth) * 100;
+                const newLeft = Math.max(0, Math.min(90, dragStartLeft + deltaPercent));
+                draggedElement.style.left = `${newLeft}%`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (draggedElement) {
+                draggedElement.style.cursor = 'move';
+                draggedElement.style.zIndex = '';
+                
+                window.notificationManager.addNotification({
+                    title: 'Task Moved',
+                    message: 'Timeline bar position updated',
+                    type: 'success',
+                    duration: 2000
+                });
+                
+                draggedElement = null;
+            }
+        });
+
+        // Timeline bar hover effects
+        document.querySelectorAll('.timeline-bar').forEach(bar => {
+            bar.addEventListener('mouseenter', () => {
+                const badge = bar.querySelector('.timeline-bar-badge');
+                if (badge) {
+                    badge.style.opacity = '1';
+                }
+            });
+            
+            bar.addEventListener('mouseleave', () => {
+                if (!draggedElement) {
+                    const badge = bar.querySelector('.timeline-bar-badge');
+                    if (badge) {
+                        badge.style.opacity = '0.9';
+                    }
+                }
+            });
+        });
+
+        console.log('Timeline zoom, drag, and view controls initialized');
         });
     </script>
 </body>

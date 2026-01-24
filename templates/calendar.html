@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bulk-actions.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/advanced-search.js') }}"></script>
+    <style>
+        :root {
+            --jira-dark-bg: #1d2125;
+            --jira-darker-bg: #161a1d;
+            --jira-card-bg: #22272b;
+            --jira-border: #2c333a;
+            --jira-text: #b6c2cf;
+            --jira-text-secondary: #8c9bab;
+            --jira-hover: #2c3338;
+        }
+        
+        body {
+            background: var(--jira-dark-bg);
+            color: var(--jira-text);
+        }
+        
+        .app-sidebar {
+            background: var(--jira-darker-bg);
+            border-right: 1px solid var(--jira-border);
+            transition: width 0.3s ease, margin-left 0.3s ease;
+        }
+        
+        .app-sidebar.collapsed {
+            width: 60px;
+        }
+        
+        .app-sidebar.collapsed .sidebar-logo-text,
+        .app-sidebar.collapsed .sidebar-section-title,
+        .app-sidebar.collapsed .nav-icon + span,
+        .app-sidebar.collapsed .sidebar-user-info,
+        .app-sidebar.collapsed .beta-badge {
+            display: none;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            right: -12px;
+            top: 20px;
+            width: 24px;
+            height: 24px;
+            background: var(--jira-card-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-toggle:hover {
+            background: var(--jira-hover);
+        }
+        
+        .sidebar-nav-item {
+            color: var(--jira-text-secondary);
+        }
+        
+        .sidebar-nav-item:hover,
+        .sidebar-nav-item.active {
+            background: var(--jira-hover);
+            color: var(--jira-text);
+        }
+        
+        .sidebar-section-title {
+            color: var(--jira-text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .calendar-header {
+            padding: 16px 24px;
+            background: var(--jira-darker-bg);
+            border-bottom: 1px solid var(--jira-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .calendar-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            background: var(--jira-darker-bg);
+            border-bottom: 1px solid var(--jira-border);
+        }
+        
+        .calendar-container {
+            padding: 24px;
+            overflow-y: auto;
+            height: calc(100vh - 140px);
+        }
+        
+        .calendar-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .month-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--jira-card-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 4px;
+        }
+        
+        .month-nav button {
+            background: transparent;
+            border: none;
+            color: var(--jira-text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .month-nav button:hover {
+            background: var(--jira-hover);
+            color: var(--jira-text);
+        }
+        
+        .current-month {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--jira-text);
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .today-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--jira-border);
+            color: var(--jira-text);
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .today-btn:hover {
+            background: var(--jira-hover);
+        }
+        
+        .view-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: none;
+            color: var(--jira-text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .view-btn:hover {
+            background: var(--jira-hover);
+            color: var(--jira-text);
+        }
+        
+        .view-btn.active {
+            background: #0052cc;
+            color: white;
+        }
+        
+        .calendar-grid {
+            background: var(--jira-card-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: var(--jira-darker-bg);
+            border-bottom: 1px solid var(--jira-border);
+        }
+        
+        .calendar-weekday {
+            padding: 12px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--jira-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: var(--jira-border);
+        }
+        
+        .calendar-day {
+            min-height: 120px;
+            padding: 8px;
+            background: var(--jira-card-bg);
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .calendar-day:hover {
+            background: var(--jira-hover);
+        }
+        
+        .calendar-day.other-month {
+            opacity: 0.4;
+        }
+        
+        .calendar-day.today {
+            background: rgba(0, 82, 204, 0.1);
+        }
+        
+        .day-number {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--jira-text);
+            margin-bottom: 8px;
+        }
+        
+        .calendar-day.today .day-number {
+            color: #0052cc;
+        }
+        
+        .day-events {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .calendar-event {
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .calendar-event:hover {
+            transform: translateX(2px);
+        }
+        
+        .calendar-event.task {
+            background: #0052cc;
+        }
+        
+        .calendar-event.meeting {
+            background: #6554c0;
+        }
+        
+        .calendar-event.deadline {
+            background: #ff5630;
+        }
+        
+        .calendar-event.milestone {
+            background: #00b8d9;
+        }
+        
+        .beta-badge {
+            background: #5e4db2;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+        
+        .unscheduled-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 350px;
+            background: var(--jira-darker-bg);
+            border-left: 1px solid var(--jira-border);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .unscheduled-panel.open {
+            transform: translateX(0);
+        }
+        
+        .panel-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--jira-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--jira-text);
+        }
+        
+        .panel-close {
+            background: transparent;
+            border: none;
+            color: var(--jira-text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .panel-close:hover {
+            background: var(--jira-hover);
+            color: var(--jira-text);
+        }
+        
+        .panel-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .panel-message {
+            text-align: center;
+            color: var(--jira-text-secondary);
+            font-size: 14px;
+            padding: 40px 20px;
+        }
+        
+        /* Drag and Drop Enhancements */
+        .calendar-event {
+            cursor: move;
+            position: relative;
+        }
+        
+        .calendar-event:active {
+            cursor: grabbing;
+        }
+        
+        .calendar-event.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        .calendar-day.drag-over {
+            background: rgba(0, 82, 204, 0.2);
+            border: 2px dashed #0052cc;
+        }
+        
+        /* Multi-day events */
+        .calendar-event.multi-day {
+            background: linear-gradient(90deg, #0052cc, #00b8d9);
+            position: relative;
+        }
+        
+        .calendar-event.multi-day::after {
+            content: '';
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+        }
+        
+        .calendar-event.span-start {
+            border-radius: 3px 0 0 3px;
+        }
+        
+        .calendar-event.span-end {
+            border-radius: 0 3px 3px 0;
+        }
+        
+        .calendar-event.span-middle {
+            border-radius: 0;
+        }
+        
+        /* Event with assignee */
+        .calendar-event-wrapper {
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            color: white;
+            cursor: move;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+        
+        .calendar-event-wrapper:hover {
+            transform: translateX(2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .event-avatar {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .event-title {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .event-points {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 9px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        /* Inline creation */
+        .day-add-event {
+            display: none;
+            margin-top: 4px;
+            padding: 4px 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed var(--jira-border);
+            border-radius: 3px;
+            font-size: 11px;
+            color: var(--jira-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .calendar-day:hover .day-add-event {
+            display: block;
+        }
+        
+        .day-add-event:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--jira-text);
+        }
+        
+        .quick-add-form {
+            display: none;
+            margin-top: 4px;
+            padding: 6px;
+            background: var(--jira-darker-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .quick-add-form.active {
+            display: block;
+        }
+        
+        .quick-add-input {
+            width: 100%;
+            padding: 4px 6px;
+            background: var(--jira-card-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 3px;
+            color: var(--jira-text);
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+        
+        .quick-add-actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .quick-add-btn {
+            flex: 1;
+            padding: 3px 6px;
+            font-size: 10px;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quick-add-btn.primary {
+            background: #0052cc;
+            color: white;
+        }
+        
+        .quick-add-btn.primary:hover {
+            background: #0065ff;
+        }
+        
+        .quick-add-btn.secondary {
+            background: transparent;
+            color: var(--jira-text-secondary);
+            border: 1px solid var(--jira-border);
+        }
+        
+        .quick-add-btn.secondary:hover {
+            background: var(--jira-hover);
+        }
+        
+        /* Unscheduled items */
+        .unscheduled-item {
+            padding: 12px;
+            background: var(--jira-card-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: move;
+            transition: all 0.2s;
+        }
+        
+        .unscheduled-item:hover {
+            background: var(--jira-hover);
+            transform: translateX(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .unscheduled-item.dragging {
+            opacity: 0.5;
+        }
+        
+        .unscheduled-item-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        
+        .unscheduled-item-type {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .unscheduled-item-type.task {
+            background: #0052cc;
+        }
+        
+        .unscheduled-item-type.bug {
+            background: #ff5630;
+        }
+        
+        .unscheduled-item-type.story {
+            background: #00b8d9;
+        }
+        
+        .unscheduled-item-key {
+            font-size: 11px;
+            color: var(--jira-text-secondary);
+            font-weight: 600;
+        }
+        
+        .unscheduled-item-title {
+            font-size: 13px;
+            color: var(--jira-text);
+            margin-bottom: 6px;
+        }
+        
+        .unscheduled-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--jira-text-secondary);
+        }
+        
+        .unscheduled-item-avatar {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #6554c0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: white;
+            font-weight: 700;
+        }
+        
+        /* Event details tooltip */
+        .event-tooltip {
+            display: none;
+            position: absolute;
+            z-index: 1000;
+            background: var(--jira-darker-bg);
+            border: 1px solid var(--jira-border);
+            border-radius: 4px;
+            padding: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            min-width: 200px;
+        }
+        
+        .event-tooltip.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-toggle" id="sidebarToggle">
+                <i data-lucide="chevron-left" style="width: 14px; height: 14px; color: var(--jira-text-secondary);"></i>
+            </div>
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">PLANNING</div>
+                    <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item">
+                        <i data-lucide="gantt-chart" class="nav-icon"></i>
+                        <span>Timeline</span>
+                    </a>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="list" class="nav-icon"></i>
+                        <span>Backlog</span>
+                    </a>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="trello" class="nav-icon"></i>
+                        <span>Board</span>
+                    </a>
+                    <a href="{{ url_for('main.calendar') }}" class="sidebar-nav-item active">
+                        <i data-lucide="calendar" class="nav-icon"></i>
+                        <span>Calendar</span>
+                    </a>
+                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
+                        <i data-lucide="bar-chart-2" class="nav-icon"></i>
+                        <span>Reports</span>
+                    </a>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="alert-circle" class="nav-icon"></i>
+                        <span>Issues</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">DEVELOPMENT</div>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="code" class="nav-icon"></i>
+                        <span>Code</span>
+                    </a>
+                    <a href="{{ url_for('admin.security_dashboard') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
+                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span>Security</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="package" class="nav-icon"></i>
+                        <span>Releases</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">OPERATIONS</div>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="rocket" class="nav-icon"></i>
+                        <span>Deployments</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="alert-triangle" class="nav-icon"></i>
+                        <span>Incidents</span>
+                        <span class="beta-badge">BETA</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="phone-call" class="nav-icon"></i>
+                        <span>On-call</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="file-text" class="nav-icon"></i>
+                        <span>Project Pages</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="bookmark-plus" class="nav-icon"></i>
+                        <span>Add shortcut</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
+                        <i data-lucide="settings" class="nav-icon"></i>
+                        <span>Project settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.role else 'User' }}</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Calendar Header -->
+            <div class="calendar-header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">
+                        BG
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: var(--jira-text-secondary); margin-bottom: 2px;">
+                            Projects / Beyond Gravity
+                        </div>
+                        <h1 style="font-size: 20px; font-weight: 600; color: var(--jira-text); margin: 0;">Calendar</h1>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="view-btn">
+                        <i data-lucide="star" style="width: 16px; height: 16px;"></i>
+                    </button>
+                    <button class="view-btn">
+                        <i data-lucide="more-horizontal" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar Toolbar -->
+            <div class="calendar-toolbar">
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                    <div style="position: relative; width: 280px;">
+                        <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--jira-text-secondary);"></i>
+                        <input type="text" placeholder="Search calendar" style="width: 100%; padding: 6px 12px 6px 36px; background: var(--jira-card-bg); border: 1px solid var(--jira-border); border-radius: 4px; color: var(--jira-text); font-size: 14px;">
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: -8px; margin-left: 8px;">
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #ff5630; border: 2px solid var(--jira-darker-bg); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600;">JD</div>
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #00b8d9; border: 2px solid var(--jira-darker-bg); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; margin-left: -8px;">SK</div>
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #6554c0; border: 2px solid var(--jira-darker-bg); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; margin-left: -8px;">AL</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="view-btn">
+                        <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+                        Assignee
+                    </button>
+                    <button class="view-btn">
+                        <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+                        Type
+                    </button>
+                    <button class="view-btn">
+                        <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+                        Status
+                    </button>
+                    <button class="view-btn">
+                        <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+                        More filters
+                    </button>
+                    <div style="width: 1px; height: 20px; background: var(--jira-border);"></div>
+                    
+                    <!-- Export Button -->
+                    <button class="view-btn" id="exportCalendarBtn" title="Export Calendar">
+                        <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                        Export
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button class="view-btn" id="notificationBtn" style="position: relative;" title="Notifications">
+                        <i data-lucide="bell" style="width: 14px; height: 14px;"></i>
+                        <span class="notification-badge">0</span>
+                    </button>
+                    
+                    <!-- Theme Toggle -->
+                    <button class="view-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
+                        <i data-lucide="moon" style="width: 14px; height: 14px;"></i>
+                    </button>
+                    
+                    <button class="view-btn" id="unscheduledBtn">
+                        <i data-lucide="inbox" style="width: 14px; height: 14px;"></i>
+                        Unscheduled work
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar Container -->
+            <div class="calendar-container">
+                <div class="calendar-controls">
+                    <div class="month-nav">
+                        <button id="prevMonth">
+                            <i data-lucide="chevron-left" style="width: 18px; height: 18px;"></i>
+                        </button>
+                        <span class="current-month" id="currentMonth">January 2026</span>
+                        <button id="nextMonth">
+                            <i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i>
+                        </button>
+                    </div>
+                    <button class="today-btn" id="todayBtn">Today</button>
+                    <div style="margin-left: auto; display: flex; gap: 8px;">
+                        <button class="view-btn active">Month</button>
+                        <button class="view-btn">
+                            <i data-lucide="calendar-days" style="width: 14px; height: 14px;"></i>
+                        </button>
+                        <button class="view-btn">
+                            <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="calendar-grid">
+                    <div class="calendar-weekdays">
+                        <div class="calendar-weekday">Mon</div>
+                        <div class="calendar-weekday">Tue</div>
+                        <div class="calendar-weekday">Wed</div>
+                        <div class="calendar-weekday">Thu</div>
+                        <div class="calendar-weekday">Fri</div>
+                        <div class="calendar-weekday">Sat</div>
+                        <div class="calendar-weekday">Sun</div>
+                    </div>
+                    <div class="calendar-days" id="calendarDays">
+                        <!-- Calendar days will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Unscheduled Work Panel -->
+        <div class="unscheduled-panel" id="unscheduledPanel">
+            <div class="panel-header">
+                <h3 class="panel-title">Unscheduled work</h3>
+                <button class="panel-close" id="closePanel">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            <div class="panel-content" id="unscheduledItems">
+                <!-- Unscheduled items will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Lucide icons
+            lucide.createIcons();
+
+            // Sidebar collapse toggle
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const toggleIcon = sidebarToggle.querySelector('[data-lucide]');
+        
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
+            lucide.createIcons();
+        });
+
+        // Unscheduled panel toggle
+        const unscheduledBtn = document.getElementById('unscheduledBtn');
+        const unscheduledPanel = document.getElementById('unscheduledPanel');
+        const closePanel = document.getElementById('closePanel');
+        
+        unscheduledBtn.addEventListener('click', () => {
+            unscheduledPanel.classList.add('open');
+        });
+        
+        closePanel.addEventListener('click', () => {
+            unscheduledPanel.classList.remove('open');
+        });
+
+        // Calendar generation
+        let currentDate = new Date(2026, 0, 1); // January 2026
+        let calendarEvents = [
+            {id: 1, day: 5, type: 'task', title: 'Design Review', assignee: 'JD', points: 3},
+            {id: 2, day: 8, type: 'meeting', title: 'Team Standup', assignee: 'SK', points: null},
+            {id: 3, day: 8, type: 'task', title: 'Code Review', assignee: 'AL', points: 5},
+            {id: 4, day: 12, type: 'deadline', title: 'Sprint End', assignee: null, points: null},
+            {id: 5, day: 14, type: 'milestone', title: 'Release v2.0', assignee: null, points: null, startDay: 12, endDay: 14},
+            {id: 6, day: 15, type: 'task', title: 'Testing', assignee: 'JD', points: 8},
+            {id: 7, day: 16, type: 'meeting', title: 'Planning Meeting', assignee: 'SK', points: null},
+            {id: 8, day: 21, type: 'task', title: 'Bug Fixes', assignee: 'AL', points: 2},
+            {id: 9, day: 22, type: 'meeting', title: 'Daily Standup', assignee: null, points: null},
+            {id: 10, day: 22, type: 'task', title: 'Feature Development', assignee: 'JD', points: 13},
+            {id: 11, day: 25, type: 'deadline', title: 'Deployment', assignee: null, points: null},
+            {id: 12, day: 29, type: 'milestone', title: 'Q1 Review', assignee: null, points: null}
+        ];
+
+        function generateCalendar(year, month) {
+            const calendarDays = document.getElementById('calendarDays');
+            const currentMonth = document.getElementById('currentMonth');
+            
+            // Update month display
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            currentMonth.textContent = `${monthNames[month]} ${year}`;
+            
+            // Clear existing days
+            calendarDays.innerHTML = '';
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            
+            // Get day of week (0 = Sunday, 1 = Monday, etc.)
+            let startDay = firstDay.getDay();
+            // Adjust so Monday is 0
+            startDay = startDay === 0 ? 6 : startDay - 1;
+            
+            // Previous month days
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            for (let i = startDay - 1; i >= 0; i--) {
+                const day = prevMonthLastDay - i;
+                calendarDays.innerHTML += `
+                    <div class="calendar-day other-month">
+                        <div class="day-number">${day}</div>
+                    </div>
+                `;
+            }
+            
+            // Current month days with events
+            const today = 22; // Current day is 22
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = day === today;
+                const dayEvents = calendarEvents.filter(e => e.day === day);
+                
+                let eventsHtml = '';
+                dayEvents.forEach(event => {
+                    const avatarHtml = event.assignee ? `<div class="event-avatar">${event.assignee}</div>` : '';
+                    const pointsHtml = event.points ? `<div class="event-points">${event.points}</div>` : '';
+                    const multiDayClass = event.startDay && event.endDay ? 'multi-day' : '';
+                    
+                    eventsHtml += `
+                        <div class="calendar-event-wrapper ${event.type}" draggable="true" data-event-id="${event.id}">
+                            ${avatarHtml}
+                            <div class="event-title">${event.title}</div>
+                            ${pointsHtml}
+                        </div>
+                    `;
+                });
+                
+                calendarDays.innerHTML += `
+                    <div class="calendar-day ${isToday ? 'today' : ''}" data-day="${day}">
+                        <div class="day-number">${day}</div>
+                        <div class="day-events">${eventsHtml}</div>
+                        <div class="day-add-event" data-day="${day}">+ Add event</div>
+                        <div class="quick-add-form" data-day="${day}">
+                            <input type="text" class="quick-add-input" placeholder="Event title..." />
+                            <div class="quick-add-actions">
+                                <button class="quick-add-btn primary">Add</button>
+                                <button class="quick-add-btn secondary">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Next month days to fill the grid
+            const totalCells = calendarDays.children.length;
+            const remainingCells = 35 - totalCells; // 5 weeks * 7 days
+            for (let day = 1; day <= remainingCells; day++) {
+                calendarDays.innerHTML += `
+                    <div class="calendar-day other-month">
+                        <div class="day-number">${day}</div>
+                    </div>
+                `;
+            }
+            
+            setupDragAndDrop();
+            setupInlineCreation();
+            lucide.createIcons();
+        }
+
+        // Month navigation
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        });
+
+        document.getElementById('todayBtn').addEventListener('click', () => {
+            currentDate = new Date(2026, 0, 22);
+            generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        });
+
+        // Generate unscheduled items
+        let unscheduledItems = [
+            {id: 100, type: 'task', key: 'BG-45', title: 'Implement user authentication', assignee: 'JD', points: 5},
+            {id: 101, type: 'bug', key: 'BG-46', title: 'Fix navigation menu on mobile', assignee: 'SK', points: 3},
+            {id: 102, type: 'story', key: 'BG-47', title: 'Add dark mode support', assignee: 'AL', points: 8},
+            {id: 103, type: 'task', key: 'BG-48', title: 'Optimize database queries', assignee: 'JD', points: 5},
+            {id: 104, type: 'bug', key: 'BG-49', title: 'Resolve API timeout issues', assignee: null, points: 2}
+        ];
+        
+        function generateUnscheduledItems() {
+            const container = document.getElementById('unscheduledItems');
+            
+            if (unscheduledItems.length === 0) {
+                container.innerHTML = `
+                    <div class="panel-message">
+                        <i data-lucide="check-circle" style="width: 48px; height: 48px; color: #00875a; margin-bottom: 16px;"></i>
+                        <p style="font-weight: 600; margin-bottom: 8px;">All work has been scheduled</p>
+                        <p>Drag events from the calendar back here to unschedule them</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = unscheduledItems.map(item => `
+                    <div class="unscheduled-item" draggable="true" data-unscheduled-id="${item.id}">
+                        <div class="unscheduled-item-header">
+                            <div class="unscheduled-item-type ${item.type}">
+                                <i data-lucide="${item.type === 'bug' ? 'bug' : item.type === 'story' ? 'book-open' : 'check-square'}" style="width: 12px; height: 12px;"></i>
+                            </div>
+                            <div class="unscheduled-item-key">${item.key}</div>
+                        </div>
+                        <div class="unscheduled-item-title">${item.title}</div>
+                        <div class="unscheduled-item-meta">
+                            ${item.assignee ? `<div class="unscheduled-item-avatar">${item.assignee}</div>` : '<span>Unassigned</span>'}
+                            ${item.points ? `<span>•</span><span>${item.points} pts</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            lucide.createIcons();
+            setupUnscheduledDrag();
+        }
+        
+        // Drag and drop functionality
+        let draggedElement = null;
+        let draggedEventId = null;
+        let draggedUnscheduledId = null;
+        
+        function setupDragAndDrop() {
+            const events = document.querySelectorAll('.calendar-event-wrapper[draggable="true"]');
+            
+            events.forEach(event => {
+                event.addEventListener('dragstart', (e) => {
+                    draggedElement = event;
+                    draggedEventId = parseInt(event.dataset.eventId);
+                    event.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                event.addEventListener('dragend', (e) => {
+                    event.classList.remove('dragging');
+                    draggedElement = null;
+                });
+            });
+            
+            const days = document.querySelectorAll('.calendar-day:not(.other-month)');
+            
+            days.forEach(day => {
+                day.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    day.classList.add('drag-over');
+                });
+                
+                day.addEventListener('dragleave', (e) => {
+                    day.classList.remove('drag-over');
+                });
+                
+                day.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    day.classList.remove('drag-over');
+                    
+                    const targetDay = parseInt(day.dataset.day);
+                    
+                    if (draggedEventId) {
+                        // Moving existing event
+                        const eventIndex = calendarEvents.findIndex(ev => ev.id === draggedEventId);
+                        if (eventIndex !== -1) {
+                            const oldDay = calendarEvents[eventIndex].day;
+                            calendarEvents[eventIndex].day = targetDay;
+                            generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+                            
+                            window.notificationManager.addNotification({
+                                title: 'Event Moved',
+                                message: `Moved "${calendarEvents[eventIndex].title}" from day ${oldDay} to day ${targetDay}`,
+                                type: 'success'
+                            });
+                        }
+                        draggedEventId = null;
+                    } else if (draggedUnscheduledId) {
+                        // Adding unscheduled item to calendar
+                        const itemIndex = unscheduledItems.findIndex(item => item.id === draggedUnscheduledId);
+                        if (itemIndex !== -1) {
+                            const item = unscheduledItems[itemIndex];
+                            calendarEvents.push({
+                                id: Date.now(),
+                                day: targetDay,
+                                type: item.type,
+                                title: item.title,
+                                assignee: item.assignee,
+                                points: item.points
+                            });
+                            unscheduledItems.splice(itemIndex, 1);
+                            generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+                            generateUnscheduledItems();
+                            
+                            window.notificationManager.addNotification({
+                                title: 'Work Scheduled',
+                                message: `Added "${item.title}" to day ${targetDay}`,
+                                type: 'success'
+                            });
+                        }
+                        draggedUnscheduledId = null;
+                    }
+                });
+            });
+        }
+        
+        function setupUnscheduledDrag() {
+            const items = document.querySelectorAll('.unscheduled-item[draggable="true"]');
+            
+            items.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    draggedUnscheduledId = parseInt(item.dataset.unscheduledId);
+                    item.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                item.addEventListener('dragend', (e) => {
+                    item.classList.remove('dragging');
+                });
+            });
+        }
+        
+        // Inline event creation
+        function setupInlineCreation() {
+            const addButtons = document.querySelectorAll('.day-add-event');
+            
+            addButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const day = btn.dataset.day;
+                    const form = document.querySelector(`.quick-add-form[data-day="${day}"]`);
+                    form.classList.add('active');
+                    form.querySelector('.quick-add-input').focus();
+                });
+            });
+            
+            const forms = document.querySelectorAll('.quick-add-form');
+            
+            forms.forEach(form => {
+                const input = form.querySelector('.quick-add-input');
+                const addBtn = form.querySelector('.quick-add-btn.primary');
+                const cancelBtn = form.querySelector('.quick-add-btn.secondary');
+                
+                addBtn.addEventListener('click', () => {
+                    const title = input.value.trim();
+                    if (title) {
+                        const day = parseInt(form.dataset.day);
+                        calendarEvents.push({
+                            id: Date.now(),
+                            day: day,
+                            type: 'task',
+                            title: title,
+                            assignee: 'JD',
+                            points: null
+                        });
+                        generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+                        
+                        window.notificationManager.addNotification({
+                            title: 'Event Created',
+                            message: `Added "${title}" to day ${day}`,
+                            type: 'success'
+                        });
+                    }
+                });
+                
+                cancelBtn.addEventListener('click', () => {
+                    form.classList.remove('active');
+                    input.value = '';
+                });
+                
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        addBtn.click();
+                    } else if (e.key === 'Escape') {
+                        cancelBtn.click();
+                    }
+                });
+            });
+        }
+        
+        // Initialize calendar and unscheduled items
+        generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        generateUnscheduledItems();
+
+        // Day click handlers
+        document.addEventListener('click', (e) => {
+            const day = e.target.closest('.calendar-day');
+            if (day && !day.classList.contains('other-month') && !e.target.closest('.calendar-event-wrapper') && !e.target.closest('.day-add-event') && !e.target.closest('.quick-add-form')) {
+                console.log('Clicked day:', day.dataset.day);
+            }
+            
+            // Close quick add forms when clicking outside
+            const forms = document.querySelectorAll('.quick-add-form.active');
+            if (!e.target.closest('.quick-add-form') && !e.target.closest('.day-add-event')) {
+                forms.forEach(form => {
+                    form.classList.remove('active');
+                    form.querySelector('.quick-add-input').value = '';
+                });
+            }
+        });
+        
+        // Initialize theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            window.themeManager.toggleTheme();
+            window.notificationManager.addNotification({
+                title: 'Theme Changed',
+                message: `Switched to ${window.themeManager.getTheme()} mode`,
+                type: 'success'
+            });
+        });
+        
+        // Initialize notification panel
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationPanel = document.createElement('div');
+        notificationPanel.className = 'notification-panel';
+        notificationPanel.innerHTML = `
+            <div class="notification-panel-header">
+                <div class="notification-panel-title">Notifications</div>
+                <div class="notification-actions">
+                    <button class="notification-action-btn" id="markAllRead">Mark all as read</button>
+                    <button class="notification-action-btn" id="clearNotifications">Clear all</button>
+                </div>
+            </div>
+            <div class="notification-panel-content" id="notificationList"></div>
+        `;
+        document.body.appendChild(notificationPanel);
+        
+        notificationBtn.addEventListener('click', () => {
+            notificationPanel.classList.toggle('show');
+            updateNotificationList();
+        });
+        
+        function updateNotificationList() {
+            const list = document.getElementById('notificationList');
+            const notifications = window.notificationManager.getNotifications();
+            
+            if (notifications.length === 0) {
+                list.innerHTML = `
+                    <div class="notification-empty">
+                        <i data-lucide="bell-off" class="notification-empty-icon"></i>
+                        <div class="notification-empty-text">No notifications</div>
+                    </div>
+                `;
+            } else {
+                list.innerHTML = notifications.map(n => `
+                    <div class="notification-item ${n.type} ${n.read ? '' : 'unread'}" data-id="${n.id}">
+                        <div class="notification-item-icon">
+                            <i data-lucide="${window.notificationManager.getIconForType(n.type)}"></i>
+                        </div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">${n.title}</div>
+                            <div class="notification-item-message">${n.message}</div>
+                            <div class="notification-item-time">${new Date(n.timestamp).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            lucide.createIcons();
+            
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const id = parseInt(item.dataset.id);
+                    window.notificationManager.markAsRead(id);
+                    updateNotificationList();
+                });
+            });
+        }
+        
+        document.getElementById('markAllRead').addEventListener('click', () => {
+            window.notificationManager.markAllAsRead();
+            updateNotificationList();
+        });
+        
+        document.getElementById('clearNotifications').addEventListener('click', () => {
+            if (confirm('Clear all notifications?')) {
+                window.notificationManager.clearAll();
+                updateNotificationList();
+            }
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!notificationPanel.contains(e.target) && e.target !== notificationBtn && !notificationBtn.contains(e.target)) {
+                notificationPanel.classList.remove('show');
+            }
+        });
+        
+        // Export calendar functionality
+        document.getElementById('exportCalendarBtn').addEventListener('click', () => {
+            const events = [];
+            document.querySelectorAll('.calendar-event').forEach(event => {
+                const day = event.closest('.calendar-day');
+                if (day) {
+                    events.push({
+                        date: day.dataset.day,
+                        title: event.textContent,
+                        type: event.classList[1]
+                    });
+                }
+            });
+            
+            const csv = 'Date,Title,Type\\n' + events.map(e => `${e.date},"${e.title}",${e.type}`).join('\\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `calendar-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            window.notificationManager.addNotification({
+                title: 'Export Complete',
+                message: 'Calendar data exported successfully',
+                type: 'success'
+            });
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                window.themeManager.toggleTheme();
+            }
+            
+            if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+                e.preventDefault();
+                document.getElementById('todayBtn').click();
+            }
+        });
+        
+        // Welcome notification
+        setTimeout(() => {
+            window.notificationManager.addNotification({
+                title: 'Welcome to Calendar',
+                message: 'Click on any day to add events. Use Ctrl+T to go to today, Ctrl+D to toggle theme.',
+                type: 'info'
+            });
+        }, 1000);
+        });
+    </script>
+</body>
+</html>

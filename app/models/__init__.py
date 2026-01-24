@@ -20,6 +20,8 @@ from models import (
     WorkflowTransition,
     ProjectUpdate,
     AuditLog,
+    RecentItem,
+    StarredItem,
     encrypt_field,
     decrypt_field
 )
@@ -40,6 +42,8 @@ __all__ = [
     'WorkflowTransition',
     'ProjectUpdate',
     'AuditLog',
+    'RecentItem',
+    'StarredItem',
     'encrypt_field',
     'decrypt_field'
 ]

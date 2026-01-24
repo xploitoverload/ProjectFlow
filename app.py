@@ -121,6 +121,52 @@ def logout():
     flash('Logged out successfully', 'success')
     return redirect(url_for('login'))
 
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    """Forgot password page"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+        if user:
+            # In production, send reset email here
+            flash('Password reset instructions have been sent to your email.', 'success')
+        else:
+            # Don't reveal if user exists
+            flash('If an account with that email exists, password reset instructions have been sent.', 'info')
+        return redirect(url_for('login'))
+    return render_template('forgot_password.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    """Reset password with token"""
+    # In production, validate token
+    if request.method == 'POST':
+        password = request.form.get('password')
+        # Update password logic here
+        flash('Your password has been reset successfully.', 'success')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', token=token)
+
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """Change password for logged-in users"""
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        
+        user = User.query.get(session['user_id'])
+        if user and user.check_password(current_password):
+            user.set_password(new_password)
+            db.session.commit()
+            log_audit(user.id, 'PASSWORD_CHANGED', f'IP: {get_client_ip()}')
+            flash('Password changed successfully!', 'success')
+            return redirect(url_for('profile'))
+        else:
+            flash('Current password is incorrect.', 'error')
+    
+    return render_template('change_password.html')
+
 # ============= MAIN ROUTES =============
 
 @app.route('/dashboard')

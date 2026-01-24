@@ -1,0 +1,947 @@
+/**
+ * Project Tabs System Styles
+ * Complete tab navigation, customization, and all 15 tab views
+ */
+
+/* ==================== PROJECT HEADER ==================== */
+.project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+.project-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.project-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.project-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.project-name {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.project-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.separator {
+    color: var(--border);
+}
+
+.project-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ==================== PROJECT TABS NAVIGATION ==================== */
+.project-tabs-nav {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.tabs-scroll {
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tabs-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.tabs-list {
+    display: flex;
+    gap: 4px;
+    padding: 0 16px;
+    min-width: min-content;
+}
+
+.tab-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    position: relative;
+    white-space: nowrap;
+}
+
+.tab-item:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+}
+
+.tab-item.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.tab-item i {
+    width: 16px;
+    height: 16px;
+}
+
+.tab-options {
+    display: none;
+    padding: 4px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: all 0.2s;
+}
+
+.tab-item:hover .tab-options {
+    display: flex;
+    align-items: center;
+}
+
+.tab-options:hover {
+    opacity: 1;
+    background: var(--surface-hover);
+}
+
+.tab-options i {
+    width: 14px;
+    height: 14px;
+}
+
+.tabs-actions {
+    display: flex;
+    gap: 4px;
+    padding: 0 16px;
+    border-left: 1px solid var(--border);
+}
+
+/* ==================== TAB CONTEXT MENU ==================== */
+.tab-context-menu {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 4px;
+    min-width: 180px;
+    z-index: 1000;
+}
+
+.context-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.context-item:hover {
+    background: var(--surface-hover);
+}
+
+.context-item i {
+    width: 16px;
+    height: 16px;
+    color: var(--text-secondary);
+}
+
+.context-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+}
+
+/* ==================== TAB CONTENT ==================== */
+.project-tab-content {
+    padding: 24px;
+    background: var(--background);
+    min-height: calc(100vh - 200px);
+}
+
+.tab-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+/* ==================== SUMMARY TAB ==================== */
+.summary-tab {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.summary-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+}
+
+.overview-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-item label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.activity-item {
+    display: flex;
+    gap: 12px;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activity-icon i {
+    width: 16px;
+    height: 16px;
+    color: var(--text-secondary);
+}
+
+.activity-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.activity-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.team-member {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.member-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.member-name {
+    font-weight: 500;
+}
+
+.member-role {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.quick-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.quick-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: var(--surface-secondary);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+}
+
+.quick-link:hover {
+    background: var(--surface-hover);
+}
+
+.quick-link i {
+    width: 16px;
+    height: 16px;
+}
+
+/* ==================== TIMELINE TAB ==================== */
+.timeline-tab {
+    max-width: 100%;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.timeline-header h2 {
+    margin: 0;
+}
+
+.timeline-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.timeline-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 500px;
+}
+
+.placeholder-text {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 100px 0;
+}
+
+/* ==================== REPORTS TAB ==================== */
+.reports-tab {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.report-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.report-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    border-color: var(--primary);
+}
+
+.report-card i {
+    width: 32px;
+    height: 32px;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.report-card h3 {
+    font-size: 18px;
+    margin: 0 0 8px 0;
+}
+
+.report-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* ==================== FORMS TAB ==================== */
+.forms-tab,
+.components-tab,
+.code-tab,
+.releases-tab,
+.archived-tab,
+.pages-tab {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.forms-header,
+.components-header,
+.code-header,
+.releases-header,
+.archived-header,
+.pages-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.forms-header h2,
+.components-header h2,
+.code-header h2,
+.releases-header h2,
+.archived-header h2,
+.pages-header h2 {
+    margin: 0;
+}
+
+/* ==================== COMPONENTS TAB ==================== */
+.components-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.component-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.component-item:hover {
+    border-color: var(--primary);
+}
+
+.component-info h3 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+}
+
+.component-info p {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.component-lead {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.component-stats {
+    display: flex;
+    gap: 16px;
+}
+
+.component-stats .stat {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* ==================== DEVELOPMENT TAB ==================== */
+.development-tab {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dev-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.dev-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.dev-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px 0;
+    font-size: 16px;
+}
+
+.dev-section h3 i {
+    width: 18px;
+    height: 18px;
+}
+
+.commits-list,
+.pr-list,
+.branches-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.commit-item,
+.pr-item,
+.branch-item {
+    padding: 12px;
+    background: var(--surface-secondary);
+    border-radius: 6px;
+}
+
+.commit-message,
+.pr-title,
+.branch-name {
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.commit-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.pr-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pr-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-open {
+    background: #deebff;
+    color: #0052cc;
+}
+
+.branch-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.branch-commits {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* ==================== CODE TAB ==================== */
+.repos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.repo-item {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.repo-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: var(--surface-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.repo-icon i {
+    width: 24px;
+    height: 24px;
+}
+
+.repo-info {
+    flex: 1;
+}
+
+.repo-info h3 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+}
+
+.repo-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.repo-link:hover {
+    text-decoration: underline;
+}
+
+.repo-stats {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.repo-stats span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.repo-stats i {
+    width: 14px;
+    height: 14px;
+}
+
+/* ==================== RELEASES TAB ==================== */
+.releases-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.release-item {
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.release-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.release-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.release-status {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-released {
+    background: #e3fcef;
+    color: #006644;
+}
+
+.release-date {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.release-stats {
+    display: flex;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* ==================== ARCHIVED TAB ==================== */
+.archived-filters {
+    display: flex;
+    gap: 12px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* ==================== EMPTY STATE ==================== */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.empty-state i {
+    width: 64px;
+    height: 64px;
+    color: var(--text-secondary);
+    opacity: 0.3;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+}
+
+.empty-state p {
+    margin: 0 0 20px 0;
+    color: var(--text-secondary);
+}
+
+/* ==================== SHORTCUTS PANEL ==================== */
+.shortcuts-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 320px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    box-shadow: -4px 0 12px rgba(0,0,0,0.1);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.panel-footer {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.shortcut-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: var(--surface-secondary);
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.shortcut-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    text-decoration: none;
+    flex: 1;
+}
+
+.shortcut-link:hover {
+    color: var(--primary);
+}
+
+.shortcut-link i {
+    width: 16px;
+    height: 16px;
+}
+
+/* ==================== CUSTOMIZE NAVIGATION MODAL ==================== */
+.modal-description {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.tabs-customizer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tab-customizer-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface-secondary);
+    border-radius: 6px;
+    cursor: move;
+}
+
+.tab-customizer-item.dragging {
+    opacity: 0.5;
+}
+
+.drag-handle {
+    cursor: grab;
+    color: var(--text-secondary);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.drag-handle i {
+    width: 16px;
+    height: 16px;
+}
+
+.tab-customizer-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.tab-customizer-item label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    cursor: pointer;
+}
+
+.tab-customizer-item label i {
+    width: 16px;
+    height: 16px;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .project-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+    
+    .project-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .summary-grid,
+    .reports-grid,
+    .dev-sections {
+        grid-template-columns: 1fr;
+    }
+    
+    .shortcuts-panel {
+        width: 100%;
+    }
+    
+    .tab-item span {
+        display: none;
+    }
+    
+    .tab-item {
+        padding: 12px;
+    }
+}
+
+/* ==================== DARK MODE ==================== */
+@media (prefers-color-scheme: dark) {
+    .project-header,
+    .project-tabs-nav,
+    .summary-card,
+    .report-card,
+    .component-item,
+    .dev-section,
+    .repo-item,
+    .release-item {
+        background: #2a2a2a;
+        border-color: #444;
+    }
+    
+    .tab-item:hover {
+        background: #333;
+    }
+    
+    .shortcuts-panel {
+        background: #1e1e1e;
+        border-color: #333;
+    }
+}

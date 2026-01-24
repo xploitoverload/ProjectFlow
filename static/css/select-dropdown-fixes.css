@@ -1,0 +1,63 @@
+/* ============================================
+   DROPDOWN & SELECT FIXES - NO HIDING ISSUES
+   ============================================ */
+
+/* Fix all select dropdowns - no margin, full width */
+select,
+.form-select,
+.select {
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    position: relative !important;
+    z-index: 5 !important;
+}
+
+/* Fix dropdown menus in header/navbar */
+.header-dropdown,
+.navbar-dropdown,
+.dropdown {
+    position: absolute !important;
+    margin: 0 !important;
+    z-index: 10100 !important;
+}
+
+/* Project switcher specific fixes */
+.project-select,
+.project-switcher,
+[name="project"],
+[name="project_id"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+}
+
+/* Fix select inside forms */
+form select,
+.form-group select,
+.modal select {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure dropdown options visible */
+select option {
+    padding: 8px 12px !important;
+    background: white !important;
+    color: #111827 !important;
+}
+
+/* Fix select2/custom selects if any */
+.select2-container,
+.custom-select {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+}
+
+/* Remove any inherited margins */
+.grid select,
+.form-row select {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}

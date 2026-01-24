@@ -45,7 +45,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email_encrypted = db.Column(db.Text, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), nullable=False, index=True)
+    role = db.Column(db.String(50), nullable=False, index=True)  # Extended for more roles
     team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'))
     avatar_color = db.Column(db.String(7), default='#667eea')  # For avatar gradients
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -439,3 +439,81 @@ class AuditLog(db.Model):
     
     def __repr__(self):
         return f'<AuditLog {self.action}>'
+
+class RecentItem(db.Model):
+    """Track recently viewed items for quick access"""
+    __tablename__ = 'recent_item'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    item_type = db.Column(db.String(20), nullable=False)  # 'issue', 'project', 'board', 'sprint', 'epic'
+    item_id = db.Column(db.Integer, nullable=False)
+    item_title = db.Column(db.String(200), nullable=False)
+    item_key = db.Column(db.String(50))  # For issues (e.g., PROJ-123)
+    viewed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    
+    # Composite unique constraint to prevent duplicates
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'item_type', 'item_id', name='uq_user_item'),
+    )
+    
+    def __repr__(self):
+        return f'<RecentItem {self.item_type}:{self.item_id}>'
+class Notification(db.Model):
+    """User notifications for activities and updates"""
+    __tablename__ = 'notification'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    type = db.Column(db.String(50), nullable=False)  # 'issue_assigned', 'comment', 'mention', 'status_change', etc.
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text)
+    link = db.Column(db.String(500))  # URL to navigate to
+    icon = db.Column(db.String(50), default='bell')  # Lucide icon name
+    is_read = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    read_at = db.Column(db.DateTime)
+    
+    # Optional reference to related items
+    related_type = db.Column(db.String(20))  # 'issue', 'project', 'comment'
+    related_id = db.Column(db.Integer)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('notifications', lazy='dynamic'))
+    
+    def __repr__(self):
+        return f'<Notification {self.id}: {self.type}>'
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'type': self.type,
+            'title': self.title,
+            'message': self.message,
+            'link': self.link,
+            'icon': self.icon,
+            'is_read': self.is_read,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'read_at': self.read_at.isoformat() if self.read_at else None,
+            'related_type': self.related_type,
+            'related_id': self.related_id,
+        }
+class StarredItem(db.Model):
+    """Track starred/favorite items for quick access"""
+    __tablename__ = 'starred_item'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    item_type = db.Column(db.String(20), nullable=False)  # 'issue', 'project', 'board', 'filter'
+    item_id = db.Column(db.Integer, nullable=False)
+    item_title = db.Column(db.String(200), nullable=False)
+    item_key = db.Column(db.String(50))  # For issues
+    starred_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Composite unique constraint to prevent duplicates
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'item_type', 'item_id', name='uq_user_starred'),
+    )
+    
+    def __repr__(self):
+        return f'<StarredItem {self.item_type}:{self.item_id}>'

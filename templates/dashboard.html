@@ -8,6 +8,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global-navigation.css') }}">
+    <script defer src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/bulk-actions.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/advanced-search.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/search-autocomplete.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/starred-items.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/user-menu.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/sidebar-resize.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/notifications-manager.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/breadcrumb-manager.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/global-navigation.js') }}"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -23,26 +38,57 @@
             </div>
 
             <nav class="sidebar-nav">
-                <!-- Main Navigation -->
+                <!-- For You Section (Like Atlassian) -->
                 <div class="sidebar-section">
-                    <div class="sidebar-section-title">Menu</div>
+                    <div class="sidebar-section-title">For you</div>
                     <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item active">
-                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
-                        <span>Dashboard</span>
+                        <i data-lucide="home" class="nav-icon"></i>
+                        <span>Home</span>
                     </a>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="clock" class="nav-icon"></i>
+                        <span>Recent</span>
+                    </a>
+                    <a href="javascript:void(0)" id="sidebarNotifications" class="sidebar-nav-item">
+                        <i data-lucide="bell" class="nav-icon"></i>
+                        <span>Notifications</span>
+                        <span class="notification-badge ml-auto">0</span>
+                    </a>
+                </div>
+
+                <!-- Work Section -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Work</div>
+                    <a href="{{ url_for('admin.admin_teams') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
+                        <i data-lucide="users-round" class="nav-icon"></i>
+                        <span>Teams</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <i data-lucide="target" class="nav-icon"></i>
+                        <span>Goals</span>
+                    </a>
+                    <a href="{{ url_for('admin.admin_projects') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
+                        <i data-lucide="folder" class="nav-icon"></i>
+                        <span>Projects</span>
+                    </a>
+                </div>
+
+                <!-- Tools Section -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Tools</div>
                     <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
                         <i data-lucide="bar-chart-3" class="nav-icon"></i>
                         <span>Reports</span>
                     </a>
                     <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item">
                         <i data-lucide="gantt-chart" class="nav-icon"></i>
-                        <span>Gantt Chart</span>
+                        <span>Timeline</span>
                     </a>
                 </div>
 
-                <!-- Projects -->
+                <!-- Your Projects -->
                 <div class="sidebar-section">
-                    <div class="sidebar-section-title">Projects</div>
+                    <div class="sidebar-section-title">Your projects</div>
                     {% for project in projects[:5] %}
                     <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item">
                         <span class="avatar avatar-xs" style="background: {{ project.color or 'var(--primary-100)' }}; color: {{ project.color or 'var(--primary-700)' }}; font-size: 10px;">
@@ -51,27 +97,29 @@
                         <span class="truncate">{{ project.name }}</span>
                     </a>
                     {% endfor %}
+                    {% if projects|length > 5 %}
+                    <a href="{{ url_for('admin.admin_projects') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item" style="color: var(--primary-600); font-size: 13px;">
+                        <i data-lucide="plus-circle" class="nav-icon"></i>
+                        <span>View all projects</span>
+                    </a>
+                    {% endif %}
                 </div>
 
                 {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                <!-- Admin -->
+                <!-- Administration -->
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Administration</div>
                     <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
                         <i data-lucide="settings" class="nav-icon"></i>
-                        <span>Admin Panel</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_projects') }}" class="sidebar-nav-item">
-                        <i data-lucide="folder" class="nav-icon"></i>
-                        <span>Manage Projects</span>
+                        <span>Settings</span>
                     </a>
                     <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
                         <i data-lucide="users" class="nav-icon"></i>
-                        <span>Manage Users</span>
+                        <span>Users</span>
                     </a>
-                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
-                        <i data-lucide="users-round" class="nav-icon"></i>
-                        <span>Manage Teams</span>
+                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
+                        <i data-lucide="shield" class="nav-icon"></i>
+                        <span>Security</span>
                     </a>
                 </div>
                 {% endif %}
@@ -96,6 +144,13 @@
             <!-- Header -->
             <header class="app-header">
                 <div class="header-left">
+                    <!-- Product Switcher -->
+                    <div style="position: relative;">
+                        <button class="header-icon-btn" id="productSwitcherBtn" title="Product Switcher">
+                            <i data-lucide="grid"></i>
+                        </button>
+                    </div>
+                    
                     <button class="header-icon-btn" id="sidebarToggle" style="display: none;">
                         <i data-lucide="menu"></i>
                     </button>
@@ -106,14 +161,125 @@
                     </div>
                 </div>
                 <div class="header-right">
-                    <div class="header-search">
+                    <!-- Global Search with CMD+K -->
+                    <div class="header-search" style="position: relative; cursor: pointer;" onclick="window.globalNavigation?.openCommandPalette()">
                         <i data-lucide="search" class="header-search-icon"></i>
-                        <input type="text" class="header-search-input" placeholder="Search projects...">
+                        <input type="text" class="header-search-input" placeholder="Search or jump to..." readonly style="cursor: pointer;">
+                        <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--jira-text-secondary); background: var(--jira-dark-bg); border: 1px solid var(--jira-border); border-radius: 4px; padding: 2px 6px; pointer-events: none;">
+                            <kbd>⌘K</kbd>
+                        </div>
                     </div>
-                    <button class="header-icon-btn">
+                    
+                    <!-- Create Button with Dropdown -->
+                    <div class="create-btn-wrapper">
+                        <div class="create-btn-split">
+                            <button class="btn btn-primary btn-sm btn-create-main">
+                                <i data-lucide="plus" class="icon-sm"></i>
+                                Create
+                            </button>
+                            <button class="btn btn-primary btn-sm btn-create-dropdown">
+                                <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Create Dropdown Menu -->
+                        <div id="createDropdown">
+                            <div class="create-dropdown-section">
+                                <div class="create-dropdown-label">Issues</div>
+                                <a href="#" class="create-dropdown-item" data-action="issue">
+                                    <div class="create-dropdown-icon" data-type="issue">
+                                        <i data-lucide="circle" style="width: 14px; height: 14px;"></i>
+                                    </div>
+                                    <div class="create-dropdown-text">
+                                        <div class="create-dropdown-title">Issue</div>
+                                        <div class="create-dropdown-desc">Track work and bugs</div>
+                                    </div>
+                                    <kbd class="create-dropdown-shortcut">C</kbd>
+                                </a>
+                                <a href="#" class="create-dropdown-item" data-action="task">
+                                    <div class="create-dropdown-icon" data-type="task">
+                                        <i data-lucide="check-square" style="width: 14px; height: 14px;"></i>
+                                    </div>
+                                    <div class="create-dropdown-text">
+                                        <div class="create-dropdown-title">Task</div>
+                                        <div class="create-dropdown-desc">Work that needs to be done</div>
+                                    </div>
+                                </a>
+                                <a href="#" class="create-dropdown-item" data-action="story">
+                                    <div class="create-dropdown-icon" data-type="story">
+                                        <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
+                                    </div>
+                                    <div class="create-dropdown-text">
+                                        <div class="create-dropdown-title">Story</div>
+                                        <div class="create-dropdown-desc">User story or feature</div>
+                                    </div>
+                                </a>
+                                <a href="#" class="create-dropdown-item" data-action="bug">
+                                    <div class="create-dropdown-icon" data-type="bug">
+                                        <i data-lucide="bug" style="width: 14px; height: 14px;"></i>
+                                    </div>
+                                    <div class="create-dropdown-text">
+                                        <div class="create-dropdown-title">Bug</div>
+                                        <div class="create-dropdown-desc">Something isn't working</div>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="create-dropdown-section">
+                                <div class="create-dropdown-label">Project Items</div>
+                                <a href="#" class="create-dropdown-item" data-action="epic">
+                                    <div class="create-dropdown-icon" data-type="epic">
+                                        <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
+                                    </div>
+                                    <div class="create-dropdown-text">
+                                        <div class="create-dropdown-title">Epic</div>
+                                        <div class="create-dropdown-desc">Large body of work</div>
+                                    </div>
+                                </a>
+                                <a href="#" class="create-dropdown-item" data-action="sprint">
+                                    <div class="create-dropdown-icon" data-type="sprint">
+                                        <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                                    </div>
+                                    <div class="create-dropdown-text">
+                                        <div class="create-dropdown-title">Sprint</div>
+                                        <div class="create-dropdown-desc">Time-boxed iteration</div>
+                                    </div>
+                                </a>
+                                <a href="#" class="create-dropdown-item" data-action="project">
+                                    <div class="create-dropdown-icon" data-type="project">
+                                        <i data-lucide="folder" style="width: 14px; height: 14px;"></i>
+                                    </div>
+                                    <div class="create-dropdown-text">
+                                        <div class="create-dropdown-title">Project</div>
+                                        <div class="create-dropdown-desc">New project workspace</div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notifications Button -->
+                    <button class="header-icon-btn" id="notificationBtn" style="position: relative;" title="Notifications">
                         <i data-lucide="bell"></i>
-                        <span class="notification-badge"></span>
+                        <span class="notification-badge">0</span>
                     </button>
+                    
+                    <!-- Help Menu -->
+                    <div style="position: relative;">
+                        <button class="header-icon-btn" id="helpMenuBtn" title="Help">
+                            <i data-lucide="help-circle"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Theme Toggle -->
+                    <button class="header-icon-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
+                        <i data-lucide="moon"></i>
+                    </button>
+                    
+                    <!-- Settings -->
+                    <a href="{{ url_for('main.settings') }}" class="header-icon-btn" title="Settings">
+                        <i data-lucide="settings"></i>
+                    </a>
+                    
                     <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
                         <i data-lucide="log-out" class="icon-sm"></i>
                         Sign out
@@ -379,26 +545,159 @@
                 </div>
             </div>
         </main>
+
+        <!-- Command Palette (CMD+K) -->
+        <div id="commandOverlay"></div>
+        <div id="commandPalette">
+            <div class="command-header">
+                <i data-lucide="search" class="command-search-icon"></i>
+                <input type="text" class="command-input" placeholder="Type a command or search..." autocomplete="off">
+                <div class="command-shortcut">
+                    <kbd>Esc</kbd>
+                </div>
+            </div>
+            <div class="command-results"></div>
+            <div class="command-footer">
+                <div class="command-footer-shortcuts">
+                    <div class="command-footer-shortcut">
+                        <kbd>↑</kbd><kbd>↓</kbd> Navigate
+                    </div>
+                    <div class="command-footer-shortcut">
+                        <kbd>Enter</kbd> Select
+                    </div>
+                    <div class="command-footer-shortcut">
+                        <kbd>Esc</kbd> Close
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Switcher -->
+        <div id="productSwitcher">
+            <div class="product-switcher-header">
+                <div class="product-switcher-title">Atlassian Products</div>
+            </div>
+            <div class="product-switcher-grid">
+                <a href="/dashboard" class="product-switcher-item">
+                    <div class="product-switcher-icon" style="background: #0052CC; color: white;">
+                        <i data-lucide="layers"></i>
+                    </div>
+                    <div class="product-switcher-name">Jira</div>
+                </a>
+                <a href="#" class="product-switcher-item">
+                    <div class="product-switcher-icon" style="background: #0052CC; color: white;">
+                        <i data-lucide="book-open"></i>
+                    </div>
+                    <div class="product-switcher-name">Confluence</div>
+                </a>
+                <a href="#" class="product-switcher-item">
+                    <div class="product-switcher-icon" style="background: #0052CC; color: white;">
+                        <i data-lucide="git-branch"></i>
+                    </div>
+                    <div class="product-switcher-name">Bitbucket</div>
+                </a>
+                <a href="#" class="product-switcher-item">
+                    <div class="product-switcher-icon" style="background: #00C7E6; color: white;">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <div class="product-switcher-name">Trello</div>
+                </a>
+                <a href="#" class="product-switcher-item">
+                    <div class="product-switcher-icon" style="background: #6554C0; color: white;">
+                        <i data-lucide="users"></i>
+                    </div>
+                    <div class="product-switcher-name">Opsgenie</div>
+                </a>
+                <a href="#" class="product-switcher-item">
+                    <div class="product-switcher-icon" style="background: #00875A; color: white;">
+                        <i data-lucide="compass"></i>
+                    </div>
+                    <div class="product-switcher-name">Compass</div>
+                </a>
+            </div>
+            <div class="product-switcher-footer">
+                <a href="#" class="product-switcher-link">
+                    <i data-lucide="grid"></i>
+                    <span>View all products</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Help Menu -->
+        <div id="helpMenu">
+            <div class="help-menu-section">
+                <a href="#" class="help-menu-item">
+                    <i data-lucide="book-open" class="help-menu-icon"></i>
+                    <div class="help-menu-content">
+                        <div class="help-menu-title">Documentation</div>
+                        <div class="help-menu-description">Learn about ProjectFlow</div>
+                    </div>
+                    <i data-lucide="external-link" class="help-menu-external"></i>
+                </a>
+                <a href="#" class="help-menu-item">
+                    <i data-lucide="message-circle" class="help-menu-icon"></i>
+                    <div class="help-menu-content">
+                        <div class="help-menu-title">Contact Support</div>
+                        <div class="help-menu-description">Get help from our team</div>
+                    </div>
+                </a>
+                <a href="#" class="help-menu-item">
+                    <i data-lucide="life-buoy" class="help-menu-icon"></i>
+                    <div class="help-menu-content">
+                        <div class="help-menu-title">Help Center</div>
+                        <div class="help-menu-description">Browse articles and FAQs</div>
+                    </div>
+                    <i data-lucide="external-link" class="help-menu-external"></i>
+                </a>
+            </div>
+            <div class="help-menu-section">
+                <a href="#" class="help-menu-item">
+                    <i data-lucide="keyboard" class="help-menu-icon"></i>
+                    <div class="help-menu-content">
+                        <div class="help-menu-title">Keyboard Shortcuts</div>
+                        <div class="help-menu-description">Press Ctrl+/</div>
+                    </div>
+                </a>
+                <a href="#" class="help-menu-item">
+                    <i data-lucide="sparkles" class="help-menu-icon"></i>
+                    <div class="help-menu-content">
+                        <div class="help-menu-title">What's New</div>
+                        <div class="help-menu-description">Latest features & updates</div>
+                    </div>
+                </a>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Initialize Lucide icons when DOM is ready
+        // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard: DOM Content Loaded');
+            
+            // Initialize Lucide icons
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
+                console.log('Dashboard: Lucide icons initialized');
+            } else {
+                console.error('Dashboard: Lucide library not loaded!');
             }
-        });
-        
-        // Also try on window load as fallback
-        window.addEventListener('load', function() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
+            
+            // Check if managers are loaded
+            if (typeof window.themeManager === 'undefined') {
+                console.error('Dashboard: Theme manager not loaded!');
+            } else {
+                console.log('Dashboard: Theme manager ready');
             }
-        });
+            
+            if (typeof window.notificationManager === 'undefined') {
+                console.error('Dashboard: Notification manager not loaded!');
+            } else {
+                console.log('Dashboard: Notification manager ready');
+            }
 
-        // Mobile sidebar toggle
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
+            // Mobile sidebar toggle
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
         
         if (window.innerWidth <= 1024) {
             sidebarToggle.style.display = 'flex';
@@ -421,8 +720,126 @@
                 row.style.display = text.includes(query) ? '' : 'none';
             });
         });
+        
+        // Initialize theme toggle
+        const themeToggleBtn = document.getElementById('themeToggle');
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                window.themeManager.toggleTheme();
+                window.notificationManager.addNotification({
+                    title: 'Theme Changed',
+                    message: `Switched to ${window.themeManager.getTheme()} mode`,
+                    type: 'success'
+                });
+            });
+        } else {
+            console.error('Theme toggle button not found!');
+        }
+        
+        // Initialize notification panel
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationPanel = document.createElement('div');
+        notificationPanel.className = 'notification-panel';
+        notificationPanel.innerHTML = `
+            <div class="notification-panel-header">
+                <div class="notification-panel-title">Notifications</div>
+                <div class="notification-actions">
+                    <button class="notification-action-btn" id="markAllRead">Mark all as read</button>
+                    <button class="notification-action-btn" id="clearNotifications">Clear all</button>
+                </div>
+            </div>
+            <div class="notification-panel-content" id="notificationList"></div>
+        `;
+        document.body.appendChild(notificationPanel);
+        
+        notificationBtn.addEventListener('click', () => {
+            notificationPanel.classList.toggle('show');
+            updateNotificationList();
+        });
+        
+        function updateNotificationList() {
+            const list = document.getElementById('notificationList');
+            const notifications = window.notificationManager.getNotifications();
+            
+            if (notifications.length === 0) {
+                list.innerHTML = `
+                    <div class="notification-empty">
+                        <i data-lucide="bell-off" class="notification-empty-icon"></i>
+                        <div class="notification-empty-text">No notifications</div>
+                    </div>
+                `;
+            } else {
+                list.innerHTML = notifications.map(n => `
+                    <div class="notification-item ${n.type} ${n.read ? '' : 'unread'}" data-id="${n.id}">
+                        <div class="notification-item-icon">
+                            <i data-lucide="${window.notificationManager.getIconForType(n.type)}"></i>
+                        </div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">${n.title}</div>
+                            <div class="notification-item-message">${n.message}</div>
+                            <div class="notification-item-time">${new Date(n.timestamp).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            lucide.createIcons();
+            
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const id = parseInt(item.dataset.id);
+                    window.notificationManager.markAsRead(id);
+                    updateNotificationList();
+                });
+            });
+        }
+        
+        document.getElementById('markAllRead').addEventListener('click', () => {
+            window.notificationManager.markAllAsRead();
+            updateNotificationList();
+        });
+        
+        document.getElementById('clearNotifications').addEventListener('click', () => {
+            if (confirm('Clear all notifications?')) {
+                window.notificationManager.clearAll();
+                updateNotificationList();
+            }
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!notificationPanel.contains(e.target) && e.target !== notificationBtn && !notificationBtn.contains(e.target)) {
+                notificationPanel.classList.remove('show');
+            }
+        });
+        
+        // Welcome notification
+        setTimeout(() => {
+            window.notificationManager.addNotification({
+                title: 'Welcome Back!',
+                message: 'Check out your projects and recent activity. Use Ctrl+D to toggle theme.',
+                type: 'info'
+            });
+        }, 1000);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                window.themeManager.toggleTheme();
+            }
+            
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
+        
+        // Sidebar notifications click handler
+        document.getElementById('sidebarNotifications')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('notificationBtn').click();
+        });
+        });
     </script>
-    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
-    <script>lucide.createIcons();</script>
 </body>
 </html>

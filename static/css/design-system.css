@@ -70,7 +70,7 @@
   --info-500: #3b82f6;
   --info-600: #2563eb;
 
-  /* Semantic Colors */
+  /* Semantic Colors - Light Mode */
   --bg-primary: #ffffff;
   --bg-secondary: var(--gray-50);
   --bg-tertiary: var(--gray-100);
@@ -86,6 +86,15 @@
   --border-primary: var(--gray-200);
   --border-secondary: var(--gray-100);
   --border-focus: var(--primary-500);
+
+  /* JIRA-Style Variables */
+  --jira-dark-bg: #f4f5f7;
+  --jira-darker-bg: #ffffff;
+  --jira-card-bg: #ffffff;
+  --jira-border: #dfe1e6;
+  --jira-text: #172b4d;
+  --jira-text-secondary: #5e6c84;
+  --jira-hover: #ebecf0;
 
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -171,6 +180,47 @@
 }
 
 /* ============================================
+   DARK MODE THEME
+   ============================================ */
+body[data-theme="dark"] {
+  /* Dark mode color overrides */
+  --bg-primary: #1d2125;
+  --bg-secondary: #161a1d;
+  --bg-tertiary: #22272b;
+  --bg-elevated: #22272b;
+  
+  --text-primary: #b6c2cf;
+  --text-secondary: #8c9bab;
+  --text-tertiary: #738496;
+  --text-muted: #5e6c84;
+  
+  --border-primary: #2c333a;
+  --border-secondary: #22272b;
+  
+  /* JIRA-style dark colors */
+  --jira-dark-bg: #1d2125;
+  --jira-darker-bg: #161a1d;
+  --jira-card-bg: #22272b;
+  --jira-border: #2c333a;
+  --jira-text: #b6c2cf;
+  --jira-text-secondary: #8c9bab;
+  --jira-hover: #2c3338;
+  
+  /* Adjust shadows for dark mode */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+}
+
+/* Set dark mode as default */
+body {
+  background: var(--jira-darker-bg);
+  color: var(--jira-text);
+}
+
+/* ============================================
    RESET & BASE STYLES
    ============================================ */
 *, *::before, *::after {
@@ -190,8 +240,8 @@ body {
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
-  color: var(--text-primary);
-  background-color: var(--bg-secondary);
+  color: var(--jira-text);
+  background-color: var(--jira-darker-bg);
   min-height: 100vh;
 }
 
@@ -228,8 +278,8 @@ button, input, select, textarea {
 
 .app-sidebar {
   width: 260px;
-  background: var(--bg-primary);
-  border-right: 1px solid var(--border-primary);
+  background: var(--jira-dark-bg);
+  border-right: 1px solid var(--jira-border);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -250,8 +300,8 @@ button, input, select, textarea {
 
 .app-header {
   height: 64px;
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-primary);
+  background: var(--jira-dark-bg);
+  border-bottom: 1px solid var(--jira-border);
   display: flex;
   align-items: center;
   padding: 0 var(--space-6);
@@ -263,6 +313,7 @@ button, input, select, textarea {
 .app-content {
   flex: 1;
   padding: var(--space-8);
+  background: var(--jira-darker-bg);
 }
 
 /* Container */
@@ -335,7 +386,7 @@ button, input, select, textarea {
    ============================================ */
 .sidebar-header {
   padding: var(--space-5) var(--space-4);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--jira-border);
 }
 
 .sidebar-logo {
@@ -358,7 +409,7 @@ button, input, select, textarea {
 .sidebar-logo-text {
   font-weight: 600;
   font-size: var(--text-lg);
-  color: var(--text-primary);
+  color: var(--jira-text);
   letter-spacing: var(--tracking-tight);
 }
 
@@ -377,7 +428,7 @@ button, input, select, textarea {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-tertiary);
+  color: var(--jira-text-secondary);
   padding: var(--space-2) var(--space-3);
   margin-bottom: var(--space-1);
 }
@@ -388,7 +439,7 @@ button, input, select, textarea {
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  color: var(--jira-text-secondary);
   font-size: var(--text-sm);
   font-weight: 500;
   transition: all var(--transition-fast);
@@ -397,29 +448,29 @@ button, input, select, textarea {
 }
 
 .sidebar-nav-item:hover {
-  background: var(--gray-100);
-  color: var(--text-primary);
+  background: var(--jira-hover);
+  color: var(--jira-text);
 }
 
 .sidebar-nav-item.active {
-  background: var(--primary-50);
-  color: var(--primary-700);
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary-400);
 }
 
 .sidebar-nav-item.active .nav-icon {
-  color: var(--primary-600);
+  color: var(--primary-400);
 }
 
 .sidebar-nav-item .nav-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  color: var(--text-tertiary);
+  color: var(--jira-text-secondary);
 }
 
 .sidebar-footer {
   padding: var(--space-4);
-  border-top: 1px solid var(--border-primary);
+  border-top: 1px solid var(--jira-border);
 }
 
 .sidebar-user {
@@ -433,7 +484,7 @@ button, input, select, textarea {
 }
 
 .sidebar-user:hover {
-  background: var(--gray-100);
+  background: var(--jira-hover);
 }
 
 .sidebar-user-avatar {
@@ -457,7 +508,7 @@ button, input, select, textarea {
 .sidebar-user-name {
   font-weight: 500;
   font-size: var(--text-sm);
-  color: var(--text-primary);
+  color: var(--jira-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -465,7 +516,7 @@ button, input, select, textarea {
 
 .sidebar-user-role {
   font-size: var(--text-xs);
-  color: var(--text-tertiary);
+  color: var(--jira-text-secondary);
 }
 
 /* ============================================
@@ -482,15 +533,15 @@ button, input, select, textarea {
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-sm);
-  color: var(--text-secondary);
+  color: var(--jira-text-secondary);
 }
 
 .header-breadcrumb-separator {
-  color: var(--text-muted);
+  color: var(--jira-text-secondary);
 }
 
 .header-breadcrumb-current {
-  color: var(--text-primary);
+  color: var(--jira-text);
   font-weight: 500;
 }
 
@@ -510,23 +561,23 @@ button, input, select, textarea {
   width: 100%;
   height: 36px;
   padding: 0 var(--space-4) 0 var(--space-10);
-  background: var(--gray-100);
+  background: var(--jira-hover);
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
   font-size: var(--text-sm);
-  color: var(--text-primary);
+  color: var(--jira-text);
   transition: all var(--transition-fast);
 }
 
 .header-search-input:focus {
   outline: none;
-  background: var(--bg-primary);
-  border-color: var(--border-focus);
-  box-shadow: var(--shadow-focus);
+  background: var(--jira-card-bg);
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .header-search-input::placeholder {
-  color: var(--text-tertiary);
+  color: var(--jira-text-secondary);
 }
 
 .header-search-icon {
@@ -536,7 +587,7 @@ button, input, select, textarea {
   transform: translateY(-50%);
   width: 18px;
   height: 18px;
-  color: var(--text-tertiary);
+  color: var(--jira-text-secondary);
 }
 
 .header-icon-btn {
@@ -546,36 +597,50 @@ button, input, select, textarea {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  color: var(--jira-text-secondary);
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
   transition: all var(--transition-fast);
   position: relative;
 }
 
+.header-icon-btn svg,
+.header-icon-btn i {
+  width: 20px !important;
+  height: 20px !important;
+}
+
 .header-icon-btn:hover {
-  background: var(--gray-100);
-  color: var(--text-primary);
+  background: var(--jira-hover);
+  color: var(--jira-text);
+  border-color: var(--jira-border);
+  transform: translateY(-1px);
 }
 
 .header-icon-btn .notification-badge {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 8px;
-  height: 8px;
+  width: 18px;
+  height: 18px;
   background: var(--error-500);
   border-radius: var(--radius-full);
-  border: 2px solid var(--bg-primary);
+  border: 2px solid var(--jira-dark-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
 }
 
 /* ============================================
    CARDS
    ============================================ */
 .card {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
+  background: var(--jira-card-bg);
+  border: 1px solid var(--jira-border);
   border-radius: var(--radius-xl);
   overflow: hidden;
 }
@@ -585,13 +650,14 @@ button, input, select, textarea {
 }
 
 .card-hover:hover {
-  border-color: var(--gray-300);
+  border-color: var(--jira-hover);
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .card-header {
   padding: var(--space-5) var(--space-6);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--jira-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -768,25 +834,25 @@ button, input, select, textarea {
 }
 
 .btn-secondary {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border-color: var(--border-primary);
+  background: var(--jira-card-bg);
+  color: var(--jira-text);
+  border-color: var(--jira-border);
 }
 
 .btn-secondary:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
+  background: var(--jira-hover);
+  border-color: var(--jira-border);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--jira-text-secondary);
   border-color: transparent;
 }
 
 .btn-ghost:hover {
-  background: var(--gray-100);
-  color: var(--text-primary);
+  background: var(--jira-hover);
+  color: var(--jira-text);
 }
 
 .btn-danger {

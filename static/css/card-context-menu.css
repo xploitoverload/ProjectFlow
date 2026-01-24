@@ -1,0 +1,205 @@
+/**
+ * Context Menu Styles - JIRA-style right-click menu
+ */
+
+.context-menu {
+    position: fixed;
+    min-width: 220px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    padding: var(--space-2);
+    animation: contextMenuSlide 0.15s ease-out;
+}
+
+@keyframes contextMenuSlide {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.context-menu-section {
+    padding: 0;
+}
+
+.context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: background 0.15s;
+    user-select: none;
+}
+
+.context-menu-item:hover {
+    background: var(--bg-secondary);
+}
+
+.context-menu-item:active {
+    background: var(--bg-tertiary);
+}
+
+.context-menu-item i {
+    width: 16px;
+    height: 16px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.context-menu-item span {
+    flex: 1;
+}
+
+.context-menu-item kbd {
+    margin-left: auto;
+    padding: 2px 6px;
+    background: var(--gray-100);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--text-tertiary);
+    line-height: 1;
+}
+
+.context-menu-item-danger {
+    color: var(--danger-600);
+}
+
+.context-menu-item-danger:hover {
+    background: var(--danger-50);
+    color: var(--danger-700);
+}
+
+.context-menu-item-danger i {
+    color: var(--danger-500);
+}
+
+.context-menu-divider {
+    height: 1px;
+    background: var(--border-primary);
+    margin: var(--space-2) 0;
+}
+
+/* Card with active context menu */
+.kanban-card.context-menu-active {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+    box-shadow: 0 4px 12px rgba(79, 132, 250, 0.3);
+}
+
+/* Quick actions button on cards */
+.card-quick-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    opacity: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.kanban-card:hover .card-quick-actions {
+    opacity: 1;
+}
+
+.card-quick-actions:hover {
+    background: var(--bg-secondary);
+    border-color: var(--border-secondary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-quick-actions:active {
+    transform: scale(0.95);
+}
+
+/* Prevent context menu overflow */
+.context-menu {
+    max-width: 280px;
+    overflow-y: auto;
+    max-height: calc(100vh - 40px);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .context-menu {
+    background: var(--gray-800);
+    border-color: var(--gray-700);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .context-menu-item:hover {
+    background: var(--gray-750);
+}
+
+[data-theme="dark"] .context-menu-item:active {
+    background: var(--gray-700);
+}
+
+[data-theme="dark"] .context-menu-item kbd {
+    background: var(--gray-700);
+    border-color: var(--gray-600);
+    color: var(--gray-400);
+}
+
+[data-theme="dark"] .context-menu-item-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-400);
+}
+
+[data-theme="dark"] .card-quick-actions {
+    background: var(--gray-800);
+    border-color: var(--gray-700);
+}
+
+[data-theme="dark"] .card-quick-actions:hover {
+    background: var(--gray-750);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .context-menu {
+        min-width: 200px;
+        font-size: 13px;
+    }
+    
+    .context-menu-item {
+        padding: var(--space-2-5) var(--space-3);
+    }
+    
+    .context-menu-item i {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Context menu submenu (for future use) */
+.context-menu-item.has-submenu::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 4px 0 4px 6px;
+    border-color: transparent transparent transparent var(--text-tertiary);
+    margin-left: auto;
+}
+
+/* Disabled state */
+.context-menu-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}

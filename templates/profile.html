@@ -8,7 +8,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -81,6 +85,17 @@
                     </div>
                 </div>
                 <div class="header-right">
+                    <!-- Theme Toggle -->
+                    <button class="header-icon-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
+                        <i data-lucide="moon"></i>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button class="header-icon-btn" id="notificationBtn" title="Notifications" style="position: relative;">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">0</span>
+                    </button>
+                    
                     <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
                         <i data-lucide="log-out" class="icon-sm"></i>
                         Sign out
@@ -339,6 +354,16 @@
 
     <script>
         lucide.createIcons();
+
+        // Initialize theme toggle
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            window.themeManager.toggleTheme();
+        });
+
+        // Initialize notification button
+        document.getElementById('notificationBtn')?.addEventListener('click', () => {
+            window.notificationManager?.togglePanel();
+        });
 
         function openEditModal() {
             document.getElementById('editModal').classList.add('active');

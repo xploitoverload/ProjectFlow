@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #1d2125; color: #fff; }
+        .test { padding: 10px; margin: 10px 0; border: 1px solid #444; border-radius: 4px; }
+        .pass { background: #0f5132; }
+        .fail { background: #842029; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Frontend Functionality Test</h1>
+    <div id="results"></div>
+    
+    <h2>Interactive Tests</h2>
+    <button id="testBtn1">Test Button Click</button>
+    <button id="testBtn2" class="theme-toggle-btn">Test Theme Toggle</button>
+    <button id="testBtn3">Test Notification</button>
+    
+    <script src="/static/js/lucide.min.js"></script>
+    <script src="/static/js/theme-manager.js"></script>
+    <script src="/static/js/notification-manager.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(test, passed, message) {
+            const div = document.createElement('div');
+            div.className = `test ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${test}:</strong> ${passed ? '✓ PASS' : '✗ FAIL'} - ${message}`;
+            results.appendChild(div);
+        }
+        
+        // Test 1: Check if lucide loaded
+        addResult('Lucide Library', typeof lucide !== 'undefined', 
+            typeof lucide !== 'undefined' ? 'Lucide icons library loaded' : 'Lucide not found');
+        
+        // Test 2: Check if themeManager loaded
+        addResult('Theme Manager', typeof window.themeManager !== 'undefined', 
+            typeof window.themeManager !== 'undefined' ? 'Theme manager initialized' : 'Theme manager not found');
+        
+        // Test 3: Check if notificationManager loaded
+        addResult('Notification Manager', typeof window.notificationManager !== 'undefined', 
+            typeof window.notificationManager !== 'undefined' ? 'Notification manager initialized' : 'Notification manager not found');
+        
+        // Test 4: Check theme functions
+        if (window.themeManager) {
+            const hasToggle = typeof window.themeManager.toggleTheme === 'function';
+            const hasGetTheme = typeof window.themeManager.getTheme === 'function';
+            addResult('Theme Functions', hasToggle && hasGetTheme, 
+                `toggleTheme: ${hasToggle}, getTheme: ${hasGetTheme}`);
+        }
+        
+        // Test 5: Check notification functions
+        if (window.notificationManager) {
+            const hasAdd = typeof window.notificationManager.addNotification === 'function';
+            const hasGet = typeof window.notificationManager.getNotifications === 'function';
+            addResult('Notification Functions', hasAdd && hasGet, 
+                `addNotification: ${hasAdd}, getNotifications: ${hasGet}`);
+        }
+        
+        // Interactive tests
+        document.getElementById('testBtn1').addEventListener('click', () => {
+            alert('Button click works!');
+            addResult('Button Click', true, 'Button event listener working');
+        });
+        
+        document.getElementById('testBtn2').addEventListener('click', () => {
+            if (window.themeManager) {
+                window.themeManager.toggleTheme();
+                addResult('Theme Toggle', true, `Switched to ${window.themeManager.getTheme()} mode`);
+            }
+        });
+        
+        document.getElementById('testBtn3').addEventListener('click', () => {
+            if (window.notificationManager) {
+                window.notificationManager.addNotification({
+                    title: 'Test Notification',
+                    message: 'This is a test notification!',
+                    type: 'success'
+                });
+                addResult('Notification', true, 'Notification displayed');
+            }
+        });
+        
+        // DOMContentLoaded test
+        document.addEventListener('DOMContentLoaded', () => {
+            addResult('DOMContentLoaded', true, 'Event fired successfully');
+        });
+    </script>
+</body>
+</html>

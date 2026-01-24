@@ -1,0 +1,302 @@
+/* ============================================
+   ADDITIONAL CRITICAL LAYOUT FIXES
+   ============================================ */
+
+/* Fix main app layout */
+.app-main {
+    margin-left: 260px !important;
+    width: calc(100% - 260px) !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Fix for modals - remove margin */
+.modal,
+.modal-backdrop,
+.modal-dialog {
+    margin-left: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+}
+
+/* Fix app content */
+.app-content {
+    flex: 1 !important;
+    padding: 24px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Fix all containers to show content properly */
+.container,
+.container-fluid {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+    margin: 0 auto !important;
+}
+
+/* Ensure header doesn't interfere */
+.app-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 95 !important;
+    background: white !important;
+    border-bottom: 1px solid #dfe1e6 !important;
+    padding: 12px 24px !important;
+    min-height: 60px !important;
+}
+
+/* Fix all page wrappers */
+.page-wrapper,
+.content-area {
+    width: 100% !important;
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+/* CRITICAL: Make all forms fully visible */
+form,
+.form-container {
+    width: 100% !important;
+    padding-bottom: 100px !important;
+}
+
+/* CRITICAL: All submit buttons must be visible */
+button[type="submit"],
+input[type="submit"],
+.btn-submit,
+.btn-save {
+    margin-top: 24px !important;
+    margin-bottom: 48px !important;
+    position: relative !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: inline-block !important;
+}
+
+/* Fix modal scrolling */
+.modal {
+    overflow-y: auto !important;
+}
+
+.modal-dialog {
+    margin: 30px auto !important;
+    max-width: 800px !important;
+}
+
+/* Fix all tables */
+table,
+.table {
+    width: 100% !important;
+    margin-bottom: 24px !important;
+}
+
+/* Ensure no content is cut off */
+.row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.col,
+[class*="col-"] {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+}
+
+/* Fix dashboard cards */
+.dashboard-card,
+.stat-card,
+.metric-card {
+    margin-bottom: 24px !important;
+    height: auto !important;
+    min-height: 120px !important;
+}
+
+/* Fix issue list */
+.issue-list,
+.project-list {
+    padding-bottom: 48px !important;
+}
+
+/* Fix kanban board */
+.kanban-board {
+    overflow-x: auto !important;
+    padding-bottom: 24px !important;
+}
+
+.kanban-column {
+    min-width: 300px !important;
+    max-height: none !important;
+}
+
+/* Fix sprint view */
+.sprint-container,
+.backlog-container {
+    padding-bottom: 80px !important;
+}
+
+/* CRITICAL: Fix all action buttons at bottom of forms */
+.form-actions,
+.action-buttons,
+.button-row {
+    width: 100% !important;
+    padding: 16px 0 !important;
+    margin-top: 32px !important;
+    display: flex !important;
+    gap: 12px !important;
+    justify-content: flex-end !important;
+}
+
+/* Make sure inline forms don't break */
+.form-inline {
+    display: flex !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+}
+
+/* Fix select dropdowns */
+select,
+.select-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Fix textarea */
+textarea {
+    width: 100% !important;
+    min-height: 120px !important;
+    resize: vertical !important;
+}
+
+/* Fix input groups */
+.input-group {
+    width: 100% !important;
+    display: flex !important;
+}
+
+/* Ensure labels are visible */
+label {
+    display: block !important;
+    margin-bottom: 8px !important;
+    font-weight: 500 !important;
+}
+
+/* Fix checkbox and radio groups */
+.checkbox,
+.radio {
+    margin-bottom: 12px !important;
+}
+
+/* Fix file inputs */
+input[type="file"] {
+    width: 100% !important;
+    padding: 8px !important;
+}
+
+/* Fix date inputs */
+input[type="date"],
+input[type="datetime-local"] {
+    width: 100% !important;
+}
+
+/* Prevent horizontal scroll on body */
+body {
+    overflow-x: hidden !important;
+    position: relative !important;
+}
+
+html {
+    overflow-x: hidden !important;
+}
+
+/* Fix nested modals */
+.modal.show {
+    display: block !important;
+    overflow-y: auto !important;
+}
+
+/* Fix dropdowns in modals */
+.modal .dropdown-menu {
+    position: fixed !important;
+}
+
+/* CRITICAL FIX: Edit/Create forms must show save button */
+.edit-page,
+.create-page,
+.form-page {
+    padding-bottom: 120px !important;
+    min-height: 100vh !important;
+}
+
+.edit-page .form-actions,
+.create-page .form-actions,
+.form-page .form-actions {
+    position: sticky !important;
+    bottom: 0 !important;
+    background: white !important;
+    border-top: 2px solid #dfe1e6 !important;
+    padding: 20px 24px !important;
+    margin-top: 40px !important;
+    z-index: 100 !important;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Fix comment sections */
+.comment-section,
+.activity-feed {
+    max-height: 600px !important;
+    overflow-y: auto !important;
+    padding-bottom: 24px !important;
+}
+
+/* Fix attachment areas */
+.attachment-area,
+.file-upload-area {
+    padding: 24px !important;
+    min-height: 100px !important;
+}
+
+/* Responsive mobile fixes */
+@media (max-width: 768px) {
+    .app-main {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    .sidebar {
+        transform: translateX(-100%) !important;
+        transition: transform 0.3s ease !important;
+    }
+    
+    .sidebar.open {
+        transform: translateX(0) !important;
+    }
+    
+    .app-header {
+        padding: 12px !important;
+    }
+    
+    .app-content {
+        padding: 16px !important;
+    }
+}
+
+/* Force show all sidebar items */
+.sidebar-nav a,
+.sidebar-nav .sidebar-nav-item {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.sidebar-section {
+    display: block !important;
+}
+
+.sidebar-section-title {
+    display: block !important;
+    margin-bottom: 8px !important;
+}

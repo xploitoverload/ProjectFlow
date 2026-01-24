@@ -6,6 +6,7 @@ Handles all authentication-related business logic.
 
 from datetime import datetime, timedelta
 from flask import session, current_app
+from flask_login import login_user, logout_user
 from app.utils.security import (
     hash_password, verify_password, generate_secure_token,
     log_security_event, get_client_ip, validate_email
@@ -97,6 +98,9 @@ class AuthService:
         # Clear any existing session data
         session.clear()
         
+        # Use Flask-Login to handle the session
+        login_user(user)
+        
         # Regenerate session ID to prevent session fixation
         session.regenerate = True
         
@@ -122,6 +126,7 @@ class AuthService:
                 details=f'IP: {get_client_ip()}',
                 severity='INFO'
             )
+        logout_user()
         session.clear()
     
     @staticmethod

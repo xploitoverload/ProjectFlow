@@ -59,7 +59,7 @@ def create_app(config_name=None):
     # User loader for Flask-Login
     @login_manager.user_loader
     def load_user(user_id):
-        from models import User
+        from app.models import User
         return User.query.get(int(user_id))
     
     # Setup Talisman for security headers
@@ -246,3 +246,36 @@ def _register_context_processors(app):
             'app_name': app.config.get('APP_NAME', 'Project Management'),
             'app_version': app.config.get('APP_VERSION', '2.0.0')
         }
+    
+    # Template filter to format role names nicely
+    @app.template_filter('format_role')
+    def format_role(role):
+        """Convert role slug to human-readable format"""
+        if not role:
+            return 'Unknown'
+        # Replace underscores with spaces and title case
+        return role.replace('_', ' ').title()
+    
+    # Template filter to get role badge color
+    @app.template_filter('role_badge_color')
+    def role_badge_color(role):
+        """Get appropriate badge color for role"""
+        if not role:
+            return 'gray'
+        role_lower = role.lower()
+        if role_lower in ['admin', 'ceo', 'cto', 'vp_engineering']:
+            return 'purple'
+        elif role_lower in ['director', 'senior_manager', 'manager', 'team_lead', 'tech_lead']:
+            return 'blue'
+        elif 'senior' in role_lower or 'lead' in role_lower or 'principal' in role_lower:
+            return 'green'
+        elif 'engineer' in role_lower or 'developer' in role_lower:
+            return 'cyan'
+        elif 'designer' in role_lower:
+            return 'pink'
+        elif 'qa' in role_lower or 'test' in role_lower:
+            return 'orange'
+        elif role_lower in ['intern', 'trainee']:
+            return 'yellow'
+        else:
+            return 'gray'

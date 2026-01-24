@@ -1,0 +1,544 @@
+/**
+ * Backlog View Styles
+ * Product backlog with epic grouping, priority ordering, estimation
+ */
+
+/* Backlog Container */
+.backlog-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    background: var(--color-bg-base);
+}
+
+.backlog-header {
+    padding: var(--space-5) var(--space-6);
+    background: var(--color-bg-elevated);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.backlog-header h1 {
+    margin: 0 0 var(--space-2) 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.backlog-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.backlog-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+.backlog-actions {
+    display: flex;
+    gap: var(--space-2);
+}
+
+/* Filter Selects */
+.filter-select {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    background: var(--color-bg-base);
+    min-width: 150px;
+}
+
+.filter-select:focus {
+    outline: 2px solid var(--color-primary);
+    border-color: transparent;
+}
+
+/* Bulk Actions Bar */
+#bulkActionsBar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-primary-light);
+    border-bottom: 1px solid var(--color-primary);
+}
+
+.bulk-actions-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.bulk-actions-right {
+    display: flex;
+    gap: var(--space-2);
+}
+
+/* Backlog Container */
+#backlogContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+}
+
+/* Backlog Group */
+.backlog-group {
+    margin-bottom: var(--space-4);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.backlog-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    background: var(--color-bg-subtle);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.backlog-group-header:hover {
+    background: var(--color-bg-hover);
+}
+
+.group-header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.group-toggle {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-secondary);
+    transition: transform 0.2s;
+}
+
+.epic-badge {
+    width: 4px;
+    height: 24px;
+    border-radius: 2px;
+}
+
+.group-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.group-count {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding: 2px 8px;
+    background: var(--color-bg-base);
+    border-radius: var(--radius-sm);
+}
+
+.group-points {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding: 2px 8px;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+}
+
+.group-header-right {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.backlog-group-body {
+    padding: var(--space-2);
+}
+
+/* Backlog Item */
+.backlog-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    margin-bottom: var(--space-2);
+    background: var(--color-bg-base);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.backlog-item:hover {
+    border-color: var(--color-text-tertiary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.backlog-item.selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+.backlog-item.dragging {
+    opacity: 0.5;
+}
+
+.backlog-item-checkbox {
+    flex-shrink: 0;
+}
+
+.backlog-item-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.backlog-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.backlog-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+}
+
+.backlog-item-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.backlog-item-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.issue-key {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.issue-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.issue-type-badge.story {
+    background: var(--color-green-light);
+    color: var(--color-green);
+}
+
+.issue-type-badge.task {
+    background: var(--color-blue-light);
+    color: var(--color-blue);
+}
+
+.issue-type-badge.bug {
+    background: var(--color-red-light);
+    color: var(--color-red);
+}
+
+.backlog-item-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: var(--space-2);
+}
+
+.backlog-item-labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.label-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* Priority Icons */
+.priority-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.priority-icon.highest {
+    color: #DC2626;
+}
+
+.priority-icon.high {
+    color: #EA580C;
+}
+
+.priority-icon.medium {
+    color: #CA8A04;
+}
+
+.priority-icon.low {
+    color: #16A34A;
+}
+
+.priority-icon.lowest {
+    color: #059669;
+}
+
+/* Story Points Badge */
+.story-points-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Estimation Input */
+.estimation-input-wrapper {
+    position: relative;
+}
+
+.estimation-input {
+    width: 60px;
+    padding: 6px 8px;
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    background: white;
+}
+
+.estimation-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* User Avatar */
+.user-avatar-sm {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* Backlog Item Actions */
+.backlog-item-actions {
+    display: flex;
+    gap: var(--space-1);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.backlog-item:hover .backlog-item-actions {
+    opacity: 1;
+}
+
+.btn-icon-sm {
+    padding: var(--space-1-5);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon-sm:hover {
+    background: var(--color-bg-subtle);
+}
+
+.btn-icon-sm svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-secondary);
+}
+
+.drag-handle {
+    cursor: grab;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Empty State */
+.backlog-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-10);
+    text-align: center;
+}
+
+.backlog-empty i {
+    color: var(--color-text-tertiary);
+}
+
+.backlog-empty h3 {
+    margin: var(--space-3) 0 var(--space-2) 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.backlog-empty p {
+    margin: 0 0 var(--space-4) 0;
+    color: var(--color-text-secondary);
+    max-width: 400px;
+}
+
+/* Button Utilities */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-dark);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.btn-ghost:hover {
+    background: var(--color-bg-subtle);
+    color: var(--color-text-primary);
+}
+
+.btn-sm {
+    padding: var(--space-1-5) var(--space-3);
+    font-size: 13px;
+}
+
+.btn.active {
+    background: var(--color-primary);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .backlog-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .backlog-filters {
+        flex-direction: column;
+    }
+
+    .backlog-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .backlog-actions button {
+        flex: 1;
+    }
+
+    .backlog-item {
+        flex-wrap: wrap;
+    }
+
+    .backlog-item-actions {
+        opacity: 1;
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .group-header-left {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 640px) {
+    .backlog-header {
+        padding: var(--space-4);
+    }
+
+    #backlogContainer {
+        padding: var(--space-2);
+    }
+
+    .backlog-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+}
+
+/* Dark Mode */
+[data-theme="dark"] .backlog-item {
+    background: var(--color-bg-elevated);
+}
+
+[data-theme="dark"] .estimation-input {
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .filter-select {
+    background: var(--color-bg-elevated);
+}

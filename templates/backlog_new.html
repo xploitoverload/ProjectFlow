@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Backlog - ProjectFlow{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div id="backlogContainer">
+        <div class="feature-loading">
+            <div class="feature-loading-spinner"></div>
+            <div class="feature-loading-text">Loading Backlog...</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { BacklogView } from '{{ url_for('static', filename='js/backlog-view.js') }}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        try {
+            const backlogSystem = new BacklogView();
+            const container = document.getElementById('backlogContainer');
+            container.innerHTML = '';
+            
+            const header = document.createElement('div');
+            header.className = 'feature-header';
+            header.innerHTML = `
+                <div class="feature-header-title">
+                    <i data-lucide="list-todo" class="icon"></i>
+                    <h1>Backlog & Sprint Planning</h1>
+                </div>
+                <div class="feature-header-actions">
+                    <button class="btn btn-secondary"><i data-lucide="filter"></i> Filter</button>
+                    <button class="btn btn-secondary"><i data-lucide="calendar-plus"></i> Start Sprint</button>
+                    <button class="btn btn-primary"><i data-lucide="plus"></i> Create Issue</button>
+                </div>
+            `;
+            container.appendChild(header);
+            
+            const content = document.createElement('div');
+            content.className = 'feature-content fade-in';
+            container.appendChild(content);
+            
+            backlogSystem.render(content);
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } catch (error) {
+            console.error('Error initializing backlog:', error);
+            document.getElementById('backlogContainer').innerHTML = `
+                <div class="feature-error">
+                    <i data-lucide="alert-triangle" class="feature-error-icon"></i>
+                    <h2 class="feature-error-title">Failed to Load Backlog</h2>
+                    <p class="feature-error-description">We encountered an error while loading the backlog view.</p>
+                    <div class="feature-error-actions">
+                        <button class="btn btn-primary" onclick="location.reload()"><i data-lucide="refresh-cw"></i> Try Again</button>
+                    </div>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }, 300);
+});
+</script>
+{% endblock %}

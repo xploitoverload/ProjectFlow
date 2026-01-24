@@ -37,6 +37,8 @@ def verify_admin_privilege():
 def admin_dashboard():
     """Admin dashboard with overview."""
     from app.models import User, Team, Project, Issue
+    from datetime import datetime, timedelta
+    from sqlalchemy import func
     
     # Double-check admin privilege (defense in depth)
     admin_user = verify_admin_privilege()
@@ -46,6 +48,27 @@ def admin_dashboard():
     team_count = Team.query.count()
     project_count = Project.query.count()
     issue_count = Issue.query.count()
+    
+    # Get active users (last 24 hours)
+    yesterday = datetime.utcnow() - timedelta(days=1)
+    active_users_count = User.query.filter(User.last_login >= yesterday).count() if hasattr(User, 'last_login') else 0
+    
+    # Get project status breakdown
+    project_status = {}
+    projects = Project.query.all()
+    for project in projects:
+        status = project.status or 'Unknown'
+        project_status[status] = project_status.get(status, 0) + 1
+    
+    # Get recent projects
+    recent_projects = Project.query.order_by(Project.created_at.desc()).limit(5).all() if hasattr(Project, 'created_at') else []
+    
+    # Get recent users
+    recent_users = User.query.order_by(User.id.desc()).limit(5).all()
+    
+    # Get users and teams for context
+    users = User.query.all()
+    teams = Team.query.all()
     
     # Get recent security events
     security_events = AuditService.get_security_events(hours=24)
@@ -67,6 +90,14 @@ def admin_dashboard():
                           team_count=team_count,
                           project_count=project_count,
                           issue_count=issue_count,
+                          total_issues=issue_count,
+                          active_users_count=active_users_count,
+                          project_status=project_status,
+                          projects=recent_projects,
+                          recent_projects=recent_projects,
+                          recent_users=recent_users,
+                          users=users,
+                          teams=teams,
                           security_events=security_events[:10],
                           suspicious=suspicious,
                           audit_stats=audit_stats)
@@ -234,6 +265,42 @@ def add_team():
     return redirect(url_for('admin.admin_teams'))
 
 
+@admin_bp.route('/team/<int:team_id>/edit', methods=['POST'])
+@admin_required
+def edit_team(team_id):
+    """Edit team information."""
+    from app.models import Team, db
+    
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash('Security error. Please try again.', 'error')
+        return redirect(url_for('admin.admin_teams'))
+    
+    team = Team.query.get_or_404(team_id)
+    
+    name = sanitize_input(request.form.get('name', '').strip())
+    description = sanitize_input(request.form.get('description', '').strip())
+    
+    if not name:
+        flash('Team name is required', 'error')
+        return redirect(url_for('admin.admin_teams'))
+    
+    team.name = name
+    team.description = description
+    
+    db.session.commit()
+    
+    AuditService.log_event(
+        'TEAM_UPDATED',
+        user_id=session.get('user_id'),
+        details=f'Updated team: {name}',
+        category='DATA_MODIFICATION'
+    )
+    
+    flash('Team updated successfully', 'success')
+    return redirect(url_for('admin.admin_teams'))
+
+
 @admin_bp.route('/team/<int:team_id>/delete', methods=['POST'])
 @admin_required
 def delete_team(team_id):
@@ -303,6 +370,47 @@ def add_project():
         start_date=start_date,
         end_date=end_date,
         created_by=session.get('user_id')
+    )
+    
+    if success:
+        flash(message, 'success')
+    else:
+        flash(message, 'error')
+    
+    return redirect(url_for('admin.admin_projects'))
+
+
+@admin_bp.route('/project/<int:project_id>/edit', methods=['POST'])
+@admin_required
+def edit_project(project_id):
+    """Edit project information."""
+    csrf_token = request.form.get('csrf_token')
+    if not validate_csrf_token(csrf_token):
+        flash('Security error. Please try again.', 'error')
+        return redirect(url_for('admin.admin_projects'))
+    
+    name = request.form.get('name', '').strip()
+    key = request.form.get('key', '').strip()
+    description = request.form.get('description', '').strip()
+    status = request.form.get('status')
+    workflow_type = request.form.get('workflow_type')
+    team_id = request.form.get('team_id')
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    
+    success, project, message = ProjectService.update_project(
+        project_id=project_id,
+        data={
+            'name': name,
+            'key': key if key else None,
+            'description': description,
+            'status': status,
+            'workflow_type': workflow_type,
+            'team_id': team_id,
+            'start_date': start_date,
+            'end_date': end_date
+        },
+        updated_by=session.get('user_id')
     )
     
     if success:

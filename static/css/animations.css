@@ -1,0 +1,542 @@
+/* ======================================================
+   MODERN ANIMATIONS & TRANSITIONS
+   Comprehensive animation system for Project Management System
+   ====================================================== */
+
+/* === KEYFRAME ANIMATIONS === */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes scaleInBounce {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* === COMPONENT ANIMATIONS === */
+
+/* Kanban Cards */
+.kanban-card {
+    animation: scaleIn 0.2s ease-out;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kanban-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.kanban-card.dragging {
+    opacity: 0.5;
+    transform: rotate(3deg) scale(0.95);
+    cursor: grabbing;
+}
+
+.kanban-card.adding {
+    animation: slideInUp 0.3s ease-out;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav-item {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: var(--primary-500);
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+}
+
+.sidebar-nav-item:hover {
+    transform: translateX(4px);
+    background: var(--jira-hover);
+}
+
+.sidebar-nav-item.active::before {
+    transform: scaleY(1);
+}
+
+.sidebar-nav-item.active {
+    background: var(--jira-hover);
+    color: var(--primary-600);
+}
+
+/* Buttons */
+.btn {
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+    transition: background 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+}
+
+/* Modals */
+.modal {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal.closing {
+    animation: fadeIn 0.2s ease-in reverse;
+}
+
+.modal-content {
+    animation: slideInUp 0.3s ease-out;
+}
+
+.modal-content.closing {
+    animation: slideInUp 0.2s ease-in reverse;
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    animation: scaleIn 0.2s ease-out;
+    transform-origin: top;
+}
+
+.dropdown-item {
+    transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background: var(--jira-hover);
+    transform: translateX(4px);
+}
+
+/* Cards */
+.card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeIn 0.4s ease-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Stats Cards */
+.stat-card {
+    animation: slideInUp 0.4s ease-out;
+    transition: all 0.3s ease;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+.stat-card:hover {
+    transform: translateY(-4px) scale(1.02);
+}
+
+/* Alerts & Notifications */
+.alert {
+    animation: slideInRight 0.4s ease-out;
+}
+
+.alert.removing {
+    animation: slideInRight 0.3s ease-in reverse;
+}
+
+.notification-badge {
+    animation: scaleInBounce 0.4s ease-out;
+}
+
+.notification-badge.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Loading States */
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--primary-500);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: rotate 0.8s linear infinite;
+}
+
+/* Skeleton Loaders */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--gray-200) 25%,
+        var(--gray-100) 50%,
+        var(--gray-200) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-md);
+}
+
+/* Progress Bars */
+.progress-bar {
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-bar-animated {
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 30px 30px;
+    animation: shimmer 1s linear infinite;
+}
+
+/* Tooltips */
+.tooltip {
+    animation: fadeIn 0.2s ease-out;
+    transition: all 0.2s ease;
+}
+
+/* Form Inputs */
+.form-input,
+.form-select,
+.form-textarea {
+    transition: all 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    transform: scale(1.01);
+}
+
+/* Tables */
+table tbody tr {
+    transition: all 0.2s ease;
+}
+
+table tbody tr:hover {
+    background: var(--jira-hover);
+    transform: scale(1.01);
+}
+
+/* Avatar */
+.avatar {
+    transition: all 0.2s ease;
+}
+
+.avatar:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Tabs */
+.tab-button {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.tab-button::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-500);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+}
+
+.tab-button.active::after {
+    transform: scaleX(1);
+}
+
+/* Calendar Events */
+.calendar-event {
+    animation: fadeIn 0.3s ease-out;
+    transition: all 0.2s ease;
+}
+
+.calendar-event:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+/* Timeline Items */
+.timeline-item {
+    animation: slideInLeft 0.4s ease-out;
+}
+
+.timeline-bar {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timeline-bar:hover {
+    transform: scaleY(1.1);
+    filter: brightness(1.1);
+}
+
+/* Header User Menu */
+.header-user-dropdown {
+    animation: scaleIn 0.2s ease-out;
+    transform-origin: top right;
+}
+
+/* Search Input */
+.header-search-input {
+    transition: all 0.3s ease;
+}
+
+.header-search-input:focus {
+    width: 300px;
+}
+
+/* Badge Animations */
+.badge {
+    animation: scaleInBounce 0.3s ease-out;
+}
+
+/* Stagger Animations for Lists */
+.stagger-item {
+    animation: slideInUp 0.3s ease-out;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.05s; }
+.stagger-item:nth-child(2) { animation-delay: 0.1s; }
+.stagger-item:nth-child(3) { animation-delay: 0.15s; }
+.stagger-item:nth-child(4) { animation-delay: 0.2s; }
+.stagger-item:nth-child(5) { animation-delay: 0.25s; }
+.stagger-item:nth-child(6) { animation-delay: 0.3s; }
+.stagger-item:nth-child(7) { animation-delay: 0.35s; }
+.stagger-item:nth-child(8) { animation-delay: 0.4s; }
+.stagger-item:nth-child(9) { animation-delay: 0.45s; }
+.stagger-item:nth-child(10) { animation-delay: 0.5s; }
+
+/* Theme Toggle Animation */
+.theme-toggle-btn i {
+    transition: transform 0.5s ease;
+}
+
+.theme-toggle-btn:active i {
+    transform: rotate(360deg);
+}
+
+/* Drag & Drop States */
+.drag-over {
+    background: var(--primary-50);
+    border: 2px dashed var(--primary-500);
+    animation: pulse 1s infinite;
+}
+
+/* Success/Error States */
+.success-pulse {
+    animation: pulse 0.5s ease-out;
+}
+
+.error-shake {
+    animation: shake 0.5s ease-out;
+}
+
+/* Page Transitions */
+.page-enter {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.page-exit {
+    animation: fadeIn 0.3s ease-in reverse;
+}
+
+/* Accessibility - Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Print Styles - Disable animations */
+@media print {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}

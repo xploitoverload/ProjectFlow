@@ -9,6 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -79,6 +83,17 @@
                     </div>
                 </div>
                 <div class="header-right">
+                    <!-- Theme Toggle -->
+                    <button class="header-icon-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
+                        <i data-lucide="moon"></i>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button class="header-icon-btn" id="notificationBtn" title="Notifications" style="position: relative;">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">0</span>
+                    </button>
+                    
                     <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
                         <i data-lucide="log-out" class="icon-sm"></i>
                         Sign out
@@ -164,7 +179,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <form method="POST" action="{{ url_for('admin.update_password_policy') }}">
+                            <form method="POST" action="#">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 
                                 <div class="form-group">
@@ -233,7 +248,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <form method="POST" action="{{ url_for('admin.update_session_settings') }}">
+                            <form method="POST" action="#">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                                 <div class="form-group">
@@ -296,7 +311,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <form method="POST" action="{{ url_for('admin.update_login_protection') }}">
+                        <form method="POST" action="#">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             
                             <div class="grid grid-cols-3 gap-6">
@@ -403,20 +418,25 @@
         lucide.createIcons();
 
         function clearLockedAccounts() {
-            if (confirm('This will unlock all currently locked accounts. Continue?')) {
-                fetch('{{ url_for("admin.clear_lockouts") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token() }}'
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        location.reload();
-                    }
-                });
-            }
+            alert('Clear lockouts feature not yet implemented. Use User Management to unlock individual accounts.');
         }
+    </script>
+
+    <script>
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Initialize theme toggle
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            window.themeManager.toggleTheme();
+        });
+
+        // Initialize notification button
+        document.getElementById('notificationBtn')?.addEventListener('click', () => {
+            window.notificationManager?.togglePanel();
+        });
     </script>
 </body>
 </html>

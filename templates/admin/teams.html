@@ -9,6 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
+    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -79,6 +83,17 @@
                     </div>
                 </div>
                 <div class="header-right">
+                    <!-- Theme Toggle -->
+                    <button class="header-icon-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
+                        <i data-lucide="moon"></i>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button class="header-icon-btn" id="notificationBtn" title="Notifications" style="position: relative;">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">0</span>
+                    </button>
+                    
                     <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
                         <i data-lucide="log-out" class="icon-sm"></i>
                         Sign out
@@ -200,10 +215,10 @@
                             </div>
 
                             <div class="flex items-center gap-2 mt-4">
-                                <a href="{{ url_for('admin.edit_team', team_id=team.id) }}" class="btn btn-secondary btn-sm flex-1">
+                                <button type="button" class="btn btn-secondary btn-sm flex-1 edit-team-btn" data-team-id="{{ team.id }}" data-team-name="{{ team.name }}" data-team-description="{{ team.description }}">
                                     <i data-lucide="pencil" class="icon-sm"></i>
                                     Edit
-                                </a>
+                                </button>
                                 <form method="POST" action="{{ url_for('admin.delete_team', team_id=team.id) }}" style="flex: 1;" onsubmit="return confirm('Delete this team? Members will be unassigned.');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-ghost btn-sm" style="width: 100%; color: var(--error-600);">
@@ -236,17 +251,17 @@
     </div>
 
     <!-- Add Team Modal -->
-    <div class="modal-backdrop" id="addTeamModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">Create New Team</h3>
-                <button class="modal-close" onclick="closeAddTeamModal()">
+    <div class="modal-backdrop" id="addTeamModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+        <div class="modal" style="max-width: 500px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Create New Team</h3>
+                <button class="modal-close" onclick="closeAddTeamModal()" style="background: none; border: none; cursor: pointer; padding: 4px;">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form method="POST" action="{{ url_for('admin.add_team') }}">
+            <form method="POST" action="{{ url_for('admin.add_team') }}" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="modal-body">
+                <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
                     <div class="form-group">
                         <label class="form-label">Team Name</label>
                         <input type="text" name="name" class="form-input" placeholder="Enter team name" required>
@@ -263,9 +278,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeAddTeamModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
+                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddTeamModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
                         <i data-lucide="plus" class="icon-sm"></i>
                         Create Team
                     </button>
@@ -300,23 +315,108 @@
         }
     </style>
 
+    <!-- Edit Team Modal -->
+    <div class="modal-backdrop" id="editTeamModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+        <div class="modal" style="max-width: 500px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Edit Team</h3>
+                <button class="modal-close" onclick="closeEditTeamModal()" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form method="POST" id="editTeamForm" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
+                    <div class="form-group">
+                        <label class="form-label">Team Name</label>
+                        <input type="text" name="name" id="editTeamName" class="form-input" placeholder="Enter team name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" id="editTeamDescription" class="form-textarea" rows="3" placeholder="Brief description of the team"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditTeamModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        <i data-lucide="save" class="icon-sm"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
 
         function openAddTeamModal() {
-            document.getElementById('addTeamModal').classList.add('active');
+            document.getElementById('addTeamModal').style.display = 'flex';
         }
 
         function closeAddTeamModal() {
-            document.getElementById('addTeamModal').classList.remove('active');
+            document.getElementById('addTeamModal').style.display = 'none';
         }
 
+        function openEditTeamModal(teamId, teamName, teamDescription) {
+            const modal = document.getElementById('editTeamModal');
+            const form = document.getElementById('editTeamForm');
+            
+            form.action = `/admin/team/${teamId}/edit`;
+            document.getElementById('editTeamName').value = teamName || '';
+            document.getElementById('editTeamDescription').value = teamDescription || '';
+            
+            modal.style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        function closeEditTeamModal() {
+            document.getElementById('editTeamModal').style.display = 'none';
+        }
+
+        // Event listeners for edit buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.edit-team-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const teamId = this.dataset.teamId;
+                    const teamName = this.dataset.teamName;
+                    const teamDescription = this.dataset.teamDescription;
+                    openEditTeamModal(teamId, teamName, teamDescription);
+                });
+            });
+        });
+
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeAddTeamModal();
+            if (e.key === 'Escape') {
+                closeAddTeamModal();
+                closeEditTeamModal();
+            }
         });
 
         document.getElementById('addTeamModal').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) closeAddTeamModal();
+        });
+
+        document.getElementById('editTeamModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeEditTeamModal();
+        });
+    </script>
+
+    <script>
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Initialize theme toggle
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            window.themeManager.toggleTheme();
+        });
+
+        // Initialize notification button
+        document.getElementById('notificationBtn')?.addEventListener('click', () => {
+            window.notificationManager?.togglePanel();
         });
     </script>
 </body>

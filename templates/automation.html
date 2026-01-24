@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Automation & Workflows - ProjectFlow{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div id="automationContainer">
+        <div class="feature-loading">
+            <div class="feature-loading-spinner"></div>
+            <div class="feature-loading-text">Loading Automation Rules...</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { AutomationWorkflowSystem } from '{{ url_for('static', filename='js/automation-workflow-system.js') }}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        try {
+            const automationSystem = new AutomationWorkflowSystem();
+            const container = document.getElementById('automationContainer');
+            container.innerHTML = '';
+            
+            const header = document.createElement('div');
+            header.className = 'feature-header';
+            header.innerHTML = `
+                <div class="feature-header-title">
+                    <i data-lucide="zap" class="icon"></i>
+                    <h1>Automation & Workflows</h1>
+                </div>
+                <div class="feature-header-actions">
+                    <button class="btn btn-secondary"><i data-lucide="play"></i> Test Rule</button>
+                    <button class="btn btn-primary"><i data-lucide="plus"></i> Create Rule</button>
+                </div>
+            `;
+            container.appendChild(header);
+            
+            const content = document.createElement('div');
+            content.className = 'feature-content fade-in';
+            container.appendChild(content);
+            
+            automationSystem.render(content);
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } catch (error) {
+            console.error('Error initializing automation:', error);
+            document.getElementById('automationContainer').innerHTML = `
+                <div class="feature-error">
+                    <i data-lucide="alert-triangle" class="feature-error-icon"></i>
+                    <h2 class="feature-error-title">Failed to Load Automation</h2>
+                    <p class="feature-error-description">We encountered an error while loading the automation system.</p>
+                    <div class="feature-error-actions">
+                        <button class="btn btn-primary" onclick="location.reload()"><i data-lucide="refresh-cw"></i> Try Again</button>
+                    </div>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }, 300);
+});
+</script>
+{% endblock %}

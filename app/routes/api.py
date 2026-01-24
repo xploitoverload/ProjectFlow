@@ -526,6 +526,235 @@ def add_report():
         return jsonify({'success': False, 'error': message}), 400
 
 
+# ============= RECENT ITEMS & STARRED =============
+
+@api_bp.route('/recent-items', methods=['GET'])
+@api_auth_required
+def get_recent_items():
+    """Get recently viewed items for current user."""
+    from app.services.recent_items_service import RecentItemsService
+    
+    limit = request.args.get('limit', 10, type=int)
+    item_type = request.args.get('type')  # Optional filter by type
+    
+    if item_type:
+        items = RecentItemsService.get_recent_by_type(item_type, limit=limit)
+    else:
+        items = RecentItemsService.get_recent_items(limit=limit)
+    
+    return jsonify({
+        'success': True,
+        'data': [{
+            'id': item.id,
+            'type': item.item_type,
+            'item_id': item.item_id,
+            'title': item.item_title,
+            'key': item.item_key,
+            'viewed_at': item.viewed_at.isoformat()
+        } for item in items]
+    })
+
+
+@api_bp.route('/search/autocomplete', methods=['GET'])
+@api_auth_required
+def search_autocomplete():
+    """Get autocomplete suggestions for search."""
+    from app.models import Issue, Project, User
+    
+    query = request.args.get('q', '').strip()
+    if len(query) < 2:
+        return jsonify({'success': True, 'data': {'issues': [], 'projects': [], 'users': []}})
+    
+    # Search issues by key or title
+    issues = Issue.query.filter(
+        db.or_(
+            Issue.key.ilike(f'%{query}%'),
+            Issue.title.ilike(f'%{query}%')
+        )
+    ).limit(5).all()
+    
+    # Search projects by name or key
+    projects = Project.query.filter(
+        db.or_(
+            Project.name.ilike(f'%{query}%'),
+            Project.key.ilike(f'%{query}%')
+        )
+    ).limit(5).all()
+    
+    # Search users for @mentions
+    users = []
+    if query.startswith('@'):
+        username_query = query[1:]  # Remove @ symbol
+        users = User.query.filter(
+            User.username.ilike(f'%{username_query}%')
+        ).limit(5).all()
+    
+    return jsonify({
+        'success': True,
+        'data': {
+            'issues': [{
+                'id': issue.id,
+                'key': issue.key,
+                'title': issue.title,
+                'type': issue.issue_type,
+                'status': issue.status
+            } for issue in issues],
+            'projects': [{
+                'id': project.id,
+                'key': project.key,
+                'name': project.name
+            } for project in projects],
+            'users': [{
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            } for user in users]
+        }
+    })
+
+
+@api_bp.route('/starred-items', methods=['GET'])
+@api_auth_required
+def get_starred_items():
+    """Get starred items for current user."""
+    from app.services.recent_items_service import StarredItemsService
+    
+    item_type = request.args.get('type')  # Optional filter by type
+    
+    if item_type:
+        items = StarredItemsService.get_starred_by_type(item_type)
+    else:
+        items = StarredItemsService.get_starred_items()
+    
+    return jsonify({
+        'success': True,
+        'data': [{
+            'id': item.id,
+            'type': item.item_type,
+            'item_id': item.item_id,
+            'title': item.item_title,
+            'key': item.item_key,
+            'starred_at': item.starred_at.isoformat()
+        } for item in items]
+    })
+
+
+@api_bp.route('/starred-items/toggle', methods=['POST'])
+@api_auth_required
+@rate_limit_check(max_requests=30, window_seconds=60)
+def toggle_star():
+    """Toggle star status for an item."""
+    from app.services.recent_items_service import StarredItemsService
+    
+    data = request.get_json()
+    
+    if not all(k in data for k in ['type', 'item_id', 'title']):
+        return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+    
+    is_starred = StarredItemsService.toggle_star(
+        item_type=data['type'],
+        item_id=data['item_id'],
+        item_title=sanitize_input(data['title']),
+        item_key=data.get('key')
+    )
+    
+    return jsonify({
+        'success': True,
+        'starred': is_starred,
+        'message': 'Added to starred' if is_starred else 'Removed from starred'
+    })
+
+
+@api_bp.route('/notifications', methods=['GET'])
+@api_auth_required
+def get_notifications():
+    """Get notifications for current user."""
+    from app.services.notification_service import NotificationService
+    
+    limit = request.args.get('limit', 50, type=int)
+    unread_only = request.args.get('unread_only', 'false').lower() == 'true'
+    
+    notifications = NotificationService.get_notifications(
+        user_id=current_user.id,
+        limit=min(limit, 100),  # Cap at 100
+        unread_only=unread_only
+    )
+    
+    unread_count = NotificationService.get_unread_count(current_user.id)
+    
+    return jsonify({
+        'success': True,
+        'data': [notif.to_dict() for notif in notifications],
+        'unread_count': unread_count
+    })
+
+
+@api_bp.route('/notifications/unread-count', methods=['GET'])
+@api_auth_required
+def get_unread_count():
+    """Get unread notification count."""
+    from app.services.notification_service import NotificationService
+    
+    count = NotificationService.get_unread_count(current_user.id)
+    
+    return jsonify({
+        'success': True,
+        'count': count
+    })
+
+
+@api_bp.route('/notifications/<int:notification_id>/read', methods=['POST'])
+@api_auth_required
+@rate_limit_check(max_requests=50, window_seconds=60)
+def mark_notification_read(notification_id):
+    """Mark a notification as read."""
+    from app.services.notification_service import NotificationService
+    
+    success = NotificationService.mark_as_read(notification_id, current_user.id)
+    
+    if not success:
+        return jsonify({'success': False, 'error': 'Notification not found'}), 404
+    
+    return jsonify({
+        'success': True,
+        'message': 'Notification marked as read'
+    })
+
+
+@api_bp.route('/notifications/mark-all-read', methods=['POST'])
+@api_auth_required
+@rate_limit_check(max_requests=10, window_seconds=60)
+def mark_all_read():
+    """Mark all notifications as read."""
+    from app.services.notification_service import NotificationService
+    
+    count = NotificationService.mark_all_as_read(current_user.id)
+    
+    return jsonify({
+        'success': True,
+        'message': f'{count} notification(s) marked as read',
+        'count': count
+    })
+
+
+@api_bp.route('/notifications/<int:notification_id>', methods=['DELETE'])
+@api_auth_required
+@rate_limit_check(max_requests=30, window_seconds=60)
+def delete_notification(notification_id):
+    """Delete a notification."""
+    from app.services.notification_service import NotificationService
+    
+    success = NotificationService.delete_notification(notification_id, current_user.id)
+    
+    if not success:
+        return jsonify({'success': False, 'error': 'Notification not found'}), 404
+    
+    return jsonify({
+        'success': True,
+        'message': 'Notification deleted'
+    })
+
+
 # ============= ERROR HANDLERS =============
 
 @api_bp.errorhandler(400)
