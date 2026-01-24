@@ -103,7 +103,8 @@ def login_required(f):
             flash(message or 'Please log in to continue', 'warning')
             
             # Store the original URL for redirect after login
-            next_url = request.url
+            # Use request.full_path to include query string, starts with /
+            next_url = request.full_path.rstrip('?')
             return redirect(url_for('auth.login', next=next_url))
         
         return f(*args, **kwargs)

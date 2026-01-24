@@ -170,6 +170,7 @@ class Project(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     
     # Relationships
+    team = db.relationship('Team', foreign_keys=[team_id], backref='assigned_projects')
     lead = db.relationship('User', foreign_keys=[lead_id], backref='led_projects')
     updates = db.relationship('ProjectUpdate', backref='project_ref', lazy=True, cascade='all, delete-orphan')
     sprints = db.relationship('Sprint', backref='project', lazy=True, cascade='all, delete-orphan')
