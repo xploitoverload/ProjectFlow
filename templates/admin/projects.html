@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
     <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
 </head>
+
 <body>
     <div class="app-shell">
         <!-- Sidebar -->
@@ -63,9 +65,11 @@
 
             <div class="sidebar-footer">
                 <a href="{{ url_for('main.profile') }}" class="sidebar-user">
-                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
+                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if
+                        current_user.is_authenticated else 'U' }}</div>
                     <div class="sidebar-user-info">
-                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else
+                            'User' }}</div>
                         <div class="sidebar-user-role">Administrator</div>
                     </div>
                 </a>
@@ -78,7 +82,8 @@
                 <div class="header-left">
                     <div class="header-breadcrumb">
                         <span>Admin</span>
-                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator"
+                            style="width: 14px; height: 14px;"></i>
                         <span class="header-breadcrumb-current">Projects</span>
                     </div>
                 </div>
@@ -87,13 +92,14 @@
                     <button class="header-icon-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
                         <i data-lucide="moon"></i>
                     </button>
-                    
+
                     <!-- Notifications -->
-                    <button class="header-icon-btn" id="notificationBtn" title="Notifications" style="position: relative;">
+                    <button class="header-icon-btn" id="notificationBtn" title="Notifications"
+                        style="position: relative;">
                         <i data-lucide="bell"></i>
                         <span class="notification-badge">0</span>
                     </button>
-                    
+
                     <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
                         <i data-lucide="log-out" class="icon-sm"></i>
                         Sign out
@@ -104,14 +110,15 @@
             <div class="app-content">
                 <!-- Flash Messages -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
-                                <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
-                                <div class="alert-content">{{ message }}</div>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
+                    <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}"
+                        class="alert-icon"></i>
+                    <div class="alert-content">{{ message }}</div>
+                </div>
+                {% endfor %}
+                {% endif %}
                 {% endwith %}
 
                 <!-- Page Header -->
@@ -147,7 +154,8 @@
                                 <i data-lucide="check-circle" class="icon-lg"></i>
                             </div>
                         </div>
-                        <div class="stat-card-value">{{ projects|selectattr('status', 'equalto', 'completed')|list|length if projects is defined else 0 }}</div>
+                        <div class="stat-card-value">{{ projects|selectattr('status', 'equalto',
+                            'completed')|list|length if projects is defined else 0 }}</div>
                         <div class="stat-card-label">Completed</div>
                     </div>
                     <div class="stat-card">
@@ -156,7 +164,8 @@
                                 <i data-lucide="play-circle" class="icon-lg"></i>
                             </div>
                         </div>
-                        <div class="stat-card-value">{{ projects|selectattr('status', 'equalto', 'in_progress')|list|length if projects is defined else 0 }}</div>
+                        <div class="stat-card-value">{{ projects|selectattr('status', 'equalto',
+                            'in_progress')|list|length if projects is defined else 0 }}</div>
                         <div class="stat-card-label">In Progress</div>
                     </div>
                     <div class="stat-card">
@@ -184,7 +193,8 @@
                         <h2 class="card-title">All Projects</h2>
                         <div class="header-search" style="width: 220px;">
                             <i data-lucide="search" class="header-search-icon"></i>
-                            <input type="text" id="projectSearch" class="header-search-input" placeholder="Search projects...">
+                            <input type="text" id="projectSearch" class="header-search-input"
+                                placeholder="Search projects...">
                         </div>
                     </div>
                     <div class="card-body" style="padding: 0;">
@@ -207,29 +217,35 @@
                                     <tr data-status="{{ project.status or 'active' }}">
                                         <td>
                                             <div class="flex items-center gap-3">
-                                                <div class="avatar avatar-sm" style="background: {{ project.color if project.color else 'var(--primary-100)' }}; border-radius: var(--radius-md);">
+                                                <div class="avatar avatar-sm project-color-avatar" style="--avatar-bg: {{ project.color }};"></div>
                                                     <i data-lucide="folder" class="icon-sm"></i>
                                                 </div>
                                                 <div>
-                                                    <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="font-medium text-primary hover:underline">{{ project.name }}</a>
-                                                    <p class="text-xs text-tertiary">{{ project.key if project.key else project.name[:3].upper() }}</p>
+                                                    <a href="{{ url_for('projects.project_detail', project_id=project.id) }}"
+                                                        class="font-medium text-primary hover:underline">{{ project.name
+                                                        }}</a>
+                                                    <p class="text-xs text-tertiary">{{ project.key if project.key else
+                                                        project.name[:3].upper() }}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
                                             {% if project.lead %}
                                             <div class="flex items-center gap-2">
-                                                <div class="avatar avatar-xs">{{ project.lead.username[:2].upper() }}</div>
+                                                <div class="avatar avatar-xs">{{ project.lead.username[:2].upper() }}
+                                                </div>
                                                 <span class="text-sm">{{ project.lead.username }}</span>
                                             </div>
                                             {% else %}
                                             <span class="text-tertiary">Unassigned</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-secondary">{{ project.team.name if project.team else 'N/A' }}</td>
+                                        <td class="text-secondary">{{ project.team.name if project.team else 'N/A' }}
+                                        </td>
                                         <td>
                                             {% set status = project.status or 'active' %}
-                                            <span class="badge badge-{{ 'success' if status == 'completed' else 'warning' if status == 'in_progress' else 'info' if status == 'active' else 'gray' }}">
+                                            <span
+                                                class="badge badge-{{ 'success' if status == 'completed' else 'warning' if status == 'in_progress' else 'info' if status == 'active' else 'gray' }}">
                                                 {{ status.replace('_', ' ').title() }}
                                             </span>
                                         </td>
@@ -237,24 +253,27 @@
                                             {% set progress = project.progress if project.progress is defined else 0 %}
                                             <div class="flex items-center gap-2" style="min-width: 120px;">
                                                 <div class="progress-bar" style="flex: 1; height: 6px;">
-                                                    <div class="progress-bar-fill" style="width: {{ progress }}%;"></div>
+                                                    <div class="progress-bar-fill" style="--progress: {{ progress }}%;"></div>
                                                 </div>
                                                 <span class="text-xs text-secondary">{{ progress }}%</span>
                                             </div>
                                         </td>
                                         <td class="text-tertiary text-sm">
-                                            {{ project.created_at.strftime('%b %d, %Y') if project.created_at else 'N/A' }}
+                                            {{ project.created_at.strftime('%b %d, %Y') if project.created_at else 'N/A'
+                                            }}
                                         </td>
                                         <td>
                                             <div class="flex items-center gap-1">
-                                                <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="btn btn-ghost btn-sm btn-icon" title="View">
+                                                <a href="{{ url_for('projects.project_detail', project_id=project.id) }}"
+                                                    class="btn btn-ghost btn-sm btn-icon" title="View">
                                                     <i data-lucide="eye" class="icon-sm"></i>
                                                 </a>
-                                                <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="btn btn-ghost btn-sm btn-icon" title="Kanban">
+                                                <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}"
+                                                    class="btn btn-ghost btn-sm btn-icon" title="Kanban">
                                                     <i data-lucide="kanban" class="icon-sm"></i>
                                                 </a>
-                                                <button class="btn btn-ghost btn-sm btn-icon edit-project-btn" title="Edit"
-                                                    data-project-id="{{ project.id }}"
+                                                <button class="btn btn-ghost btn-sm btn-icon edit-project-btn"
+                                                    title="Edit" data-project-id="{{ project.id }}"
                                                     data-project-name="{{ project.name }}"
                                                     data-project-key="{{ project.key }}"
                                                     data-project-description="{{ project.description }}"
@@ -266,10 +285,15 @@
                                                     data-project-end="{{ project.end_date or '' }}">
                                                     <i data-lucide="pencil" class="icon-sm"></i>
                                                 </button>
-                                                <form method="POST" action="{{ url_for('admin.delete_project', project_id=project.id) }}" style="margin: 0;" onsubmit="return confirm('Delete this project? This cannot be undone.');">
+                                                <form method="POST"
+                                                    action="{{ url_for('admin.delete_project', project_id=project.id) }}"
+                                                    style="margin: 0;"
+                                                    onsubmit="return confirm('Delete this project? This cannot be undone.');">
                                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button type="submit" class="btn btn-ghost btn-sm btn-icon" title="Delete">
-                                                        <i data-lucide="trash-2" class="icon-sm" style="color: var(--error-500);"></i>
+                                                    <button type="submit" class="btn btn-ghost btn-sm btn-icon"
+                                                        title="Delete">
+                                                        <i data-lucide="trash-2" class="icon-sm"
+                                                            style="color: var(--error-500);"></i>
                                                     </button>
                                                 </form>
                                             </div>
@@ -297,15 +321,19 @@
     </div>
 
     <!-- Add Project Modal -->
-    <div class="modal-backdrop" id="addProjectModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
-        <div class="modal" style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+    <div class="modal-backdrop" id="addProjectModal"
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+        <div class="modal"
+            style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
             <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;">
                 <h3 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Create New Project</h3>
-                <button class="modal-close" onclick="closeAddProjectModal()" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <button class="modal-close" onclick="closeAddProjectModal()"
+                    style="background: none; border: none; cursor: pointer; padding: 4px;">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form method="POST" action="{{ url_for('admin.add_project') }}" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+            <form method="POST" action="{{ url_for('admin.add_project') }}"
+                style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
                     <div class="form-group">
@@ -315,57 +343,79 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-group">
                             <label class="form-label">Project Key</label>
-                            <input type="text" name="key" class="form-input" placeholder="e.g. PROJ" maxlength="10" style="text-transform: uppercase;">
+                            <input type="text" name="key" class="form-input" placeholder="e.g. PROJ" maxlength="10"
+                                style="text-transform: uppercase;">
                             <p class="form-hint">Unique identifier for issues</p>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Status</label>
                             <select name="status" class="form-select">
-                                <option value="active">Active</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="on_hold">On Hold</option>
-                                <option value="completed">Completed</option>
+                                <option value="Not Started">Not Started</option>
+                                <option value="Active">Active</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="On Hold">On Hold</option>
+                                <option value="Completed">Completed</option>
+                                <option value="At Risk">At Risk</option>
+                                <option value="Blocked">Blocked</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Workflow Type</label>
+                            <select name="workflow_type" class="form-select">
+                                <option value="agile">Agile</option>
+                                <option value="kanban">Kanban</option>
+                                <option value="scrum">Scrum</option>
+                                <option value="waterfall">Waterfall</option>
+                                <option value="hybrid">Hybrid</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-textarea" rows="2" placeholder="Brief description of the project"></textarea>
+                        <textarea name="description" class="form-textarea" rows="2"
+                            placeholder="Brief description of the project"></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Project Lead</label>
                         <select name="lead_id" class="form-select" id="addProjectLeadSelect">
                             <option value="">Select Lead</option>
                             <optgroup label="👑 Team Leads & Managers">
-                            {% for user in users if 'lead' in user.role or 'manager' in user.role or 'director' in user.role %}
-                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
-                            {% endfor %}
+                                {% for user in users if 'lead' in user.role or 'manager' in user.role or 'director' in
+                                user.role %}
+                                <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                                {% endfor %}
                             </optgroup>
                             <optgroup label="🏗️ Architects & Principals">
-                            {% for user in users if 'architect' in user.role or 'principal' in user.role %}
-                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
-                            {% endfor %}
+                                {% for user in users if 'architect' in user.role or 'principal' in user.role %}
+                                <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                                {% endfor %}
                             </optgroup>
                             <optgroup label="👨‍💻 Senior Engineers">
-                            {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager' not in user.role %}
-                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
-                            {% endfor %}
+                                {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager'
+                                not in user.role %}
+                                <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                                {% endfor %}
                             </optgroup>
                             <optgroup label="👤 All Other Users">
-                            {% for user in users if 'lead' not in user.role and 'manager' not in user.role and 'director' not in user.role and 'architect' not in user.role and 'principal' not in user.role and 'senior' not in user.role %}
-                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
-                            {% endfor %}
+                                {% for user in users if 'lead' not in user.role and 'manager' not in user.role and
+                                'director' not in user.role and 'architect' not in user.role and 'principal' not in
+                                user.role and 'senior' not in user.role %}
+                                <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                                {% endfor %}
                             </optgroup>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Assign Teams</label>
-                        <select name="team_ids" class="form-select" multiple size="4" style="height: auto; min-height: 100px;">
+                        <select name="team_ids" class="form-select" multiple size="4"
+                            style="height: auto; min-height: 100px;">
                             {% for team in teams %}
-                            <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{ team.team_type|title }}){% endif %}</option>
+                            <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{
+                                team.team_type|title }}){% endif %}</option>
                             {% endfor %}
                         </select>
-                        <p class="form-hint">Hold Ctrl/Cmd to select multiple teams. One project can have multiple teams working on it.</p>
+                        <p class="form-hint">Hold Ctrl/Cmd to select multiple teams. One project can have multiple teams
+                            working on it.</p>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-group">
@@ -378,9 +428,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
-                    <button type="button" class="btn btn-secondary" onclick="closeAddProjectModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                <div class="modal-footer"
+                    style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddProjectModal()"
+                        style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
                         <i data-lucide="plus" class="icon-sm"></i>
                         Create Project
                     </button>
@@ -390,15 +443,19 @@
     </div>
 
     <!-- Edit Project Modal -->
-    <div class="modal-backdrop" id="editProjectModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
-        <div class="modal" style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+    <div class="modal-backdrop" id="editProjectModal"
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+        <div class="modal"
+            style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
             <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;">
                 <h3 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Edit Project</h3>
-                <button class="modal-close" onclick="closeEditProjectModal()" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <button class="modal-close" onclick="closeEditProjectModal()"
+                    style="background: none; border: none; cursor: pointer; padding: 4px;">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form method="POST" id="editProjectForm" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+            <form method="POST" id="editProjectForm"
+                style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
                     <div class="form-group">
@@ -411,7 +468,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea name="description" id="editProjectDescription" class="form-textarea" rows="3"></textarea>
+                        <textarea name="description" id="editProjectDescription" class="form-textarea"
+                            rows="3"></textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-group">
@@ -434,9 +492,11 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Assign Teams</label>
-                        <select name="team_ids" id="editProjectTeamIds" class="form-select" multiple size="4" style="height: auto; min-height: 100px;">
+                        <select name="team_ids" id="editProjectTeamIds" class="form-select" multiple size="4"
+                            style="height: auto; min-height: 100px;">
                             {% for team in teams %}
-                            <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{ team.team_type|title }}){% endif %}</option>
+                            <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{
+                                team.team_type|title }}){% endif %}</option>
                             {% endfor %}
                         </select>
                         <p class="form-hint">Hold Ctrl/Cmd to select multiple teams.</p>
@@ -446,24 +506,28 @@
                         <select name="lead_id" id="editProjectLeadId" class="form-select">
                             <option value="">Select Lead</option>
                             <optgroup label="👑 Team Leads & Managers">
-                            {% for user in users if 'lead' in user.role or 'manager' in user.role or 'director' in user.role %}
-                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
-                            {% endfor %}
+                                {% for user in users if 'lead' in user.role or 'manager' in user.role or 'director' in
+                                user.role %}
+                                <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                                {% endfor %}
                             </optgroup>
                             <optgroup label="🏗️ Architects & Principals">
-                            {% for user in users if 'architect' in user.role or 'principal' in user.role %}
-                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
-                            {% endfor %}
+                                {% for user in users if 'architect' in user.role or 'principal' in user.role %}
+                                <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                                {% endfor %}
                             </optgroup>
                             <optgroup label="👨‍💻 Senior Engineers">
-                            {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager' not in user.role %}
-                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
-                            {% endfor %}
+                                {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager'
+                                not in user.role %}
+                                <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                                {% endfor %}
                             </optgroup>
                             <optgroup label="👤 All Other Users">
-                            {% for user in users if 'lead' not in user.role and 'manager' not in user.role and 'director' not in user.role and 'architect' not in user.role and 'principal' not in user.role and 'senior' not in user.role %}
-                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
-                            {% endfor %}
+                                {% for user in users if 'lead' not in user.role and 'manager' not in user.role and
+                                'director' not in user.role and 'architect' not in user.role and 'principal' not in
+                                user.role and 'senior' not in user.role %}
+                                <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
+                                {% endfor %}
                             </optgroup>
                         </select>
                     </div>
@@ -478,9 +542,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
-                    <button type="button" class="btn btn-secondary" onclick="closeEditProjectModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                <div class="modal-footer"
+                    style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditProjectModal()"
+                        style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
                         <i data-lucide="save" class="icon-sm"></i>
                         Save Changes
                     </button>
@@ -503,7 +570,7 @@
         function openEditProjectModal(projectId, name, key, description, status, workflow, teamIds, leadId, startDate, endDate) {
             const modal = document.getElementById('editProjectModal');
             const form = document.getElementById('editProjectForm');
-            
+
             form.action = `/admin/project/${projectId}/edit`;
             document.getElementById('editProjectName').value = name || '';
             document.getElementById('editProjectKey').value = key || '';
@@ -513,7 +580,7 @@
             document.getElementById('editProjectLeadId').value = leadId || '';
             document.getElementById('editProjectStart').value = startDate || '';
             document.getElementById('editProjectEnd').value = endDate || '';
-            
+
             // Handle multi-select for teams
             const teamSelect = document.getElementById('editProjectTeamIds');
             // Clear previous selections
@@ -526,7 +593,7 @@
                     if (opt) opt.selected = true;
                 });
             }
-            
+
             modal.style.display = 'flex';
             lucide.createIcons();
         }
@@ -538,7 +605,7 @@
         // Event listeners for edit buttons
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.edit-project-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     openEditProjectModal(
                         this.dataset.projectId,
                         this.dataset.projectName,
@@ -569,7 +636,7 @@
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                
+
                 const filter = tab.dataset.filter;
                 document.querySelectorAll('#projectsTable tbody tr').forEach(row => {
                     if (filter === 'all') {
@@ -614,4 +681,5 @@
         });
     </script>
 </body>
+
 </html>

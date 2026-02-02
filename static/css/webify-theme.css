@@ -279,8 +279,9 @@ a:hover {
   font-weight: 700;
   background: var(--webify-gradient-text);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -moz-background-clip: text;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Sidebar Navigation */
@@ -1119,8 +1120,9 @@ a:hover {
 .page-title-gradient {
   background: var(--webify-gradient-text);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -moz-background-clip: text;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .page-subtitle {
@@ -1722,6 +1724,7 @@ a:hover {
     var(--webify-text-primary) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
+  -moz-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: textShimmer 3s linear infinite;
@@ -1756,14 +1759,21 @@ a:hover {
    ============================================ */
 
 /* Product Switcher Enhanced Visibility */
+
 #productSwitcher {
   background: var(--webify-bg-card) !important;
   border: 1px solid var(--webify-border-accent) !important;
   box-shadow: var(--webify-shadow-xl), var(--webify-shadow-glow) !important;
+  z-index: 3000 !important; /* higher than sidebar */
+  position: fixed !important;
+  top: 72px !important; /* below header */
+  left: 270px !important; /* right of sidebar */
+  margin-top: 0 !important;
 }
 
 #productSwitcher.open {
   animation: scaleIn 0.2s ease-out;
+  display: block;
 }
 
 .product-switcher-header {
@@ -2018,3 +2028,48 @@ textarea::placeholder {
 .icon-md { width: 20px; height: 20px; }
 .icon-lg { width: 24px; height: 24px; }
 .icon-xl { width: 32px; height: 32px; }
+
+/* ============================================
+   Z-INDEX FIX FOR DROPDOWNS OVER SIDEBAR
+   ============================================ */
+
+/* Lower sidebar z-index so dropdowns appear above */
+.app-sidebar {
+  z-index: 1020 !important;
+}
+
+/* Ensure all dropdowns appear above sidebar */
+#productSwitcher,
+#helpMenu,
+#createDropdown,
+.dropdown-menu {
+  z-index: 3000 !important;
+}
+
+/* Command palette above everything */
+#commandPalette {
+  z-index: 3100 !important;
+}
+
+#commandOverlay {
+  z-index: 3050 !important;
+}
+
+/* Header between sidebar and dropdowns */
+.app-header {
+  z-index: 1030 !important;
+}
+
+/* Notification panel */
+.notification-panel {
+  z-index: 2000 !important;
+}
+
+/* Modals highest (except tooltips) */
+.modal-backdrop {
+  z-index: 3500 !important;
+}
+
+.modal {
+  z-index: 3550 !important;
+}

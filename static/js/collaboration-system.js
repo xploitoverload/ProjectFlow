@@ -161,7 +161,7 @@ class CollaborationSystem {
                                 <button class="btn-icon-sm" onclick="collaboration.insertMarkdown('*', '*')" title="Italic">
                                     <i data-lucide="italic"></i>
                                 </button>
-                                <button class="btn-icon-sm" onclick="collaboration.insertMarkdown('`', '`')" title="Code">
+                                <button class="btn-icon-sm" onclick="collaboration.insertMarkdown('&#96;', '&#96;')" title="Code">
                                     <i data-lucide="code"></i>
                                 </button>
                                 <button class="btn-icon-sm" onclick="collaboration.insertMarkdown('- ', '')" title="List">

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,11 +29,13 @@
             flex-direction: column;
             height: calc(100vh - 64px);
         }
+
         .kanban-header {
             padding: var(--space-4) var(--space-6);
             background: var(--bg-primary);
             border-bottom: 1px solid var(--border-primary);
         }
+
         .kanban-toolbar {
             display: flex;
             align-items: center;
@@ -41,23 +44,61 @@
             background: var(--bg-primary);
             border-bottom: 1px solid var(--border-primary);
         }
+
         .kanban-container {
             flex: 1;
             padding: var(--space-4);
-            overflow-x: auto;
+            overflow-x: auto; /* horizontal scrolling for drag-and-drop */
+            overflow-y: hidden;
             background: #f4f5f7;
         }
+
+        /* Horizontal layout optimized for drag-and-drop */
         .kanban-board {
             display: flex;
             gap: var(--space-3);
             min-height: 100%;
+            align-items: flex-start;
+            white-space: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
         }
+
         .kanban-column {
             min-width: 280px;
             max-width: 280px;
             background: #f4f5f7;
             border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
         }
+
+        @media (max-width: 1024px) {
+            .kanban-column {
+                min-width: 250px;
+                max-width: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kanban-board {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .kanban-column {
+                min-width: 90vw;
+                max-width: 90vw;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .kanban-column {
+                min-width: 100vw;
+                max-width: 100vw;
+            }
+        }
+
         .kanban-column-header {
             padding: var(--space-3);
             font-weight: 600;
@@ -67,6 +108,7 @@
             align-items: center;
             justify-content: space-between;
         }
+
         .kanban-column-title {
             display: flex;
             align-items: center;
@@ -75,60 +117,73 @@
             font-size: 12px;
             letter-spacing: 0.5px;
         }
+
         .kanban-column-count {
             background: var(--gray-200);
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 11px;
         }
+
         .kanban-column-body {
             padding: 0 var(--space-2) var(--space-2);
             min-height: 100px;
+            overflow-y: auto; /* allow scrolling within column if content exceeds column height */
+            max-height: calc(100vh - 240px);
         }
+
         .kanban-card {
             background: white;
             border-radius: var(--radius-md);
             padding: var(--space-3);
             margin-bottom: var(--space-2);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .kanban-card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
         }
+
         .kanban-card.dragging {
             opacity: 0.5;
             transform: rotate(2deg);
         }
+
         .kanban-column-body.drag-over {
             background: var(--primary-50);
             border-radius: var(--radius-md);
         }
+
         .kanban-card-title {
             font-size: 14px;
             color: var(--text-primary);
             margin-bottom: var(--space-2);
             line-height: 1.4;
         }
+
         .kanban-card-id {
             font-size: 11px;
             color: var(--text-tertiary);
             font-weight: 500;
         }
+
         .kanban-card-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-top: var(--space-2);
         }
+
         .kanban-card-labels {
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
             margin-bottom: var(--space-2);
         }
+
         .issue-label {
             padding: 2px 8px;
             border-radius: 3px;
@@ -136,10 +191,27 @@
             font-weight: 600;
             text-transform: uppercase;
         }
-        .issue-label.billing { background: #dfe1e6; color: #42526e; }
-        .issue-label.accounts { background: #00b8d9; color: white; }
-        .issue-label.forms { background: #6554c0; color: white; }
-        .issue-label.feedback { background: #ffab00; color: #172b4d; }
+
+        .issue-label.billing {
+            background: #dfe1e6;
+            color: #42526e;
+        }
+
+        .issue-label.accounts {
+            background: #00b8d9;
+            color: white;
+        }
+
+        .issue-label.forms {
+            background: #6554c0;
+            color: white;
+        }
+
+        .issue-label.feedback {
+            background: #ffab00;
+            color: #172b4d;
+        }
+
         .issue-type-badge {
             width: 16px;
             height: 16px;
@@ -147,18 +219,33 @@
             align-items: center;
             justify-content: center;
         }
-        .issue-type-badge.bug { color: var(--error-600); }
-        .issue-type-badge.feature { color: var(--success-600); }
-        .issue-type-badge.task { color: var(--info-600); }
-        .issue-type-badge.story { color: var(--primary-600); }
+
+        .issue-type-badge.bug {
+            color: var(--error-600);
+        }
+
+        .issue-type-badge.feature {
+            color: var(--success-600);
+        }
+
+        .issue-type-badge.task {
+            color: var(--info-600);
+        }
+
+        .issue-type-badge.story {
+            color: var(--primary-600);
+        }
+
         .team-avatars {
             display: flex;
             align-items: center;
             gap: var(--space-2);
         }
+
         .team-avatars .avatar {
             border: 2px solid white;
         }
+
         .filter-chip {
             padding: 6px 12px;
             border-radius: 16px;
@@ -169,11 +256,267 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .filter-chip:hover {
             background: var(--gray-50);
         }
+
+    
+        .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    }
+
+    /* Prevent body scroll when modal is open */
+    body.modal-open {
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .modal-backdrop.active {
+    display: flex !important;
+    }
+
+    /* Modal Container - CRITICAL FIXES */
+    .modal-backdrop .modal {
+    max-width: 600px;
+    width: 100%;
+    max-height: 85vh; /* CRITICAL */
+    background: var(--bg-card, #1a1a1a);
+    border: 1px solid var(--border-accent, rgba(124, 58, 237, 0.3));
+    border-radius: 16px;
+    display: flex !important; /* CRITICAL */
+    flex-direction: column !important; /* CRITICAL */
+    overflow: hidden !important; /* CRITICAL */
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(124, 58, 237, 0.2);
+    }
+
+    /* Modal Header - Fixed at top */
+    .modal-backdrop .modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-primary, rgba(255, 255, 255, 0.1));
+    flex-shrink: 0 !important; /* Don't shrink */
+    background: var(--bg-card, #1a1a1a);
+    position: relative;
+    }
+
+    .modal-backdrop .modal-title {
+    margin: 0;
+    padding-right: 40px;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+    }
+
+    .modal-backdrop .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-tertiary, #999);
+    transition: all 0.2s;
+    border: none;
+    }
+
+    .modal-backdrop .modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary, #fff);
+    }
+
+    /* Modal Form */
+    .modal-backdrop .modal form {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1;
+    overflow: hidden;
+    }
+
+    /* Modal Body - SCROLLABLE */
+    .modal-backdrop .modal-body {
+    padding: 24px;
+    overflow-y: auto !important; /* Enable scroll */
+    overflow-x: hidden;
+    flex: 1 !important; /* Take remaining space */
+    background: var(--bg-card, #1a1a1a);
+    }
+
+    /* Custom Scrollbar */
+    .modal-backdrop .modal-body::-webkit-scrollbar {
+    width: 8px;
+    }
+
+    .modal-backdrop .modal-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    }
+
+    .modal-backdrop .modal-body::-webkit-scrollbar-thumb {
+    background: rgba(124, 58, 237, 0.5);
+    border-radius: 4px;
+    }
+
+    .modal-backdrop .modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(124, 58, 237, 0.7);
+    }
+
+    /* Modal Footer - Fixed at bottom */
+    .modal-backdrop .modal-footer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border-primary, rgba(255, 255, 255, 0.1));
+    background: var(--bg-tertiary, #141414);
+    display: flex !important;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-shrink: 0 !important; /* Don't shrink */
+    }
+
+    /* Form Elements */
+    .modal-backdrop .form-group {
+    margin-bottom: 20px;
+    }
+
+    .modal-backdrop .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary, #a1a1aa);
+    margin-bottom: 8px;
+    }
+
+    .modal-backdrop .form-input,
+    .modal-backdrop .form-textarea,
+    .modal-backdrop .form-select {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-tertiary, #0f0f0f);
+    border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.1));
+    border-radius: 8px;
+    color: var(--text-primary, #fff);
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s;
+    }
+
+    .modal-backdrop .form-input:focus,
+    .modal-backdrop .form-textarea:focus,
+    .modal-backdrop .form-select:focus {
+    outline: none;
+    border-color: var(--primary-500, #7c3aed);
+    background: var(--bg-elevated, #141414);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+    }
+
+    .modal-backdrop .form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    }
+
+    /* Fix Select Dropdown */
+    .modal-backdrop .form-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'
+    viewBox='0 0 12 12'%3E%3Cpath fill='%23a1a1aa' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+    cursor: pointer;
+    }
+
+    .modal-backdrop .form-select option {
+    background: var(--bg-card, #1a1a1a);
+    color: var(--text-primary, #fff);
+    padding: 8px;
+    }
+
+    /* Grid Layout */
+    .modal-backdrop .grid {
+    display: grid;
+    gap: 16px;
+    }
+
+    .modal-backdrop .grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Button Fixes */
+    .modal-backdrop .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    }
+
+    .modal-backdrop .btn-primary {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    }
+
+    .modal-backdrop .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+    }
+
+    .modal-backdrop .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary, #a1a1aa);
+    border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.1));
+    }
+
+    .modal-backdrop .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary, #fff);
+    }
+
+    /* Icon sizing in buttons */
+    .modal-backdrop .btn .icon-sm,
+    .modal-backdrop .btn [data-lucide] {
+    width: 16px;
+    height: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+    .modal-backdrop .modal {
+    max-width: 95%;
+    max-height: 90vh;
+    }
+
+    .modal-backdrop .grid-cols-2 {
+    grid-template-columns: 1fr;
+    }
+    }
     </style>
 </head>
+
 <body>
     <div class="app-shell">
         <!-- Sidebar -->
@@ -190,7 +533,8 @@
             <nav class="sidebar-nav">
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">{{ project.name }}</div>
-                    <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item active">
+                    <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}"
+                        class="sidebar-nav-item active">
                         <i data-lucide="trello" class="nav-icon"></i>
                         <span>Board</span>
                     </a>
@@ -198,7 +542,8 @@
                         <i data-lucide="list" class="nav-icon"></i>
                         <span>Backlog</span>
                     </a>
-                    <a href="{{ url_for('projects.project_timeline', project_id=project.id) }}" class="sidebar-nav-item">
+                    <a href="{{ url_for('projects.project_timeline', project_id=project.id) }}"
+                        class="sidebar-nav-item">
                         <i data-lucide="gantt-chart" class="nav-icon"></i>
                         <span>Timeline</span>
                     </a>
@@ -218,18 +563,21 @@
                         <i data-lucide="code" class="nav-icon"></i>
                         <span>Code</span>
                     </a>
-                    <a href="{{ url_for('projects.project_security', project_id=project.id) }}" class="sidebar-nav-item">
+                    <a href="{{ url_for('projects.project_security', project_id=project.id) }}"
+                        class="sidebar-nav-item">
                         <i data-lucide="shield" class="nav-icon"></i>
                         <span>Security</span>
                     </a>
-                    <a href="{{ url_for('projects.project_releases', project_id=project.id) }}" class="sidebar-nav-item">
+                    <a href="{{ url_for('projects.project_releases', project_id=project.id) }}"
+                        class="sidebar-nav-item">
                         <i data-lucide="package" class="nav-icon"></i>
                         <span>Releases</span>
                     </a>
                 </div>
 
                 <div class="sidebar-section">
-                    <a href="{{ url_for('projects.project_settings', project_id=project.id) }}" class="sidebar-nav-item">
+                    <a href="{{ url_for('projects.project_settings', project_id=project.id) }}"
+                        class="sidebar-nav-item">
                         <i data-lucide="settings" class="nav-icon"></i>
                         <span>Project settings</span>
                     </a>
@@ -238,12 +586,15 @@
 
             <div class="sidebar-footer">
                 <a href="{{ url_for('main.profile') }}" class="sidebar-user">
-                    <div class="sidebar-user-avatar" style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--primary-100)' }};">
+                    <div class="sidebar-user-avatar"
+                        style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--primary-100)' }};">
                         {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
                     </div>
                     <div class="sidebar-user-info">
-                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
-                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.is_authenticated and current_user.role else 'User' }}</div>
+                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else
+                            'User' }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.is_authenticated and
+                            current_user.role else 'User' }}</div>
                     </div>
                 </a>
             </div>
@@ -257,7 +608,8 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
                             <div class="flex items-center gap-3">
-                                <div class="avatar" style="background: {{ project.color or 'var(--primary-500)' }}; width: 32px; height: 32px;">
+                                <div class="avatar"
+                                    style="background: {{ project.color or 'var(--primary-500)' }}; width: 32px; height: 32px;">
                                     {{ project.name[:2].upper() }}
                                 </div>
                                 <div>
@@ -283,12 +635,13 @@
                         <i data-lucide="search" class="header-search-icon"></i>
                         <input type="text" id="issueSearch" class="header-search-input" placeholder="Search">
                     </div>
-                    
+
                     <!-- Team Avatars -->
                     <div class="team-avatars">
                         {% set unique_assignees = issues|map(attribute='assignee')|select|unique|list %}
                         {% for assignee in unique_assignees[:5] %}
-                        <div class="avatar avatar-sm" title="{{ assignee.username }}" style="background: {{ assignee.avatar_color }};">
+                        <div class="avatar avatar-sm" title="{{ assignee.username }}"
+                            style="background: {{ assignee.avatar_color }};">
                             {{ assignee.username[:2].upper() }}
                         </div>
                         {% endfor %}
@@ -300,37 +653,38 @@
                     </div>
 
                     <div style="flex: 1;"></div>
-                    
+
                     <button class="filter-chip">
                         <i data-lucide="filter" style="width: 14px; height: 14px; margin-right: 4px;"></i>
                         Epic
                     </button>
-                    
+
                     <button class="filter-chip">
                         GROUP BY
                         <span style="margin-left: 4px; color: var(--text-secondary);">None</span>
                     </button>
-                    
+
                     <button class="btn btn-ghost btn-sm">
                         <i data-lucide="bar-chart-2" class="icon-sm"></i>
                         Insights
                     </button>
-                    
+
                     <!-- Import/Export -->
                     <button class="btn btn-ghost btn-sm" id="exportBtn" title="Export Board">
                         <i data-lucide="download" class="icon-sm"></i>
                     </button>
-                    
+
                     <button class="btn btn-ghost btn-sm" id="importBtn" title="Import Tasks">
                         <i data-lucide="upload" class="icon-sm"></i>
                     </button>
-                    
+
                     <!-- Notifications -->
-                    <button class="btn btn-ghost btn-sm" id="notificationBtn" style="position: relative;" title="Notifications">
+                    <button class="btn btn-ghost btn-sm" id="notificationBtn" style="position: relative;"
+                        title="Notifications">
                         <i data-lucide="bell" class="icon-sm"></i>
                         <span class="notification-badge">0</span>
                     </button>
-                    
+
                     <!-- Theme Toggle -->
                     <button class="btn btn-ghost btn-sm theme-toggle-btn" id="themeToggle" title="Toggle Theme">
                         <i data-lucide="moon" class="icon-sm"></i>
@@ -344,34 +698,36 @@
                 <!-- Kanban Board -->
                 <div class="kanban-container">
                     <div class="kanban-board">
-                        {% set statuses = ['To Do', 'In Progress', 'In Review', 'Done'] %}
                         {% for status in statuses %}
-                        {% set status_issues = issues|selectattr('status', 'equalto', status)|list %}
+                        {% set status_issues = issues_by_status.get(status, []) %}
                         <div class="kanban-column" data-status="{{ status }}">
                             <div class="kanban-column-header">
                                 <div class="kanban-column-title">
-                                    <span>{{ status }}</span>
+                                    <span>{{ status_labels.get(status, status) }}</span>
                                     <span class="kanban-column-count">{{ status_issues|length }}</span>
                                 </div>
-                                <button class="btn btn-ghost btn-sm btn-icon" onclick="openAddIssueModal('{{ status }}')">
+                                <button class="btn btn-ghost btn-sm btn-icon"
+                                    onclick="openAddIssueModal('{{ status }}')">
                                     <i data-lucide="plus" class="icon-sm"></i>
                                 </button>
                             </div>
-                            <div class="kanban-column-body" data-status="{{ status }}" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                            <div class="kanban-column-body" data-status="{{ status }}" ondrop="drop(event)"
+                                ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
                                 {% for issue in status_issues %}
-                                <div class="kanban-card" 
-                                     draggable="true" 
-                                     ondragstart="drag(event)" 
-                                     data-issue-id="{{ issue.id }}"
-                                     data-issue-key="{{ project.key or project.name[:3].upper() }}-{{ issue.id }}"
-                                     data-assignee="{{ issue.assignee.username if issue.assignee else 'unassigned' }}"
-                                     data-priority="{{ issue.priority|lower if issue.priority else 'medium' }}"
-                                     data-labels="{{ issue.labels if issue.labels else '' }}"
-                                     onclick="openIssueDetail({{ issue.id }})">
+                                <div class="kanban-card" draggable="true" ondragstart="drag(event)"
+                                    data-issue-id="{{ issue.id }}"
+                                    data-issue-key="{{ project.key or project.name[:3].upper() }}-{{ issue.id }}"
+                                    data-assignee="{{ issue.assignee.username if issue.assignee else 'unassigned' }}"
+                                    data-priority="{{ issue.priority|lower if issue.priority else 'medium' }}"
+                                    data-type="{{ issue.issue_type|lower if issue.issue_type else 'task' }}"
+                                    data-sprint-id="{{ issue.sprint_id if issue.sprint_id else '' }}"
+                                    data-labels="{{ issue.labels if issue.labels else '' }}"
+                                    onclick="openIssueDetail({{ issue.id }})">
                                     <!-- Priority Icon -->
                                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                                         {% if issue.priority %}
-                                        <div class="priority-icon {{ issue.priority|lower }}" title="Priority: {{ issue.priority }}">
+                                        <div class="priority-icon {{ issue.priority|lower }}"
+                                            title="Priority: {{ issue.priority }}">
                                             {% if issue.priority == 'Critical' or issue.priority == 'Highest' %}
                                             <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
                                             {% elif issue.priority == 'High' %}
@@ -383,43 +739,49 @@
                                             {% endif %}
                                         </div>
                                         {% endif %}
-                                        <span class="kanban-card-id">{{ project.key or project.name[:3].upper() }}-{{ issue.id }}</span>
+                                        <span class="kanban-card-id">{{ project.key or project.name[:3].upper() }}-{{
+                                            issue.id }}</span>
                                         {% if issue.story_points %}
                                         <div class="story-points-badge" style="margin-left: auto;" title="Story Points">
                                             {{ issue.story_points }}
                                         </div>
                                         {% endif %}
                                     </div>
-                                    
+
                                     <!-- Inline-editable title -->
                                     <div class="kanban-card-title" data-inline-edit="title">{{ issue.title }}</div>
-                                    
+
                                     {% if issue.issue_type or issue.labels %}
                                     <div class="kanban-card-labels" style="margin-top: 8px;">
                                         {% if issue.issue_type %}
                                         <span class="issue-label {{ issue.issue_type|lower }}">
-                                            <i data-lucide="{{ 'bug' if issue.issue_type == 'Bug' else 'zap' if issue.issue_type == 'Feature' else 'bookmark' if issue.issue_type == 'Story' else 'check-square' }}" style="width: 10px; height: 10px;"></i>
+                                            <i data-lucide="{{ 'bug' if issue.issue_type|lower == 'bug' else 'zap' if issue.issue_type|lower == 'task' else 'bookmark' if issue.issue_type|lower == 'story' else 'layers' if issue.issue_type|lower == 'epic' else 'check-square' }}"
+                                                style="width: 10px; height: 10px;"></i>
                                             {{ issue.issue_type }}
                                         </span>
                                         {% endif %}
                                     </div>
                                     {% endif %}
-                                    
+
                                     <div class="kanban-card-footer" style="margin-top: 8px;">
                                         <div class="flex items-center gap-2">
                                             {% if issue.due_date %}
-                                            <span class="due-date-indicator {% if issue.due_date < now %}overdue{% elif (issue.due_date - now).days <= 3 %}due-soon{% else %}on-track{% endif %}" title="Due: {{ issue.due_date.strftime('%b %d, %Y') }}">
+                                            <span
+                                                class="due-date-indicator {% if issue.due_date < now %}overdue{% elif (issue.due_date - now).days <= 3 %}due-soon{% else %}on-track{% endif %}"
+                                                title="Due: {{ issue.due_date.strftime('%b %d, %Y') }}">
                                                 <i data-lucide="calendar" style="width: 11px; height: 11px;"></i>
                                                 {{ issue.due_date.strftime('%b %d') }}
                                             </span>
                                             {% endif %}
                                         </div>
                                         {% if issue.assignee %}
-                                        <div class="assignee-avatar-enhanced" title="{{ issue.assignee.username }}" style="background: linear-gradient(135deg, {{ issue.assignee.avatar_color }} 0%, #764ba2 100%);">
+                                        <div class="assignee-avatar-enhanced" title="{{ issue.assignee.username }}"
+                                            style="background: linear-gradient(135deg, {{ issue.assignee.avatar_color }} 0%, #764ba2 100%);">
                                             {{ issue.assignee.username[:2].upper() }}
                                         </div>
                                         {% else %}
-                                        <div class="assignee-avatar-enhanced" title="Unassigned" style="background: var(--gray-300); color: var(--gray-600);">
+                                        <div class="assignee-avatar-enhanced" title="Unassigned"
+                                            style="background: var(--gray-300); color: var(--gray-600);">
                                             <i data-lucide="user" style="width: 12px; height: 12px;"></i>
                                         </div>
                                         {% endif %}
@@ -444,7 +806,7 @@
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form method="POST" action="{{ url_for('projects.add_issue', project_id=project.id) }}">
+            <form id="createIssueForm" method="POST" action="{{ url_for('projects.add_issue', project_id=project.id) }}" onsubmit="return submitCreateIssueForm(event)">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <div class="form-group">
@@ -453,43 +815,50 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-textarea" placeholder="Describe the issue..."></textarea>
+                        <textarea name="description" class="form-textarea"
+                            placeholder="Describe the issue..."></textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-group">
                             <label class="form-label">Type</label>
                             <select name="issue_type" class="form-select">
-                                <option value="Task">Task</option>
-                                <option value="Bug">Bug</option>
-                                <option value="Feature">Feature</option>
-                                <option value="Story">Story</option>
+                                <option value="task">Task</option>
+                                <option value="bug">Bug</option>
+                                <option value="story">Story</option>
+                                <option value="epic">Epic</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Priority</label>
                             <select name="priority" class="form-select">
-                                <option value="Low">Low</option>
-                                <option value="Medium" selected>Medium</option>
-                                <option value="High">High</option>
+                                <option value="lowest">Lowest</option>
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="highest">Highest</option>
+                                <option value="critical">Critical</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Status</label>
                         <select name="status" id="issueStatus" class="form-select">
-                            <option value="Backlog">Backlog</option>
-                            <option value="To Do">To Do</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="In Review">In Review</option>
-                            <option value="Testing">Testing</option>
-                            <option value="Done">Done</option>
+                            <option value="open">Open</option>
+                            <option value="todo">To Do</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="code_review">Code Review</option>
+                            <option value="testing">Testing</option>
+                            <option value="ready_deploy">Ready to Deploy</option>
+                            <option value="done">Done</option>
+                            <option value="closed">Closed</option>
+                            <option value="reopened">Reopened</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Assignee</label>
                         <select name="assignee_id" class="form-select">
                             <option value="">Unassigned</option>
-                            {% for user in users if users is defined %}
+                            {% for user in team_members_list if team_members_list is defined %}
                             <option value="{{ user.id }}">{{ user.username }}</option>
                             {% endfor %}
                         </select>
@@ -508,112 +877,196 @@
 
     <script>
         // Wait for DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Initialize Lucide icons
             lucide.createIcons();
 
             // Modal functions
-            function openAddIssueModal(status = 'To Do') {
-            document.getElementById('addIssueModal').classList.add('active');
-            document.getElementById('issueStatus').value = status;
-        }
+            function openAddIssueModal(status = 'open') {
+                document.getElementById('addIssueModal').classList.add('active');
+                document.body.classList.add('modal-open');
+                document.getElementById('issueStatus').value = status;
+                // Prevent background scroll by allowing scroll only when modal-body can scroll
+                const modalBackdrop = document.getElementById('addIssueModal');
+                if (modalBackdrop) {
+                    // create a helper object to manage handlers
+                    window._modalScroll = {
+                        touchStartY: null,
+                        onWheel(e) {
+                            const mb = e.target.closest && e.target.closest('.modal-body');
+                            const delta = e.deltaY;
+                            if (mb) {
+                                const canScrollUp = mb.scrollTop > 0;
+                                const canScrollDown = mb.scrollTop + mb.clientHeight < mb.scrollHeight - 1;
+                                if ((delta < 0 && canScrollUp) || (delta > 0 && canScrollDown)) {
+                                    // let modal body scroll
+                                    return;
+                                }
+                            }
+                            e.preventDefault();
+                            e.stopPropagation();
+                        },
+                        onTouchStart(e) {
+                            if (e.touches && e.touches.length) window._modalScroll.touchStartY = e.touches[0].clientY;
+                        },
+                        onTouchMove(e) {
+                            const mb = e.target.closest && e.target.closest('.modal-body');
+                            if (!e.touches || !e.touches.length) return;
+                            const currentY = e.touches[0].clientY;
+                            const delta = window._modalScroll.touchStartY - currentY;
+                            const up = delta > 0;
+                            if (mb) {
+                                const canScrollUp = mb.scrollTop > 0;
+                                const canScrollDown = mb.scrollTop + mb.clientHeight < mb.scrollHeight - 1;
+                                if ((up && canScrollDown) || (!up && canScrollUp)) {
+                                    // allow modal body to scroll and update start position
+                                    window._modalScroll.touchStartY = currentY;
+                                    return;
+                                }
+                            }
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    };
 
-        function closeAddIssueModal() {
-            document.getElementById('addIssueModal').classList.remove('active');
-        }
-
-        function openIssueDetail(issueId) {
-            window.location.href = `/projects/{{ project.id }}/issues/${issueId}`;
-        }
-
-        // Drag and Drop
-        let draggedCard = null;
-
-        function drag(event) {
-            draggedCard = event.target;
-            event.target.classList.add('dragging');
-            event.dataTransfer.setData('text/plain', event.target.dataset.issueId);
-        }
-
-        function allowDrop(event) {
-            event.preventDefault();
-            event.currentTarget.classList.add('drag-over');
-        }
-
-        function dragLeave(event) {
-            event.currentTarget.classList.remove('drag-over');
-        }
-
-        function drop(event) {
-            event.preventDefault();
-            event.currentTarget.classList.remove('drag-over');
-            
-            const issueId = event.dataTransfer.getData('text/plain');
-            const newStatus = event.currentTarget.dataset.status;
-            
-            if (draggedCard) {
-                draggedCard.classList.remove('dragging');
-                event.currentTarget.appendChild(draggedCard);
-                
-                // Update issue status via API
-                fetch(`/api/issues/${issueId}/status`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                }).then(response => {
-                    if (response.ok) {
-                        updateColumnCounts();
-                    }
-                }).catch(err => console.error('Failed to update status:', err));
+                    modalBackdrop.addEventListener('wheel', window._modalScroll.onWheel, { passive: false });
+                    modalBackdrop.addEventListener('touchstart', window._modalScroll.onTouchStart, { passive: false });
+                    modalBackdrop.addEventListener('touchmove', window._modalScroll.onTouchMove, { passive: false });
+                }
             }
-        }
 
-        function updateColumnCounts() {
-            document.querySelectorAll('.kanban-column').forEach(column => {
-                const count = column.querySelectorAll('.kanban-card').length;
-                column.querySelector('.kanban-column-count').textContent = count;
+            function closeAddIssueModal() {
+                document.getElementById('addIssueModal').classList.remove('active');
+                document.body.classList.remove('modal-open');
+                // remove scroll handlers
+                const modalBackdrop = document.getElementById('addIssueModal');
+                if (modalBackdrop && window._modalScroll) {
+                    modalBackdrop.removeEventListener('wheel', window._modalScroll.onWheel, { passive: false });
+                    modalBackdrop.removeEventListener('touchstart', window._modalScroll.onTouchStart, { passive: false });
+                    modalBackdrop.removeEventListener('touchmove', window._modalScroll.onTouchMove, { passive: false });
+                    window._modalScroll = null;
+                }
+            }
+
+            // Form submission handler for creating issues
+            function submitCreateIssueForm(event) {
+                event.preventDefault();
+                
+                const form = event.target;
+                const title = form.querySelector('input[name="title"]').value.trim();
+                
+                // Validate required fields
+                if (!title) {
+                    window.notificationManager?.addNotification({
+                        title: 'Validation Error',
+                        message: 'Issue title is required',
+                        type: 'error'
+                    });
+                    return false;
+                }
+                
+                // Show loading state
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i data-lucide="loader" class="icon-sm icon-spin"></i> Creating...';
+                
+                // Submit the form
+                form.submit();
+                return false;
+            }
+            function openIssueDetail(issueId) {
+                window.location.href = `/projects/{{ project.id }}/issues/${issueId}`;
+            }
+
+            // Drag and Drop
+            let draggedCard = null;
+
+            function drag(event) {
+                draggedCard = event.target;
+                event.target.classList.add('dragging');
+                event.dataTransfer.setData('text/plain', event.target.dataset.issueId);
+            }
+
+            function allowDrop(event) {
+                event.preventDefault();
+                event.currentTarget.classList.add('drag-over');
+            }
+
+            function dragLeave(event) {
+                event.currentTarget.classList.remove('drag-over');
+            }
+
+            function drop(event) {
+                event.preventDefault();
+                event.currentTarget.classList.remove('drag-over');
+
+                const issueId = event.dataTransfer.getData('text/plain');
+                const newStatus = event.currentTarget.dataset.status;
+
+                if (draggedCard) {
+                    draggedCard.classList.remove('dragging');
+                    event.currentTarget.appendChild(draggedCard);
+
+                    // Update issue status via API
+                    fetch(`/project/{{ project.id }}/issue/${issueId}/status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    }).then(response => {
+                        if (response.ok) {
+                            updateColumnCounts();
+                        }
+                    }).catch(err => console.error('Failed to update status:', err));
+                }
+            }
+
+            function updateColumnCounts() {
+                document.querySelectorAll('.kanban-column').forEach(column => {
+                    const count = column.querySelectorAll('.kanban-card').length;
+                    column.querySelector('.kanban-column-count').textContent = count;
+                });
+            }
+
+            // Search functionality
+            document.getElementById('issueSearch').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.kanban-card').forEach(card => {
+                    const text = card.textContent.toLowerCase();
+                    card.style.display = text.includes(query) ? '' : 'none';
+                });
             });
-        }
 
-        // Search functionality
-        document.getElementById('issueSearch').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            document.querySelectorAll('.kanban-card').forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.style.display = text.includes(query) ? '' : 'none';
+            // Close modal on escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeAddIssueModal();
             });
-        });
 
-        // Close modal on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeAddIssueModal();
-        });
-
-        // Close modal on backdrop click
-        document.getElementById('addIssueModal').addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) closeAddIssueModal();
-        });
-        
-        // Initialize theme toggle
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            window.themeManager.toggleTheme();
-            
-            // Show notification
-            window.notificationManager.addNotification({
-                title: 'Theme Changed',
-                message: `Switched to ${window.themeManager.getTheme()} mode`,
-                type: 'success'
+            // Close modal on backdrop click
+            document.getElementById('addIssueModal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeAddIssueModal();
             });
-        });
-        
-        // Initialize notification panel
-        const notificationBtn = document.getElementById('notificationBtn');
-        const notificationPanel = document.createElement('div');
-        notificationPanel.className = 'notification-panel';
-        notificationPanel.innerHTML = `
+
+            // Initialize theme toggle
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                window.themeManager.toggleTheme();
+
+                // Show notification
+                window.notificationManager.addNotification({
+                    title: 'Theme Changed',
+                    message: `Switched to ${window.themeManager.getTheme()} mode`,
+                    type: 'success'
+                });
+            });
+
+            // Initialize notification panel
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notificationPanel = document.createElement('div');
+            notificationPanel.className = 'notification-panel';
+            notificationPanel.innerHTML = `
             <div class="notification-panel-header">
                 <div class="notification-panel-title">Notifications</div>
                 <div class="notification-actions">
@@ -625,26 +1078,26 @@
                 <!-- Notifications will be inserted here -->
             </div>
         `;
-        document.body.appendChild(notificationPanel);
-        
-        notificationBtn.addEventListener('click', () => {
-            notificationPanel.classList.toggle('show');
-            updateNotificationList();
-        });
-        
-        function updateNotificationList() {
-            const list = document.getElementById('notificationList');
-            const notifications = window.notificationManager.getNotifications();
-            
-            if (notifications.length === 0) {
-                list.innerHTML = `
+            document.body.appendChild(notificationPanel);
+
+            notificationBtn.addEventListener('click', () => {
+                notificationPanel.classList.toggle('show');
+                updateNotificationList();
+            });
+
+            function updateNotificationList() {
+                const list = document.getElementById('notificationList');
+                const notifications = window.notificationManager.getNotifications();
+
+                if (notifications.length === 0) {
+                    list.innerHTML = `
                     <div class="notification-empty">
                         <i data-lucide="bell-off" class="notification-empty-icon"></i>
                         <div class="notification-empty-text">No notifications</div>
                     </div>
                 `;
-            } else {
-                list.innerHTML = notifications.map(n => `
+                } else {
+                    list.innerHTML = notifications.map(n => `
                     <div class="notification-item ${n.type} ${n.read ? '' : 'unread'}" data-id="${n.id}">
                         <div class="notification-item-icon">
                             <i data-lucide="${window.notificationManager.getIconForType(n.type)}"></i>
@@ -656,80 +1109,80 @@
                         </div>
                     </div>
                 `).join('');
-            }
-            
-            lucide.createIcons();
-            
-            // Add click handlers
-            document.querySelectorAll('.notification-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const id = parseInt(item.dataset.id);
-                    window.notificationManager.markAsRead(id);
-                    updateNotificationList();
-                });
-            });
-        }
-        
-        document.getElementById('markAllRead').addEventListener('click', () => {
-            window.notificationManager.markAllAsRead();
-            updateNotificationList();
-        });
-        
-        document.getElementById('clearNotifications').addEventListener('click', () => {
-            if (confirm('Clear all notifications?')) {
-                window.notificationManager.clearAll();
-                updateNotificationList();
-            }
-        });
-        
-        // Close notification panel when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!notificationPanel.contains(e.target) && e.target !== notificationBtn && !notificationBtn.contains(e.target)) {
-                notificationPanel.classList.remove('show');
-            }
-        });
-        
-        // Initialize Drag and Drop Manager
-        const dragDropManager = new DragDropManager({
-            onDrop: (data) => {
-                // Update issue status via API
-                fetch(`/api/issues/${data.cardId}/status`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ status: data.targetStatus })
-                }).then(response => {
-                    if (response.ok) {
-                        updateColumnCounts();
-                        window.notificationManager.addNotification({
-                            title: 'Issue Updated',
-                            message: `Issue moved to ${data.targetStatus}`,
-                            type: 'success'
-                        });
-                    } else {
-                        window.notificationManager.addNotification({
-                            title: 'Update Failed',
-                            message: 'Failed to update issue status',
-                            type: 'error'
-                        });
-                    }
-                }).catch(err => {
-                    console.error('Failed to update status:', err);
-                    window.notificationManager.addNotification({
-                        title: 'Error',
-                        message: 'Network error occurred',
-                        type: 'error'
+                }
+
+                lucide.createIcons();
+
+                // Add click handlers
+                document.querySelectorAll('.notification-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const id = parseInt(item.dataset.id);
+                        window.notificationManager.markAsRead(id);
+                        updateNotificationList();
                     });
                 });
             }
-        });
-        
-        // Import/Export functionality
-        const importModal = document.createElement('div');
-        importModal.className = 'import-modal';
-        importModal.innerHTML = `
+
+            document.getElementById('markAllRead').addEventListener('click', () => {
+                window.notificationManager.markAllAsRead();
+                updateNotificationList();
+            });
+
+            document.getElementById('clearNotifications').addEventListener('click', () => {
+                if (confirm('Clear all notifications?')) {
+                    window.notificationManager.clearAll();
+                    updateNotificationList();
+                }
+            });
+
+            // Close notification panel when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!notificationPanel.contains(e.target) && e.target !== notificationBtn && !notificationBtn.contains(e.target)) {
+                    notificationPanel.classList.remove('show');
+                }
+            });
+
+            // Initialize Drag and Drop Manager
+            const dragDropManager = new DragDropManager({
+                onDrop: (data) => {
+                    // Update issue status via API
+                    fetch(`/project/{{ project.id }}/issue/${data.cardId}/status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ status: data.targetStatus })
+                    }).then(response => {
+                        if (response.ok) {
+                            updateColumnCounts();
+                            window.notificationManager.addNotification({
+                                title: 'Issue Updated',
+                                message: `Issue moved to ${data.targetStatus}`,
+                                type: 'success'
+                            });
+                        } else {
+                            window.notificationManager.addNotification({
+                                title: 'Update Failed',
+                                message: 'Failed to update issue status',
+                                type: 'error'
+                            });
+                        }
+                    }).catch(err => {
+                        console.error('Failed to update status:', err);
+                        window.notificationManager.addNotification({
+                            title: 'Error',
+                            message: 'Network error occurred',
+                            type: 'error'
+                        });
+                    });
+                }
+            });
+
+            // Import/Export functionality
+            const importModal = document.createElement('div');
+            importModal.className = 'import-modal';
+            importModal.innerHTML = `
             <div class="import-modal-content">
                 <div class="import-modal-header">
                     <h3 class="import-modal-title">Import Tasks</h3>
@@ -751,121 +1204,122 @@
                 </div>
             </div>
         `;
-        document.body.appendChild(importModal);
-        
-        document.getElementById('importBtn').addEventListener('click', () => {
-            importModal.classList.add('show');
-            lucide.createIcons();
-        });
-        
-        document.getElementById('closeImportModal').addEventListener('click', () => {
-            importModal.classList.remove('show');
-        });
-        
-        const dropzone = document.getElementById('importDropzone');
-        const fileInput = document.getElementById('importFile');
-        
-        dropzone.addEventListener('click', () => fileInput.click());
-        
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.classList.add('dragover');
-        });
-        
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('dragover');
-        });
-        
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('dragover');
-            handleFileUpload(e.dataTransfer.files[0]);
-        });
-        
-        fileInput.addEventListener('change', (e) => {
-            handleFileUpload(e.target.files[0]);
-        });
-        
-        function handleFileUpload(file) {
-            if (!file) return;
-            
-            window.notificationManager.addNotification({
-                title: 'Import Started',
-                message: `Processing ${file.name}...`,
-                type: 'info'
+            document.body.appendChild(importModal);
+
+            document.getElementById('importBtn').addEventListener('click', () => {
+                importModal.classList.add('show');
+                lucide.createIcons();
             });
-            
-            // TODO: Implement actual file parsing and upload
-            setTimeout(() => {
+
+            document.getElementById('closeImportModal').addEventListener('click', () => {
+                importModal.classList.remove('show');
+            });
+
+            const dropzone = document.getElementById('importDropzone');
+            const fileInput = document.getElementById('importFile');
+
+            dropzone.addEventListener('click', () => fileInput.click());
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('dragover');
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                handleFileUpload(e.dataTransfer.files[0]);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFileUpload(e.target.files[0]);
+            });
+
+            function handleFileUpload(file) {
+                if (!file) return;
+
                 window.notificationManager.addNotification({
-                    title: 'Import Complete',
-                    message: `Successfully imported data from ${file.name}`,
+                    title: 'Import Started',
+                    message: `Processing ${file.name}...`,
+                    type: 'info'
+                });
+
+                // TODO: Implement actual file parsing and upload
+                setTimeout(() => {
+                    window.notificationManager.addNotification({
+                        title: 'Import Complete',
+                        message: `Successfully imported data from ${file.name}`,
+                        type: 'success'
+                    });
+                    importModal.classList.remove('show');
+                }, 1500);
+            }
+
+            // Export functionality
+            document.getElementById('exportBtn').addEventListener('click', () => {
+                const data = [];
+                document.querySelectorAll('.kanban-card').forEach(card => {
+                    data.push({
+                        id: card.dataset.issueId,
+                        title: card.querySelector('.kanban-card-title').textContent,
+                        status: card.closest('.kanban-column').dataset.status
+                    });
+                });
+
+                const csv = 'ID,Title,Status\\n' + data.map(d => `${d.id},"${d.title}",${d.status}`).join('\\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `kanban-board-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+
+                window.notificationManager.addNotification({
+                    title: 'Export Complete',
+                    message: 'Board data exported successfully',
                     type: 'success'
                 });
-                importModal.classList.remove('show');
-            }, 1500);
-        }
-        
-        // Export functionality
-        document.getElementById('exportBtn').addEventListener('click', () => {
-            const data = [];
-            document.querySelectorAll('.kanban-card').forEach(card => {
-                data.push({
-                    id: card.dataset.issueId,
-                    title: card.querySelector('.kanban-card-title').textContent,
-                    status: card.closest('.kanban-column').dataset.status
+            });
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + K for search focus
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    document.getElementById('issueSearch').focus();
+                }
+
+                // Ctrl/Cmd + N for new issue
+                if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                    e.preventDefault();
+                    openAddIssueModal();
+                }
+
+                // Ctrl/Cmd + D for theme toggle
+                if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                    e.preventDefault();
+                    window.themeManager.toggleTheme();
+                }
+            });
+
+            // Welcome notification
+            setTimeout(() => {
+                window.notificationManager.addNotification({
+                    title: 'Welcome to Kanban Board',
+                    message: 'Drag and drop cards to change status. Use Ctrl+K to search, Ctrl+N to create new issue.',
+                    type: 'info'
                 });
-            });
-            
-            const csv = 'ID,Title,Status\\n' + data.map(d => `${d.id},"${d.title}",${d.status}`).join('\\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `kanban-board-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            
-            window.notificationManager.addNotification({
-                title: 'Export Complete',
-                message: 'Board data exported successfully',
-                type: 'success'
-            });
-        });
-        
-        // Add keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            // Ctrl/Cmd + K for search focus
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                document.getElementById('issueSearch').focus();
-            }
-            
-            // Ctrl/Cmd + N for new issue
-            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-                e.preventDefault();
-                openAddIssueModal();
-            }
-            
-            // Ctrl/Cmd + D for theme toggle
-            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-                e.preventDefault();
-                window.themeManager.toggleTheme();
-            }
-        });
-        
-        // Welcome notification
-        setTimeout(() => {
-            window.notificationManager.addNotification({
-                title: 'Welcome to Kanban Board',
-                message: 'Drag and drop cards to change status. Use Ctrl+K to search, Ctrl+N to create new issue.',
-                type: 'info'
-            });
-        }, 1000);
-        
-        // Make functions globally available for onclick handlers
-        window.openAddIssueModal = openAddIssueModal;
-        window.closeAddIssueModal = closeAddIssueModal;
+            }, 1000);
+
+            // Make functions globally available for onclick handlers
+            window.openAddIssueModal = openAddIssueModal;
+            window.closeAddIssueModal = closeAddIssueModal;
         });
     </script>
 </body>
+
 </html>

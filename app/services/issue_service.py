@@ -25,7 +25,7 @@ class IssueService:
     
     @staticmethod
     def create_issue(project_id, title, description=None, issue_type='task',
-                    priority='medium', assignee_id=None, reporter_id=None,
+                    priority='medium', status='todo', assignee_id=None, reporter_id=None,
                     story_points=None, time_estimate=None, due_date=None,
                     sprint_id=None, epic_id=None, parent_id=None):
         """
@@ -48,6 +48,7 @@ class IssueService:
             
             validate_issue_type(issue_type)
             validate_priority(priority)
+            validate_status(status)
             
             # Generate issue key
             key = IssueService._generate_issue_key(project_id)
@@ -63,9 +64,9 @@ class IssueService:
             if time_estimate is not None:
                 time_estimate = validate_float(time_estimate, 'time_estimate', min_value=0, max_value=1000)
             
-            # Get max position for new issues
+            # Get max position for new issues with same status
             max_position = db.session.query(db.func.max(Issue.position)).filter_by(
-                project_id=project_id, status='open'
+                project_id=project_id, status=status
             ).scalar() or 0
             
             # Create issue
@@ -75,7 +76,7 @@ class IssueService:
                 project_id=project_id,
                 issue_type=issue_type,
                 priority=priority,
-                status='open',
+                status=status,
                 assignee_id=int(assignee_id) if assignee_id else None,
                 reporter_id=reporter_id,
                 story_points=story_points,
@@ -386,20 +387,40 @@ class IssueService:
     @staticmethod
     def _generate_issue_key(project_id):
         """Generate unique issue key like PROJ-123."""
-        from app.models import Issue, Project
+        from app.models import Issue, Project, db
         
-        project = Project.query.get(project_id)
-        prefix = project.key or ''.join([c for c in project.name.upper() if c.isalnum()])[:4]
-        
-        # Get the last issue number for this project
-        last_issue = Issue.query.filter_by(project_id=project_id).order_by(Issue.id.desc()).first()
-        
-        if last_issue and last_issue.key:
-            try:
-                number = int(last_issue.key.split('-')[-1]) + 1
-            except ValueError:
-                number = Issue.query.filter_by(project_id=project_id).count() + 1
-        else:
-            number = 1
-        
-        return f"{prefix}-{number}"
+        try:
+            project = Project.query.get(project_id)
+            if not project:
+                raise ValueError('Project not found')
+            
+            # Handle NULL or empty project key
+            prefix = (project.key or '').strip()
+            if not prefix:
+                prefix = ''.join([c for c in project.name.upper() if c.isalnum()])[:4]
+            
+            # Ensure prefix is at least 2 chars
+            if not prefix or len(prefix) < 2:
+                prefix = 'PROJ'
+            
+            # Get the last issue number for this project with lock to prevent race conditions
+            last_issue = Issue.query.filter_by(project_id=project_id).order_by(Issue.id.desc()).first()
+            
+            if last_issue and last_issue.key:
+                try:
+                    number = int(last_issue.key.split('-')[-1]) + 1
+                except ValueError:
+                    number = Issue.query.filter_by(project_id=project_id).count() + 1
+            else:
+                number = 1
+            
+            key = f"{prefix}-{number}"
+            
+            # Verify uniqueness (double-check)
+            while Issue.query.filter_by(key=key).first():
+                number += 1
+                key = f"{prefix}-{number}"
+            
+            return key
+        except Exception as e:
+            raise ValueError(f'Error generating issue key: {str(e)}')

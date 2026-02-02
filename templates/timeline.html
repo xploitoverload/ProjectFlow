@@ -66,7 +66,7 @@
                     <i data-lucide="check-square" style="width: 16px; height: 16px; color: #3b82f6;"></i>
                     {% endif %}
                     <div style="flex: 1; min-width: 0;">
-                        <a href="{{ url_for('projects.issue_detail', project_id=issue.project_id, issue_id=issue.id) }}" 
+                        <a href="{{ url_for('projects.issue_view', project_id=issue.project_id, issue_id=issue.id) }}" 
                            style="font-size: 13px; font-weight: 500; color: var(--primary-600); text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             {{ issue.key }}: {{ issue.title }}
                         </a>

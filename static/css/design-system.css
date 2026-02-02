@@ -491,7 +491,7 @@ button, input, select, textarea {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  background: var(--primary-100);
+  background: var(--avatar-bg, var(--primary-100));
   color: var(--primary-700);
   display: flex;
   align-items: center;
@@ -1084,6 +1084,7 @@ button, input, select, textarea {
   height: 8px;
   border-radius: var(--radius-full);
   flex-shrink: 0;
+  background: var(--dot-color, var(--gray-400));
 }
 
 .status-dot.active { background: var(--success-500); }
@@ -1100,7 +1101,7 @@ button, input, select, textarea {
   justify-content: center;
   border-radius: var(--radius-full);
   font-weight: 600;
-  background: var(--primary-100);
+  background: var(--avatar-bg, var(--primary-100));
   color: var(--primary-700);
   flex-shrink: 0;
 }
@@ -1141,6 +1142,14 @@ button, input, select, textarea {
   background: var(--primary-500);
   border-radius: var(--radius-full);
   transition: width var(--transition-slow);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary-500);
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
+  width: var(--progress, 0%);
 }
 
 .progress-bar.success { background: var(--success-500); }
@@ -2025,6 +2034,7 @@ button, input, select, textarea {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

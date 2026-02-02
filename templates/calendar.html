@@ -795,24 +795,23 @@
                 </div>
                 
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="view-btn">
+                    <button class="view-btn" id="filterAssignee" onclick="toggleFilterPanel('assignee')">
                         <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
                         Assignee
                     </button>
-                    <button class="view-btn">
+                    <button class="view-btn" id="filterType" onclick="toggleFilterPanel('type')">
                         <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
                         Type
                     </button>
-                    <button class="view-btn">
+                    <button class="view-btn" id="filterStatus" onclick="toggleFilterPanel('status')">
                         <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
                         Status
                     </button>
-                    <button class="view-btn">
+                    <button class="view-btn" id="filterMore" onclick="toggleFilterPanel('more')">
                         <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
                         More filters
                     </button>
                     <div style="width: 1px; height: 20px; background: var(--jira-border);"></div>
-                    
                     <!-- Export Button -->
                     <button class="view-btn" id="exportCalendarBtn" title="Export Calendar">
                         <i data-lucide="download" style="width: 14px; height: 14px;"></i>
@@ -1401,6 +1400,190 @@
                 type: 'info'
             });
         }, 1000);
+        
+        // Filter state
+        let activeFilters = {
+            assignee: [],
+            type: [],
+            status: [],
+            projects: [],
+            teams: [],
+            priority: []
+        };
+        
+        // Function to toggle filter panel
+        window.toggleFilterPanel = function(filterType) {
+            const btn = document.getElementById('filter' + filterType.charAt(0).toUpperCase() + filterType.slice(1));
+            
+            // Remove any existing filter panel
+            const existingPanel = document.querySelector('.filter-panel');
+            if (existingPanel) {
+                existingPanel.remove();
+            }
+            
+            // Create filter panel
+            const panel = document.createElement('div');
+            panel.className = 'filter-panel';
+            panel.style.cssText = `
+                position: absolute;
+                top: ${btn.offsetTop + btn.offsetHeight + 5}px;
+                left: ${btn.offsetLeft}px;
+                background: var(--jira-background);
+                border: 1px solid var(--jira-border);
+                border-radius: 4px;
+                padding: 12px;
+                min-width: 250px;
+                max-width: 400px;
+                z-index: 1000;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            `;
+            
+            let options = [];
+            let selectedValues = activeFilters[filterType] || [];
+            
+            if (filterType === 'assignee') {
+                options = ['Unassigned', 'JD', 'SK', 'AL', 'MK'];
+            } else if (filterType === 'type') {
+                options = ['Task', 'Bug', 'Story', 'Epic', 'Meeting', 'Deadline', 'Milestone'];
+            } else if (filterType === 'status') {
+                options = ['Open', 'In Progress', 'Done', 'Closed', 'On Hold'];
+            } else if (filterType === 'more') {
+                options = ['Priority (High)', 'Priority (Low)', 'Assigned to Me', 'Reported by Me', 'Has Comments'];
+            }
+            
+            let content = `<div style="margin-bottom: 10px;"><strong>Filter by ${filterType.charAt(0).toUpperCase() + filterType.slice(1)}:</strong></div>`;
+            
+            options.forEach(option => {
+                const isChecked = selectedValues.includes(option.toLowerCase());
+                content += `
+                    <label style="display: block; margin: 8px 0; cursor: pointer;">
+                        <input type="checkbox" 
+                               value="${option.toLowerCase()}"
+                               ${isChecked ? 'checked' : ''}
+                               onchange="updateFilter('${filterType}', this)">
+                        ${option}
+                    </label>
+                `;
+            });
+            
+            content += `
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--jira-border);">
+                    <button onclick="applyFilters()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; margin-right: 8px;">Apply</button>
+                    <button onclick="clearFilters('${filterType}')" style="background: transparent; border: 1px solid var(--jira-border); padding: 6px 12px; border-radius: 3px; cursor: pointer;">Clear</button>
+                </div>
+            `;
+            
+            panel.innerHTML = content;
+            document.body.appendChild(panel);
+            
+            // Close panel when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', closeFilterPanel);
+            }, 100);
+        };
+        
+        function closeFilterPanel(e) {
+            const panel = document.querySelector('.filter-panel');
+            if (panel && !panel.contains(e.target) && !e.target.closest('[id^="filter"]')) {
+                panel.remove();
+                document.removeEventListener('click', closeFilterPanel);
+            }
+        }
+        
+        // Function to update filter
+        window.updateFilter = function(filterType, checkbox) {
+            if (!activeFilters[filterType]) {
+                activeFilters[filterType] = [];
+            }
+            
+            if (checkbox.checked) {
+                if (!activeFilters[filterType].includes(checkbox.value)) {
+                    activeFilters[filterType].push(checkbox.value);
+                }
+            } else {
+                activeFilters[filterType] = activeFilters[filterType].filter(v => v !== checkbox.value);
+            }
+        };
+        
+        // Function to apply filters
+        window.applyFilters = function() {
+            // Filter the calendar events based on active filters
+            const filteredEvents = calendarEvents.filter(event => {
+                // Check assignee filter
+                if (activeFilters.assignee.length > 0) {
+                    const assigneeCheck = activeFilters.assignee.includes('unassigned') ? !event.assignee : activeFilters.assignee.includes(event.assignee?.toLowerCase());
+                    if (!assigneeCheck) return false;
+                }
+                
+                // Check type filter
+                if (activeFilters.type.length > 0) {
+                    if (!activeFilters.type.includes(event.type?.toLowerCase())) return false;
+                }
+                
+                // Check status filter
+                if (activeFilters.status.length > 0) {
+                    if (!activeFilters.status.includes(event.status?.toLowerCase() || 'open')) return false;
+                }
+                
+                return true;
+            });
+            
+            // Update calendar display with filtered events
+            calendarEvents = filteredEvents;
+            generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+            
+            // Close the filter panel
+            const panel = document.querySelector('.filter-panel');
+            if (panel) panel.remove();
+            
+            // Show confirmation
+            window.notificationManager.addNotification({
+                title: 'Filter Applied',
+                message: `Showing ${filteredEvents.length} events`,
+                type: 'success'
+            });
+        };
+        
+        // Function to clear filters
+        window.clearFilters = function(filterType) {
+            if (filterType) {
+                activeFilters[filterType] = [];
+            } else {
+                // Clear all filters
+                Object.keys(activeFilters).forEach(key => {
+                    activeFilters[key] = [];
+                });
+            }
+            
+            // Reset calendarEvents to all events
+            calendarEvents = [
+                {id: 1, day: 5, type: 'task', title: 'Design Review', assignee: 'JD', points: 3},
+                {id: 2, day: 8, type: 'meeting', title: 'Team Standup', assignee: 'SK', points: null},
+                {id: 3, day: 8, type: 'task', title: 'Code Review', assignee: 'AL', points: 5},
+                {id: 4, day: 12, type: 'deadline', title: 'Sprint End', assignee: null, points: null},
+                {id: 5, day: 14, type: 'milestone', title: 'Release v2.0', assignee: null, points: null, startDay: 12, endDay: 14},
+                {id: 6, day: 15, type: 'task', title: 'Testing', assignee: 'JD', points: 8},
+                {id: 7, day: 16, type: 'meeting', title: 'Planning Meeting', assignee: 'SK', points: null},
+                {id: 8, day: 21, type: 'task', title: 'Bug Fixes', assignee: 'AL', points: 2},
+                {id: 9, day: 22, type: 'meeting', title: 'Daily Standup', assignee: null, points: null},
+                {id: 10, day: 22, type: 'task', title: 'Feature Development', assignee: 'JD', points: 13},
+                {id: 11, day: 25, type: 'deadline', title: 'Deployment', assignee: null, points: null},
+                {id: 12, day: 29, type: 'milestone', title: 'Q1 Review', assignee: null, points: null}
+            ];
+            
+            generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+            
+            // Close the filter panel
+            const panel = document.querySelector('.filter-panel');
+            if (panel) panel.remove();
+            
+            window.notificationManager.addNotification({
+                title: 'Filters Cleared',
+                message: 'Now showing all events',
+                type: 'info'
+            });
+        };
+        
         });
     </script>
 </body>

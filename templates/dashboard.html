@@ -108,7 +108,7 @@
                     <div class="sidebar-section-title">Your projects</div>
                     {% for project in projects[:5] %}
                     <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item">
-                        <span class="avatar avatar-xs" style="background: {{ project.color or 'var(--webify-gradient-primary)' }}; color: white; font-size: 10px;">
+                        <span class="avatar avatar-xs" style="--avatar-bg: {{ project.color }}; color: white; font-size: 10px;">
                             {{ project.name[:2].upper() }}
                         </span>
                         <span class="truncate">{{ project.name }}</span>
@@ -152,7 +152,7 @@
 
             <div class="sidebar-footer">
                 <a href="{{ url_for('main.profile') }}" class="sidebar-user">
-                    <div class="sidebar-user-avatar" style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--webify-gradient-primary)' }};">
+                    <div class="sidebar-user-avatar" style="--avatar-bg: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--webify-gradient-primary)' }};">
                         {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
                     </div>
                     <div class="sidebar-user-info">
@@ -423,7 +423,7 @@
                                         <tr>
                                             <td>
                                                 <div class="flex items-center gap-3">
-                                                    <div class="avatar avatar-sm" style="background: {{ project.color or 'var(--primary-100)' }};">
+                                                    <div class="avatar avatar-sm" style="--avatar-bg: {{ project.color }};">
                                                         {{ project.name[:2].upper() }}
                                                     </div>
                                                     <div>
@@ -459,7 +459,7 @@
                                                 {% set progress = project.progress if project.progress is defined else 0 %}
                                                 <div class="flex items-center gap-2">
                                                     <div class="progress" style="width: 80px;">
-                                                        <div class="progress-bar {% if progress >= 100 %}success{% elif progress >= 50 %}{% else %}warning{% endif %}" style="width: {{ progress }}%;"></div>
+                                                        <div class="progress-bar {% if progress >= 100 %}success{% elif progress >= 50 %}{% else %}warning{% endif %}" style="--progress: {{ progress }}%;"></div>
                                                     </div>
                                                     <span class="text-xs text-tertiary">{{ progress }}%</span>
                                                 </div>

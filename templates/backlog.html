@@ -39,7 +39,7 @@
                 <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{{ url_for('projects.issue_view', project_id=project.id, issue_id=issue.id) }}'">
                     <td class="px-6 py-4">
                         <div class="flex items-center">
-                            <i data-lucide="{{ 'bug' if issue.type == 'bug' else 'bookmark' if issue.type == 'story' else 'circle-dot' }}" class="w-4 h-4 mr-2 text-gray-500"></i>
+                            <i data-lucide="{{ 'bug' if issue.issue_type == 'bug' else 'bookmark' if issue.issue_type == 'story' else 'circle-dot' }}" class="w-4 h-4 mr-2 text-gray-500"></i>
                             <div>
                                 <div class="text-sm font-medium text-gray-900">{{ issue.title }}</div>
                                 <div class="text-xs text-gray-500">{{ issue.key }}</div>
@@ -48,7 +48,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {{ issue.type }}
+                            {{ issue.issue_type }}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">

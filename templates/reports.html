@@ -226,7 +226,7 @@
                                             {% set progress = ((done / total * 100) if total > 0 else 0)|round|int %}
                                             <div class="flex items-center gap-2" style="min-width: 140px;">
                                                 <div class="progress-bar" style="flex: 1; height: 8px;">
-                                                    <div class="progress-bar-fill" style="width: {{ progress }}%;"></div>
+                                                    <div class="progress-bar-fill" style="--progress: {% if progress %}{{ progress }}{% else %}0{% endif %}%;"></div>
                                                 </div>
                                                 <span class="text-sm text-secondary" style="min-width: 36px;">{{ progress }}%</span>
                                             </div>
@@ -297,12 +297,26 @@
 
         // Status Chart (Doughnut)
         const statusCtx = document.getElementById('statusChart').getContext('2d');
+        // @ts-ignore
+        const todoValue = {{ status_data.todo if status_data else 20 }};
+        // @ts-ignore
+        const inProgressValue = {{ status_data.in_progress if status_data else 35 }};
+        // @ts-ignore
+        const reviewValue = {{ status_data.review if status_data else 15 }};
+        // @ts-ignore
+        const doneValue = {{ status_data.done if status_data else 45 }};
+        const statusData = {
+            todo: todoValue,
+            inProgress: inProgressValue,
+            review: reviewValue,
+            done: doneValue
+        };
         new Chart(statusCtx, {
             type: 'doughnut',
             data: {
                 labels: ['To Do', 'In Progress', 'In Review', 'Done'],
                 datasets: [{
-                    data: [{{ status_data.todo if status_data else 20 }}, {{ status_data.in_progress if status_data else 35 }}, {{ status_data.review if status_data else 15 }}, {{ status_data.done if status_data else 45 }}],
+                    data: [statusData.todo, statusData.inProgress, statusData.review, statusData.done],
                     backgroundColor: ['#e5e7eb', '#fbbf24', '#6366f1', '#10b981'],
                     borderWidth: 0
                 }]

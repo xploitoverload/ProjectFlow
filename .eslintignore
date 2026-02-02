@@ -1,0 +1,4 @@
+templates/
+static/test_*.html
+*.jinja
+*.jinja2

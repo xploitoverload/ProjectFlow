@@ -6,7 +6,7 @@ Handles dashboard, landing page, and general navigation.
 
 from flask import Blueprint, render_template, redirect, url_for, session, request
 from app.middleware import login_required
-from app.services import ProjectService, ReportService
+from app.services import ProjectService, ReportService, IssueService
 
 main_bp = Blueprint('main', __name__)
 
@@ -169,7 +169,6 @@ def settings():
 def issues():
     """Issues navigator with advanced filters."""
     from app.models import User, Issue, Project
-    from app.services import IssueService
     
     user = User.query.get(session['user_id'])
     projects = ProjectService.get_user_accessible_projects(user)
@@ -227,7 +226,8 @@ def board():
     if selected_project:
         # Get issues grouped by status
         all_issues = Issue.query.filter_by(project_id=selected_project.id).order_by(Issue.position).all()
-        statuses = ['To Do', 'In Progress', 'In Review', 'Done']
+        statuses = ['todo', 'in_progress', 'code_review', 'testing', 'done']
+        issues_by_status = {}
         for status in statuses:
             issues_by_status[status] = [i for i in all_issues if i.status == status]
     
@@ -267,7 +267,7 @@ def backlog():
         # Get sprints
         sprints = Sprint.query.filter_by(project_id=selected_project.id).order_by(Sprint.start_date.desc()).all()
     
-    return render_template('backlog_new.html', 
+    return render_template('backlog.html', 
                           projects=projects,
                           selected_project=selected_project,
                           backlog_issues=backlog_issues,

@@ -4,7 +4,7 @@ Project Routes
 Handles project views, kanban boards, and issue management.
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, abort, jsonify
 from app.middleware import login_required, project_access_required, permission_required
 from app.services import ProjectService, IssueService, ReportService
 from app.utils.security import validate_csrf_token, sanitize_input
@@ -98,9 +98,25 @@ def project_kanban(project_id):
     if project.team:
         team_members_list = User.query.filter_by(team_id=project.team_id).all()
     
+    # Provide canonical status keys and user-facing labels for the template
+    statuses = IssueService.VALID_STATUSES
+    status_labels = {
+        'open': 'Open',
+        'todo': 'To Do',
+        'in_progress': 'In Progress',
+        'code_review': 'Code Review',
+        'testing': 'Testing',
+        'ready_deploy': 'Ready to Deploy',
+        'done': 'Done',
+        'closed': 'Closed',
+        'reopened': 'Reopened'
+    }
+
     return render_template('kanban_board.html',
                           project=project,
                           issues_by_status=issues_by_status,
+                          statuses=statuses,
+                          status_labels=status_labels,
                           total_issues=total_issues,
                           completed_percentage=completed_percentage,
                           total_hours=total_hours,
@@ -113,16 +129,23 @@ def project_kanban(project_id):
 @project_access_required
 def add_issue(project_id):
     """Add a new issue."""
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('projects.project_kanban', project_id=project_id))
+    # Flask-WTF automatically validates CSRF tokens
+    # No manual validation needed
     
     title = request.form.get('title', '').strip()
     description = request.form.get('description', '').strip()
     priority = request.form.get('priority', 'medium')
-    assignee_id = request.form.get('assigned_to')
+    issue_type = request.form.get('issue_type', 'task')
+    status = request.form.get('status', 'todo')
+    assignee_id = request.form.get('assignee_id')
     time_estimate = request.form.get('time_estimate', 0)
+    
+    # Convert time_estimate to float
+    try:
+        time_estimate = float(time_estimate) if time_estimate else 0
+    except (ValueError, TypeError):
+        time_estimate = 0
+    
     due_date = request.form.get('due_date')
     
     success, issue, message = IssueService.create_issue(
@@ -130,6 +153,8 @@ def add_issue(project_id):
         title=title,
         description=description,
         priority=priority,
+        issue_type=issue_type,
+        status=status,
         assignee_id=assignee_id,
         reporter_id=session['user_id'],
         time_estimate=time_estimate,
@@ -142,7 +167,6 @@ def add_issue(project_id):
         flash(message, 'error')
     
     return redirect(url_for('projects.project_kanban', project_id=project_id))
-
 
 @projects_bp.route('/<int:project_id>/issue/<int:issue_id>/delete', methods=['POST'])
 @login_required
@@ -171,20 +195,31 @@ def delete_issue(project_id, issue_id):
 @login_required
 @project_access_required
 def update_issue_status(project_id, issue_id):
-    """Update issue status from form."""
+    """Update issue status from form or AJAX."""
     from app.models import Issue
-    
-    csrf_token = request.form.get('csrf_token')
-    if not validate_csrf_token(csrf_token):
-        flash('Security error. Please try again.', 'error')
-        return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
     
     issue = Issue.query.get_or_404(issue_id)
     if issue.project_id != project_id:
         abort(404)
     
-    new_status = request.form.get('status')
+    # Handle JSON requests (from drag-and-drop)
+    if request.is_json:
+        new_status = request.json.get('status')
+        csrf_token = request.headers.get('X-CSRFToken')
+    else:
+        # Handle form requests
+        new_status = request.form.get('status')
+        csrf_token = request.form.get('csrf_token')
+    
+    if not validate_csrf_token(csrf_token):
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Security error'}), 403
+        flash('Security error. Please try again.', 'error')
+        return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
+    
     if not new_status:
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Status is required'}), 400
         flash('Status is required', 'error')
         return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
     
@@ -194,12 +229,24 @@ def update_issue_status(project_id, issue_id):
         updated_by=session['user_id']
     )
     
+    if request.is_json:
+        return jsonify({
+            'success': success,
+            'message': message,
+            'issue': {
+                'id': updated_issue.id,
+                'key': updated_issue.key,
+                'status': updated_issue.status
+            } if success else None
+        })
+    
     if success:
         flash('Status updated successfully', 'success')
     else:
         flash(message, 'error')
     
     return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
+
 
 
 @projects_bp.route('/<int:project_id>/issue/<int:issue_id>')
@@ -1076,7 +1123,7 @@ def project_issues(project_id):
     if status_filter:
         query = query.filter_by(status=status_filter)
     if type_filter:
-        query = query.filter_by(type=type_filter)
+        query = query.filter_by(issue_type=type_filter)
     if assignee_filter:
         query = query.filter_by(assignee_id=int(assignee_filter))
     

@@ -19,6 +19,8 @@ def get_encryption_key():
         key = Fernet.generate_key()
         with open(key_file, 'wb') as f:
             f.write(key)
+        # Set restrictive permissions (600 = owner read/write only)
+        os.chmod(key_file, 0o600)
         return key
 
 ENCRYPTION_KEY = get_encryption_key()
@@ -30,11 +32,16 @@ def encrypt_field(data):
     return cipher.encrypt(data.encode()).decode()
 
 def decrypt_field(data):
+    """Decrypt a field, logging any decryption errors"""
     if data is None:
         return None
     try:
         return cipher.decrypt(data.encode()).decode()
-    except:
+    except Exception as e:
+        # Log the error for debugging - data corruption detected
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f'Decryption error: {str(e)}. Data may be corrupted.')
         return None
 
 # Many-to-many relationship between Projects and Teams

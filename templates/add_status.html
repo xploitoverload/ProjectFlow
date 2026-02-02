@@ -233,7 +233,7 @@
                                 {% if project.statuses %}
                                 {% for status in project.statuses %}
                                 <div class="status-item">
-                                    <span class="status-dot" style="background: {{ status.color or 'var(--gray-400)' }};"></span>
+                                    <span class="status-dot" style="--dot-color: {{ status.color }};"></span>
                                     <span>{{ status.name }}</span>
                                 </div>
                                 {% endfor %}

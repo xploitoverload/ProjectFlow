@@ -37,11 +37,14 @@
                 <select name="status" class="form-select" style="min-width: 120px;" onchange="this.form.submit()">
                     <option value="">All Status</option>
                     <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open</option>
-                    <option value="To Do" {% if status_filter == 'To Do' %}selected{% endif %}>To Do</option>
-                    <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
-                    <option value="In Review" {% if status_filter == 'In Review' %}selected{% endif %}>In Review</option>
-                    <option value="Done" {% if status_filter == 'Done' %}selected{% endif %}>Done</option>
+                    <option value="todo" {% if status_filter == 'todo' %}selected{% endif %}>To Do</option>
+                    <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="code_review" {% if status_filter == 'code_review' %}selected{% endif %}>Code Review</option>
+                    <option value="testing" {% if status_filter == 'testing' %}selected{% endif %}>Testing</option>
+                    <option value="ready_deploy" {% if status_filter == 'ready_deploy' %}selected{% endif %}>Ready to Deploy</option>
+                    <option value="done" {% if status_filter == 'done' %}selected{% endif %}>Done</option>
                     <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+                    <option value="reopened" {% if status_filter == 'reopened' %}selected{% endif %}>Reopened</option>
                 </select>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -91,7 +94,7 @@
             <tbody>
                 {% for issue in issues %}
                 <tr class="issue-row" 
-                    onclick="window.location.href='{{ url_for('projects.issue_detail', project_id=issue.project_id, issue_id=issue.id) }}'">
+                    onclick="window.location.href='{{ url_for('projects.issue_view', project_id=issue.project_id, issue_id=issue.id) }}'">
                     <td style="padding: 12px 16px;">
                         <span style="font-weight: 500; color: var(--primary-600);">{{ issue.key }}</span>
                     </td>
@@ -189,15 +192,15 @@
                 <i data-lucide="x"></i>
             </button>
         </div>
-        <form method="POST" action="" id="createIssueForm">
+        <form method="POST" action="{% if projects %}{{ url_for('projects.add_issue', project_id=projects[0].id) }}{% else %}#{% endif %}" id="createIssueForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="modal-body">
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label class="form-label">Project *</label>
-                    <select name="project_id" id="issueProjectSelect" class="form-select" required>
+                    <select name="project_id" id="issueProjectSelect" class="form-select" required onchange="updateFormAction(this.value)">
                         <option value="">Select Project</option>
                         {% for project in projects %}
-                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        <option value="{{ project.id }}"{% if loop.first %} selected{% endif %}>{{ project.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -273,7 +276,8 @@
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     width: 100%;
     max-height: 90vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 .modal-header {
     display: flex;
@@ -289,6 +293,8 @@
 }
 .modal-body {
     padding: 24px;
+    overflow-y: auto;
+    flex: 1;
 }
 .modal-footer {
     display: flex;
@@ -321,26 +327,93 @@
 
 <script>
 function openCreateIssueModal() {
-    document.getElementById('createIssueModal').style.display = 'flex';
+    const modal = document.getElementById('createIssueModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Set focus to first input
+        const firstInput = modal.querySelector('select, input');
+        if (firstInput) firstInput.focus();
+    }
 }
 
 function closeCreateIssueModal() {
-    document.getElementById('createIssueModal').style.display = 'none';
+    const modal = document.getElementById('createIssueModal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Reset form
+        const form = document.getElementById('createIssueForm');
+        if (form) form.reset();
+    }
 }
 
 // Update form action when project is selected
-document.getElementById('issueProjectSelect').addEventListener('change', function() {
-    const projectId = this.value;
-    if (projectId) {
-        document.getElementById('createIssueForm').action = '/project/' + projectId + '/issue/add';
+function updateFormAction(projectId) {
+    const form = document.getElementById('createIssueForm');
+    if (form && projectId) {
+        form.action = '/project/' + projectId + '/issue/add';
     }
-});
+}
 
-// Initialize Lucide icons
+// Form validation and submission
+function validateAndSubmitIssue(event) {
+    const form = event.target;
+    const projectId = form.project_id.value;
+    
+    if (!projectId) {
+        event.preventDefault();
+        alert('Please select a project first.');
+        return false;
+    }
+    
+    const title = form.title.value.trim();
+    if (!title) {
+        event.preventDefault();
+        alert('Please enter an issue summary.');
+        form.title.focus();
+        return false;
+    }
+    
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+    }
+    
+    return true;
+}
+
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+    
+    // Set up form validation
+    const form = document.getElementById('createIssueForm');
+    if (form) {
+        form.addEventListener('submit', validateAndSubmitIssue);
+        
+        // Initialize with first project if available
+        const projectSelect = document.getElementById('issueProjectSelect');
+        if (projectSelect && projectSelect.value) {
+            updateFormAction(projectSelect.value);
+        }
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(event) {
+        // ESC to close modal
+        if (event.key === 'Escape') {
+            closeCreateIssueModal();
+        }
+        // Ctrl+I to open create issue modal
+        if (event.ctrlKey && event.key === 'i') {
+            event.preventDefault();
+            openCreateIssueModal();
+        }
+    });
 });
 </script>
 {% endblock %}

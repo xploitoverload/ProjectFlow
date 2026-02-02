@@ -144,7 +144,7 @@ def validate_date_range(start_date, end_date, start_field='start_date', end_fiel
 
 def validate_enum(value, field_name, allowed_values):
     """Validate that value is in allowed set."""
-    if value is None:
+    if value is None or value == '':
         return None
     
     if value not in allowed_values:
@@ -249,6 +249,11 @@ def validate_status(status):
     """Validate issue status."""
     allowed = ['open', 'todo', 'in_progress', 'code_review', 
                'testing', 'ready_deploy', 'done', 'closed', 'reopened']
+    
+    # Allow empty/None values
+    if status is None or status == '':
+        return None
+    
     return validate_enum(status, 'status', allowed)
 
 
@@ -261,5 +266,95 @@ def validate_project_status(status):
 
 def validate_workflow_type(workflow_type):
     """Validate workflow type."""
-    allowed = ['agile', 'waterfall', 'hybrid']
+    allowed = ['agile', 'waterfall', 'hybrid', 'kanban', 'scrum']
     return validate_enum(workflow_type, 'workflow_type', allowed)
+
+
+def sanitize_input(text, allow_html=False):
+    """
+    Sanitize input to prevent XSS attacks.
+    If allow_html is True, only allow a safe subset of HTML tags.
+    """
+    try:
+        import bleach
+        
+        if allow_html:
+            allowed_tags = ['b', 'i', 'strong', 'em', 'p', 'br', 'blockquote',
+                            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'code', 'pre']
+            allowed_attributes = {
+                'a': ['href', 'title'],
+            }
+            return bleach.clean(text, tags=allowed_tags, 
+                               attributes=allowed_attributes, 
+                               strip=True)
+        else:
+            # Strip all HTML tags
+            return bleach.clean(text, tags=[], strip=True)
+    except ImportError:
+        # If bleach is not installed, do basic sanitization
+        import html
+        return html.escape(text)
+
+
+def validate_email(email):
+    """
+    Validate email format using regex.
+    """
+    if not email:
+        return False
+    
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if len(email) > 254:  # RFC 5321 limit
+        return False
+    
+    if re.match(pattern, email):
+        return True
+    else:
+        return False
+
+
+def validate_password_strength(password):
+    """
+    Validate password strength against NIST guidelines.
+    Returns (is_valid, message).
+    """
+    if not password:
+        return False, "Password is required"
+    
+    if len(password) < 12:
+        return False, "Password must be at least 12 characters long"
+    
+    if len(password) > 128:
+        return False, "Password must be less than 128 characters"
+    
+    # Check for common patterns
+    if not re.search(r'[A-Z]', password):
+        return False, "Password must contain at least one uppercase letter"
+    
+    if not re.search(r'[a-z]', password):
+        return False, "Password must contain at least one lowercase letter"
+    
+    if not re.search(r'[0-9]', password):
+        return False, "Password must contain at least one number"
+    
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False, "Password must contain at least one special character"
+    
+    return True, None
+
+
+def validate_username(username):
+    """
+    Validate username format.
+    - 3-30 characters
+    - Alphanumeric, underscores, and hyphens
+    - Must start with a letter
+    """
+    if not username:
+        return False
+    
+    pattern = r'^[a-zA-Z][a-zA-Z0-9_-]{2,29}$'
+    if re.match(pattern, username):
+        return True
+    else:
+        return False

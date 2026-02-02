@@ -55,7 +55,7 @@
 
             <div class="sidebar-footer">
                 <a href="{{ url_for('main.profile') }}" class="sidebar-user">
-                    <div class="sidebar-user-avatar" style="background: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--primary-100)' }};">
+                    <div class="sidebar-user-avatar" style="--avatar-bg: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--primary-100)' }};">
                         {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
                     </div>
                     <div class="sidebar-user-info">
@@ -122,7 +122,7 @@
                     <div class="card-body">
                         <div class="flex items-start justify-between gap-6">
                             <div class="flex items-start gap-4">
-                                <div class="avatar avatar-xl" style="background: {{ project.color or 'var(--primary-100)' }}; font-size: 24px;">
+                                <div class="avatar avatar-xl" style="--avatar-bg: {{ project.color }}; font-size: 24px;">
                                     {{ project.name[:2].upper() }}
                                 </div>
                                 <div>
@@ -325,7 +325,7 @@
                                 <div class="flex flex-col gap-3">
                                     {% for member in project.team.members[:5] %}
                                     <div class="flex items-center gap-3">
-                                        <div class="avatar avatar-sm" style="background: {{ member.avatar_color or 'var(--primary-100)' }};">
+                                        <div class="avatar avatar-sm" style="--avatar-bg: {{ member.avatar_color }};">
                                             {{ member.username[:2].upper() }}
                                         </div>
                                         <div>

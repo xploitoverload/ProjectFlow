@@ -95,26 +95,37 @@ class AuthService:
     @staticmethod
     def create_session(user):
         """Create a new authenticated session for the user."""
-        # Clear any existing session data
-        session.clear()
+        from flask import session as flask_session
+        
+        # Get list of keys to preserve (CSRF token from Flask-WTF and any essential keys)
+        keys_to_preserve = ['csrf_token']  # Flask-WTF's CSRF token
+        preserved_data = {k: flask_session.get(k) for k in keys_to_preserve if k in flask_session}
+        
+        # Clear session completely (removes old user data if any)
+        flask_session.clear()
+        
+        # Restore preserved keys
+        for key, value in preserved_data.items():
+            if value is not None:
+                flask_session[key] = value
         
         # Use Flask-Login to handle the session
         login_user(user)
         
         # Regenerate session ID to prevent session fixation
-        session.regenerate = True
+        flask_session.regenerate = True
         
         # Set session data
-        session['user_id'] = user.id
-        session['username'] = user.username
-        session['role'] = user.role
-        session['team_id'] = user.team_id
-        session['last_activity'] = datetime.utcnow().isoformat()
-        session['session_created'] = datetime.utcnow().isoformat()
-        session.permanent = True
+        flask_session['user_id'] = user.id
+        flask_session['username'] = user.username
+        flask_session['role'] = user.role
+        flask_session['team_id'] = user.team_id
+        flask_session['last_activity'] = datetime.utcnow().isoformat()
+        flask_session['session_created'] = datetime.utcnow().isoformat()
+        flask_session.permanent = True
         
         # Generate session fingerprint for additional security
-        session['fingerprint'] = AuthService._generate_fingerprint()
+        flask_session['fingerprint'] = AuthService._generate_fingerprint()
     
     @staticmethod
     def destroy_session(user_id=None):

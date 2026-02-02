@@ -132,16 +132,27 @@ class AuditLogger:
         try:
             from app.models import AuditLog, db
             
+            # Convert event_type to action format for AuditLog model
+            action = event.get('event_type', 'UNKNOWN_EVENT')
+            
+            # Build details dict as JSON string
+            details_dict = {
+                'severity': event.get('severity', 'INFO'),
+                'user_agent': event.get('user_agent'),
+                'endpoint': event.get('endpoint'),
+                'target_type': event.get('target_type'),
+                'target_id': event.get('target_id'),
+                'details': event.get('details', {})
+            }
+            
             log_entry = AuditLog(
-                event_type=event['event_type'],
-                user_id=event['user_id'],
-                ip_address=event['ip_address'],
-                user_agent=event['user_agent'],
-                endpoint=event['endpoint'],
-                details=json.dumps(event['details']),
-                severity=event['severity'],
-                timestamp=datetime.fromisoformat(event['timestamp'])
+                user_id=event.get('user_id'),
+                action=action,
+                ip_address=event.get('ip_address')
             )
+            # Use the details setter which will encrypt it
+            log_entry.details = json.dumps(details_dict)
+            
             db.session.add(log_entry)
             db.session.commit()
         except Exception as e:
