@@ -53,7 +53,8 @@ def hash_password(password):
 
 
 def verify_password(stored_hash, password):
-    """Verify password against Argon2 hash."""
+    """Verify password against both Argon2 and PBKDF2 hashes."""
+    # Try Argon2 first
     try:
         ph.verify(stored_hash, password)
         # Check if rehash is needed (parameters may have changed)
@@ -61,7 +62,20 @@ def verify_password(stored_hash, password):
             return True, hash_password(password)
         return True, None
     except (VerifyMismatchError, InvalidHash):
-        return False, None
+        pass
+    
+    # Fall back to PBKDF2 (werkzeug format)
+    if stored_hash.startswith('pbkdf2:'):
+        try:
+            from werkzeug.security import check_password_hash
+            if check_password_hash(stored_hash, password):
+                # Rehash with Argon2
+                return True, hash_password(password)
+            return False, None
+        except:
+            return False, None
+    
+    return False, None
 
 
 def sanitize_input(text, allow_html=False):
