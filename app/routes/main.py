@@ -4,9 +4,10 @@ Main Routes
 Handles dashboard, landing page, and general navigation.
 """
 
-from flask import Blueprint, render_template, redirect, url_for, session, request
+from flask import Blueprint, render_template, redirect, url_for, session, request, flash, abort
 from app.middleware import login_required
 from app.services import ProjectService, ReportService, IssueService
+from app.models import db, User, Team, Project, Issue, ProjectUpdate
 
 main_bp = Blueprint('main', __name__)
 
@@ -116,7 +117,6 @@ def gantt_chart():
     user = User.query.get(session['user_id'])
     
     if user.role not in ['admin', 'super_admin', 'manager']:
-        from flask import flash, abort
         flash('Access denied. Manager or admin access required.', 'error')
         return redirect(url_for('main.dashboard'))
     
@@ -350,7 +350,6 @@ def users():
     from app.models import User
     user = User.query.get(session['user_id'])
     if user.role not in ['admin', 'super_admin']:
-        from flask import flash, abort
         flash('Access denied. Admin access required.', 'error')
         return redirect(url_for('main.dashboard'))
     return render_template('users.html')
@@ -383,7 +382,6 @@ def update_profile():
     
     csrf_token = request.form.get('csrf_token')
     if not validate_csrf_token(csrf_token):
-        from flask import flash
         flash('Security error. Please try again.', 'error')
         return redirect(url_for('main.settings'))
     
@@ -403,6 +401,5 @@ def update_profile():
     
     db.session.commit()
     
-    from flask import flash
     flash('Profile updated successfully!', 'success')
     return redirect(url_for('main.settings'))
