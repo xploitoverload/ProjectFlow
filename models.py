@@ -59,6 +59,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email_encrypted = db.Column(db.Text, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    full_name = db.Column(db.String(200))  # User's full name for profile display
     role = db.Column(db.String(50), nullable=False, index=True)  # Extended for more roles
     department = db.Column(db.String(50), index=True)  # Auto-derived from role: software, hardware, mechanical, etc.
     team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'))  # Core team assignment
@@ -68,6 +69,8 @@ class User(UserMixin, db.Model):
     last_login = db.Column(db.DateTime)
     last_activity = db.Column(db.DateTime)  # Updated on each request
     is_active = db.Column(db.Boolean, default=True)
+    reset_token = db.Column(db.String(100), unique=True)  # For password reset functionality
+    reset_token_expiry = db.Column(db.DateTime)  # Expiry time for reset token
     
     @property
     def email(self):
@@ -138,6 +141,7 @@ class Team(db.Model):
     is_core_team = db.Column(db.Boolean, default=False)  # True = Department core team, False = Project team
     description_encrypted = db.Column(db.Text)
     color = db.Column(db.String(7), default='#6366f1')  # Team color for UI
+    text_color = db.Column(db.String(7), default='#0f172a')  # Team avatar text color
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     members = db.relationship('User', backref='team', lazy=True)
     # Many-to-many relationship with projects
@@ -171,14 +175,19 @@ class Project(db.Model):
     workflow_type = db.Column(db.String(20), default='agile')
     team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'))
     lead_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))  # Project lead
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))  # Project owner for access control
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
+    deadline = db.Column(db.DateTime)  # Project deadline
+    color = db.Column(db.String(7), default='#667eea')  # Project avatar color
+    progress = db.Column(db.Integer, default=0)  # Progress percentage (0-100)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     
     # Relationships
     team = db.relationship('Team', foreign_keys=[team_id], backref='primary_projects')
     lead = db.relationship('User', foreign_keys=[lead_id], backref='led_projects')
+    owner = db.relationship('User', foreign_keys=[owner_id], backref='owned_projects')
     updates = db.relationship('ProjectUpdate', backref='project_ref', lazy=True, cascade='all, delete-orphan')
     sprints = db.relationship('Sprint', backref='project', lazy=True, cascade='all, delete-orphan')
     epics = db.relationship('Epic', backref='project', lazy=True, cascade='all, delete-orphan')
