@@ -1,10 +1,11 @@
 # init_db.py - Secure Database Initialization (FIXED)
-from app import app
+from app import create_app
 from models import db, User, Team, Project, ProjectUpdate
 from datetime import datetime, timedelta
 
 def init_database():
     """Initialize database with encrypted sample data"""
+    app = create_app('development')
     with app.app_context():
         # Drop all tables and recreate
         print("Dropping existing tables...")
@@ -82,6 +83,7 @@ def init_database():
         
         project1 = Project(
             name='E-commerce Website Development',
+            key='ECOM',
             status='In Progress',
             team_id=team1.id,
             start_date=datetime.utcnow() - timedelta(days=30),
@@ -91,6 +93,7 @@ def init_database():
         
         project2 = Project(
             name='Mobile App Design',
+            key='MOBILE',
             status='In Progress',
             team_id=team2.id,
             start_date=datetime.utcnow() - timedelta(days=20),
@@ -100,6 +103,7 @@ def init_database():
         
         project3 = Project(
             name='Marketing Campaign Q1',
+            key='MKTQ1',
             status='Not Started',
             team_id=team3.id,
             start_date=datetime.utcnow(),
@@ -109,6 +113,7 @@ def init_database():
         
         project4 = Project(
             name='Database Migration',
+            key='DBMIG',
             status='On Hold',
             team_id=team1.id,
             start_date=datetime.utcnow() - timedelta(days=45),
@@ -118,6 +123,7 @@ def init_database():
         
         project5 = Project(
             name='Website Redesign',
+            key='WEBX',
             status='Completed',
             team_id=team2.id,
             start_date=datetime.utcnow() - timedelta(days=90),
