@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}Progress Update - {{ update.user.username }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-chart-line text-primary"></i> Progress Update
+                    </h1>
+                    <p class="text-muted mt-2 mb-0">
+                        {{ update.user.username }} • 
+                        <strong>{{ update.reporting_period|title }}</strong> •
+                        {{ update.submitted_at.strftime('%B %d, %Y at %I:%M %p') }}
+                    </p>
+                </div>
+                <div>
+                    <a href="{% if current_user.role == 'admin' %}{{ url_for('progress.admin_all') }}{% else %}{{ url_for('progress.my_updates') }}{% endif %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status and Controls -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div>
+                                <small class="text-muted d-block mb-2">SUBMISSION STATUS</small>
+                                <span class="badge 
+                                    {% if update.review_status == 'pending' %}
+                                        bg-warning
+                                    {% elif update.review_status == 'reviewed' %}
+                                        bg-info
+                                    {% else %}
+                                        bg-success
+                                    {% endif %}
+                                    fs-6">
+                                    {{ update.review_status|title }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div>
+                                <small class="text-muted d-block mb-2">PROJECT STATUS</small>
+                                <span class="badge 
+                                    {% if update.project_status == 'on_track' %}
+                                        bg-success
+                                    {% elif update.project_status == 'at_risk' %}
+                                        bg-warning
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}
+                                    fs-6">
+                                    {{ update.project_status|replace('_', ' ')|title }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div>
+                                <small class="text-muted d-block mb-2">EFFORT LEVEL</small>
+                                <span class="badge bg-primary fs-6">{{ update.effort_level|title }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            {% if update.user_id == current_user.id and update.review_status == 'pending' %}
+                                <a href="{{ url_for('progress.edit_update', update_id=update.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            {% endif %}
+                            {% if current_user.role == 'admin' and update.review_status == 'pending' %}
+                                <a href="{{ url_for('progress.admin_review', update_id=update.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-check"></i> Review
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metadata -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted d-block mb-2">REPORTING PERIOD</small>
+                    <div class="h6 mb-0">{{ update.reporting_period|title }}</div>
+                    <small class="text-muted">{{ update.period_start_date }} to {{ update.period_end_date }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted d-block mb-2">HOURS SPENT</small>
+                    <div class="h6 mb-0">{{ update.hours_spent or 'N/A' }} hrs</div>
+                    <small class="text-muted">{{ update.effort_level|title }} effort</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted d-block mb-2">SUBMITTED</small>
+                    <div class="h6 mb-0">{{ update.submitted_at.strftime('%b %d, %Y') }}</div>
+                    <small class="text-muted">{{ update.submitted_at.strftime('%I:%M %p') }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted d-block mb-2">REVIEWED</small>
+                    {% if update.reviewed_at %}
+                        <div class="h6 mb-0">{{ update.reviewed_at.strftime('%b %d, %Y') }}</div>
+                        <small class="text-muted">By {{ update.reviewed_by.username if update.reviewed_by else 'Unknown' }}</small>
+                    {% else %}
+                        <div class="h6 mb-0 text-muted">Pending...</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Completed Work -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-check-circle text-success"></i> Completed Work</h5>
+                </div>
+                <div class="card-body">
+                    <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.completed_work }}</div>
+                </div>
+            </div>
+
+            <!-- Work In Progress -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-hourglass-half text-warning"></i> Current Work</h5>
+                </div>
+                <div class="card-body">
+                    <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.work_in_progress }}</div>
+                </div>
+            </div>
+
+            <!-- Blocked Tasks -->
+            {% if update.blocked_tasks %}
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-danger">
+                        <div class="card-header bg-light border-danger">
+                            <h5 class="mb-0"><i class="fas fa-ban text-danger"></i> Blocked Tasks</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.blocked_tasks }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-danger">
+                        <div class="card-header bg-light border-danger">
+                            <h5 class="mb-0"><i class="fas fa-exclamation-circle text-danger"></i> Reasons</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.blocked_reasons or 'N/A' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Individual Contributions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-star text-info"></i> Individual Contributions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.individual_contributions }}</div>
+                </div>
+            </div>
+
+            <!-- Team Work -->
+            {% if update.team_work %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-users text-primary"></i> Team Work</h5>
+                </div>
+                <div class="card-body">
+                    <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.team_work }}</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Product Work -->
+            <div class="row mb-4">
+                {% if update.features_worked %}
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Features</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.features_worked }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if update.bugs_fixed %}
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-bug text-danger"></i> Bugs Fixed</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.bugs_fixed }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if update.improvements %}
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-arrow-up"></i> Improvements</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.improvements }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Risks & Challenges -->
+            <div class="row mb-4">
+                {% if update.risks_dependencies %}
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-warning">
+                        <div class="card-header bg-light border-warning">
+                            <h6 class="mb-0"><i class="fas fa-link text-warning"></i> Risks & Dependencies</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.risks_dependencies }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if update.challenges %}
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-warning">
+                        <div class="card-header bg-light border-warning">
+                            <h6 class="mb-0"><i class="fas fa-mountain text-warning"></i> Challenges</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.challenges }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Next Priorities -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-arrow-right text-info"></i> Next Period Priorities</h5>
+                </div>
+                <div class="card-body">
+                    <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.next_priorities }}</div>
+                </div>
+            </div>
+
+            <!-- Notes & Escalations -->
+            {% if update.notes or update.escalations %}
+            <div class="row mb-4">
+                {% if update.notes %}
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-sticky-note"></i> Notes</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.notes }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if update.escalations %}
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-danger">
+                        <div class="card-header bg-light border-danger">
+                            <h6 class="mb-0"><i class="fas fa-exclamation-triangle text-danger"></i> Escalations</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="whitespace-pre-wrap" style="white-space: pre-wrap;">{{ update.escalations }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Admin Review Comments -->
+            {% if update.admin_comments %}
+            <div class="card shadow-sm mb-4 border-success">
+                <div class="card-header bg-light border-success">
+                    <h5 class="mb-0"><i class="fas fa-comment text-success"></i> Admin Feedback</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>{{ update.reviewed_by.username }}</strong>
+                        <small class="text-muted">{{ update.reviewed_at.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                    </p>
+                    <div class="whitespace-pre-wrap alert alert-success" style="white-space: pre-wrap;">{{ update.admin_comments }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .whitespace-pre-wrap {
+        word-wrap: break-word;
+        word-break: break-word;
+    }
+</style>
+{% endblock %}

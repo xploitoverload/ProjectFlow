@@ -126,6 +126,10 @@
                         <span class="iconify nav-icon" data-icon="solar:chart-bold-duotone"></span>
                         <span>Analytics</span>
                     </a>
+                    <a href="{{ url_for('progress.submit_update') }}" class="sidebar-nav-item {% if request.endpoint == 'progress.submit_update' %}active{% endif %}">
+                        <span class="iconify nav-icon" data-icon="solar:document-add-bold-duotone"></span>
+                        <span>Progress Updates</span>
+                    </a>
                     <a href="{{ url_for('main.service_desk') }}" class="sidebar-nav-item">
                         <span class="iconify nav-icon" data-icon="solar:headphones-round-bold-duotone"></span>
                         <span>Service Desk</span>
@@ -159,6 +163,10 @@
                     <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
                         <span class="iconify nav-icon" data-icon="solar:shield-check-bold-duotone"></span>
                         <span>Security</span>
+                    </a>
+                    <a href="{{ url_for('progress.admin_pending') }}" class="sidebar-nav-item {% if request.endpoint == 'progress.admin_pending' %}active{% endif %}">
+                        <span class="iconify nav-icon" data-icon="solar:inbox-in-bold-duotone"></span>
+                        <span>Progress Reviews</span>
                     </a>
                 </div>
                 {% endif %}

@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}All Progress Updates - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-list-check text-primary"></i> All Progress Updates
+                    </h1>
+                    <p class="text-muted small mb-0">Total: <strong>{{ updates.total }}</strong> updates</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('progress.admin_stats') }}" class="btn btn-info">
+                        <i class="fas fa-chart-bar"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('progress.admin_pending') }}" class="btn btn-warning">
+                        <i class="fas fa-hourglass-half"></i> Pending
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-filter"></i> Filters</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3" id="filterForm">
+                <div class="col-md-3">
+                    <label class="form-label small">User</label>
+                    <select name="user_id" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Users</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}" {% if request.args.get('user_id')|int(0) == user.id %}selected{% endif %}>
+                                {{ user.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small">Status</label>
+                    <select name="status" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if request.args.get('status') == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="needs_revision" {% if request.args.get('status') == 'needs_revision' %}selected{% endif %}>Needs Revision</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small">Period</label>
+                    <select name="period" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Periods</option>
+                        <option value="daily" {% if request.args.get('period') == 'daily' %}selected{% endif %}>Daily</option>
+                        <option value="weekly" {% if request.args.get('period') == 'weekly' %}selected{% endif %}>Weekly</option>
+                        <option value="monthly" {% if request.args.get('period') == 'monthly' %}selected{% endif %}>Monthly</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small">&nbsp;</label>
+                    <a href="{{ url_for('progress.admin_all') }}" class="btn btn-outline-secondary btn-sm w-100">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Updates Table -->
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            {% if updates.items %}
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 15%;">User</th>
+                        <th style="width: 12%;">Period</th>
+                        <th style="width: 10%;">Project Status</th>
+                        <th style="width: 8%;">Hours</th>
+                        <th style="width: 12%;">Review Status</th>
+                        <th style="width: 15%;">Submitted</th>
+                        <th style="width: 18%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for update in updates.items %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    {{ update.user.username[0]|upper }}
+                                </div>
+                                <div class="ms-2">
+                                    <strong class="d-block">{{ update.user.username }}</strong>
+                                    <small class="text-muted">{{ update.user.email or 'N/A' }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">
+                                {{ update.reporting_period|title }}
+                            </span>
+                            <br>
+                            <small class="text-muted text-nowrap">{{ update.period_start_date|dateformat('%m/%d') }} - {{ update.period_end_date|dateformat('%m/%d') }}</small>
+                        </td>
+                        <td>
+                            <span class="badge fs-7 {% if update.project_status == 'on_track' %}bg-success{% elif update.project_status == 'at_risk' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ update.project_status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong>{{ update.hours_spent or '0' }}</strong>
+                            <small class="text-muted d-block">hrs</small>
+                        </td>
+                        <td>
+                            {% if update.review_status == 'pending' %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-hourglass-half"></i> Pending
+                                </span>
+                            {% elif update.review_status == 'approved' %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> Approved
+                                </span>
+                            {% elif update.review_status == 'needs_revision' %}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-exclamation"></i> Needs Revision
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {{ update.submitted_at.strftime('%b %d, %Y') }}
+                                <br>
+                                <span class="badge bg-light text-dark">{{ (now - update.submitted_at).days }}d ago</span>
+                            </small>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('progress.view_update', update_id=update.id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            {% if update.review_status == 'pending' %}
+                            <a href="{{ url_for('progress.admin_review', update_id=update.id) }}" class="btn btn-sm btn-outline-warning" title="Review">
+                                <i class="fas fa-pen"></i> Review
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            {% if updates.pages > 1 %}
+            <nav aria-label="Page navigation" class="d-flex justify-content-center py-3">
+                <ul class="pagination mb-0">
+                    {% if updates.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('progress.admin_all', page=updates.prev_num, user_id=request.args.get('user_id', ''), status=request.args.get('status', ''), period=request.args.get('period', '')) }}">
+                            Previous
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in updates.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num == updates.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('progress.admin_all', page=page_num, user_id=request.args.get('user_id', ''), status=request.args.get('status', ''), period=request.args.get('period', '')) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if updates.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('progress.admin_all', page=updates.next_num, user_id=request.args.get('user_id', ''), status=request.args.get('status', ''), period=request.args.get('period', '')) }}">
+                            Next
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3" style="font-size: 48px;">
+                    <i class="fas fa-inbox text-muted"></i>
+                </div>
+                <h5 class="text-muted mb-2">No Progress Updates Found</h5>
+                <p class="text-muted small mb-0">No updates match the selected filters. Try adjusting your criteria.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ total_updates }}</h3>
+                    <small class="text-muted">Total Updates</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ pending_count }}</h3>
+                    <small class="text-muted">Pending Review</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ approved_count }}</h3>
+                    <small class="text-muted">Approved</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ revision_count }}</h3>
+                    <small class="text-muted">Needs Revision</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

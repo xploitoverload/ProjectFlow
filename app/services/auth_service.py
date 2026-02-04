@@ -112,9 +112,6 @@ class AuthService:
         # Use Flask-Login to handle the session
         login_user(user)
         
-        # Regenerate session ID to prevent session fixation
-        flask_session.regenerate = True
-        
         # Set session data
         flask_session['user_id'] = user.id
         flask_session['username'] = user.username
@@ -126,6 +123,9 @@ class AuthService:
         
         # Generate session fingerprint for additional security
         flask_session['fingerprint'] = AuthService._generate_fingerprint()
+        
+        # Ensure session is saved/committed
+        flask_session.modified = True
     
     @staticmethod
     def destroy_session(user_id=None):

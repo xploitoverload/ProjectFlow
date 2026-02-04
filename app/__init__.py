@@ -210,12 +210,14 @@ def _register_blueprints(app):
     from app.routes.admin import admin_bp
     from app.routes.api import api_bp
     from app.routes.projects import projects_bp
+    from app.routes.progress import progress_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(api_bp, url_prefix='/api/v1')
     app.register_blueprint(projects_bp, url_prefix='/project')
+    app.register_blueprint(progress_bp, url_prefix='/progress')
 
 
 def _register_error_handlers(app):

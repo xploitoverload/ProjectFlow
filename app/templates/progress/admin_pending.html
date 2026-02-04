@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Progress Updates - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-inbox text-warning"></i> Pending Progress Updates
+                </h1>
+                <a href="{{ url_for('progress.admin_all') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-list"></i> View All Updates
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-warning">
+                <div class="card-body">
+                    <small class="text-muted d-block mb-2">PENDING REVIEW</small>
+                    <h2 class="mb-0 text-warning">{{ updates.total }}</h2>
+                    <p class="text-muted mb-0">Updates awaiting your review</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted d-block mb-2">OLDEST PENDING</small>
+                    <h6 class="mb-0">
+                        {% if updates.items %}
+                            {{ (updates.items[-1].submitted_at - now).days }} days ago
+                        {% else %}
+                            None
+                        {% endif %}
+                    </h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Updates List -->
+    <div class="row">
+        <div class="col-md-12">
+            {% if updates.items %}
+                <div class="card shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Period</th>
+                                    <th>Date Range</th>
+                                    <th>Effort</th>
+                                    <th>Project Status</th>
+                                    <th>Submitted</th>
+                                    <th>Days Pending</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for update in updates.items %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ update.user.username }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ update.user.role|title }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ update.reporting_period|title }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ update.period_start_date }} to {{ update.period_end_date }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ update.effort_level|title }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if update.project_status == 'on_track' %}
+                                                bg-success
+                                            {% elif update.project_status == 'at_risk' %}
+                                                bg-warning
+                                            {% else %}
+                                                bg-danger
+                                            {% endif %}
+                                        ">
+                                            {{ update.project_status|replace('_', ' ')|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ update.submitted_at.strftime('%b %d, %I:%M %p') }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="badge bg-warning">{{ (now - update.submitted_at).days }} days</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('progress.view_update', update_id=update.id) }}" 
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <a href="{{ url_for('progress.admin_review', update_id=update.id) }}" 
+                                               class="btn btn-outline-success" title="Review Update">
+                                                <i class="fas fa-check"></i> Review
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if updates.pages > 1 %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if updates.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('progress.admin_pending', page=updates.prev_num) }}">
+                                    Previous
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for page_num in updates.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num == updates.page %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('progress.admin_pending', page=page_num) }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if updates.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('progress.admin_pending', page=updates.next_num) }}">
+                                    Next
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-success text-center py-5">
+                    <i class="fas fa-check-circle fa-3x mb-3 d-block text-success"></i>
+                    <h5>All Updates Reviewed!</h5>
+                    <p class="text-muted">There are no pending progress updates. Great job staying on top of reviews!</p>
+                    <a href="{{ url_for('progress.admin_all') }}" class="btn btn-outline-secondary">
+                        View All Updates
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

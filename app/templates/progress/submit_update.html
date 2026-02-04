@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Progress Update{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-chart-line text-primary"></i> 
+                    {% if update %}Edit{% else %}Submit{% endif %} Progress Update
+                </h1>
+                <a href="{% if update %}{{ url_for('progress.view_update', update_id=update.id) }}{% else %}{{ url_for('progress.my_updates') }}{% endif %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Info Card -->
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Guidelines</h5>
+                <ul class="mb-0">
+                    <li><strong>Be specific:</strong> Include task names, issue IDs, and measurable results</li>
+                    <li><strong>Be honest:</strong> Include blockers and challenges - this helps us support you better</li>
+                    <li><strong>Be concise:</strong> Use clear, structured information for easy admin review</li>
+                    <li><strong>Be thorough:</strong> Cover all aspects of your work during the period</li>
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">Progress Update Form</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <!-- Reporting Period Section -->
+                        <div class="section-header mb-4">
+                            <h6 class="text-muted text-uppercase fw-bold">Reporting Period</h6>
+                            <div class="border-bottom"></div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    {{ form.reporting_period.label(class="form-label fw-bold") }}
+                                    {{ form.reporting_period(class="form-select" + (" is-invalid" if form.reporting_period.errors else "")) }}
+                                    {% if form.reporting_period.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.reporting_period.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.reporting_period.description }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    {{ form.period_start_date.label(class="form-label fw-bold") }}
+                                    {{ form.period_start_date(class="form-control" + (" is-invalid" if form.period_start_date.errors else ""), type="date") }}
+                                    {% if form.period_start_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.period_start_date.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    {{ form.period_end_date.label(class="form-label fw-bold") }}
+                                    {{ form.period_end_date(class="form-control" + (" is-invalid" if form.period_end_date.errors else ""), type="date") }}
+                                    {% if form.period_end_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.period_end_date.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Work Completed Section -->
+                        <div class="section-header mb-4 mt-5">
+                            <h6 class="text-muted text-uppercase fw-bold">Work Completed</h6>
+                            <div class="border-bottom"></div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ form.completed_work.label(class="form-label fw-bold") }}
+                            {{ form.completed_work(class="form-control" + (" is-invalid" if form.completed_work.errors else ""), rows=5, placeholder="• Task 1 - Description and result\n• Task 2 - Description and result\n• Feature X - Description and result") }}
+                            {% if form.completed_work.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.completed_work.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-2">{{ form.completed_work.description }}</small>
+                        </div>
+
+                        <!-- Work In Progress Section -->
+                        <div class="section-header mb-4 mt-5">
+                            <h6 class="text-muted text-uppercase fw-bold">Current Work & Blockers</h6>
+                            <div class="border-bottom"></div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ form.work_in_progress.label(class="form-label fw-bold") }}
+                            {{ form.work_in_progress(class="form-control" + (" is-invalid" if form.work_in_progress.errors else ""), rows=4, placeholder="• Task 1 - Status and expected completion\n• Task 2 - Status and expected completion") }}
+                            {% if form.work_in_progress.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.work_in_progress.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-2">{{ form.work_in_progress.description }}</small>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.blocked_tasks.label(class="form-label fw-bold") }}
+                                    {{ form.blocked_tasks(class="form-control" + (" is-invalid" if form.blocked_tasks.errors else ""), rows=3, placeholder="List any blocked tasks (optional)") }}
+                                    {% if form.blocked_tasks.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.blocked_tasks.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.blocked_reasons.label(class="form-label fw-bold") }}
+                                    {{ form.blocked_reasons(class="form-control" + (" is-invalid" if form.blocked_reasons.errors else ""), rows=3, placeholder="Reasons for blockers (optional)") }}
+                                    {% if form.blocked_reasons.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.blocked_reasons.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Time & Effort Section -->
+                        <div class="section-header mb-4 mt-5">
+                            <h6 class="text-muted text-uppercase fw-bold">Time & Effort</h6>
+                            <div class="border-bottom"></div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.hours_spent.label(class="form-label fw-bold") }}
+                                    {{ form.hours_spent(class="form-control" + (" is-invalid" if form.hours_spent.errors else ""), placeholder="e.g., 40") }}
+                                    {% if form.hours_spent.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.hours_spent.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.hours_spent.description }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.effort_level.label(class="form-label fw-bold") }}
+                                    {{ form.effort_level(class="form-select" + (" is-invalid" if form.effort_level.errors else "")) }}
+                                    {% if form.effort_level.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.effort_level.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.effort_level.description }}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contributions Section -->
+                        <div class="section-header mb-4 mt-5">
+                            <h6 class="text-muted text-uppercase fw-bold">Contributions & Impact</h6>
+                            <div class="border-bottom"></div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ form.individual_contributions.label(class="form-label fw-bold") }}
+                            {{ form.individual_contributions(class="form-control" + (" is-invalid" if form.individual_contributions.errors else ""), rows=4, placeholder="• Achievement 1\n• Learning 2\n• Improvement 3") }}
+                            {% if form.individual_contributions.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.individual_contributions.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-2">{{ form.individual_contributions.description }}</small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ form.team_work.label(class="form-label fw-bold") }}
+                            {{ form.team_work(class="form-control" + (" is-invalid" if form.team_work.errors else ""), rows=3, placeholder="How you contributed to the team (optional)") }}
+                            {% if form.team_work.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.team_work.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-2">{{ form.team_work.description }}</small>
+                        </div>
+
+                        <!-- Product Work Section -->
+                        <div class="section-header mb-4 mt-5">
+                            <h6 class="text-muted text-uppercase fw-bold">Product Features & Improvements</h6>
+                            <div class="border-bottom"></div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    {{ form.features_worked.label(class="form-label fw-bold") }}
+                                    {{ form.features_worked(class="form-control" + (" is-invalid" if form.features_worked.errors else ""), rows=3, placeholder="Features worked on (optional)") }}
+                                    {% if form.features_worked.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.features_worked.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    {{ form.bugs_fixed.label(class="form-label fw-bold") }}
+                                    {{ form.bugs_fixed(class="form-control" + (" is-invalid" if form.bugs_fixed.errors else ""), rows=3, placeholder="Bugs fixed (optional)") }}
+                                    {% if form.bugs_fixed.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.bugs_fixed.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    {{ form.improvements.label(class="form-label fw-bold") }}
+                                    {{ form.improvements(class="form-control" + (" is-invalid" if form.improvements.errors else ""), rows=3, placeholder="Improvements (optional)") }}
+                                    {% if form.improvements.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.improvements.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status & Risks Section -->
+                        <div class="section-header mb-4 mt-5">
+                            <h6 class="text-muted text-uppercase fw-bold">Project Status & Risks</h6>
+                            <div class="border-bottom"></div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ form.project_status.label(class="form-label fw-bold") }}
+                            {{ form.project_status(class="form-select" + (" is-invalid" if form.project_status.errors else "")) }}
+                            {% if form.project_status.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.project_status.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-2">{{ form.project_status.description }}</small>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.risks_dependencies.label(class="form-label fw-bold") }}
+                                    {{ form.risks_dependencies(class="form-control" + (" is-invalid" if form.risks_dependencies.errors else ""), rows=3, placeholder="Any risks or dependencies (optional)") }}
+                                    {% if form.risks_dependencies.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.risks_dependencies.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.challenges.label(class="form-label fw-bold") }}
+                                    {{ form.challenges(class="form-control" + (" is-invalid" if form.challenges.errors else ""), rows=3, placeholder="Challenges faced (optional)") }}
+                                    {% if form.challenges.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.challenges.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Planning Section -->
+                        <div class="section-header mb-4 mt-5">
+                            <h6 class="text-muted text-uppercase fw-bold">Next Period Planning</h6>
+                            <div class="border-bottom"></div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ form.next_priorities.label(class="form-label fw-bold") }}
+                            {{ form.next_priorities(class="form-control" + (" is-invalid" if form.next_priorities.errors else ""), rows=4, placeholder="• Priority 1 - Description\n• Priority 2 - Description") }}
+                            {% if form.next_priorities.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.next_priorities.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-2">{{ form.next_priorities.description }}</small>
+                        </div>
+
+                        <!-- Additional Notes Section -->
+                        <div class="section-header mb-4 mt-5">
+                            <h6 class="text-muted text-uppercase fw-bold">Additional Information</h6>
+                            <div class="border-bottom"></div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.notes.label(class="form-label fw-bold") }}
+                                    {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows=3, placeholder="Any additional notes (optional)") }}
+                                    {% if form.notes.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.notes.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.escalations.label(class="form-label fw-bold") }}
+                                    {{ form.escalations(class="form-control" + (" is-invalid" if form.escalations.errors else ""), rows=3, placeholder="Escalations needed (optional)") }}
+                                    {% if form.escalations.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.escalations.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-flex gap-2 mt-5">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                            <a href="{% if update %}{{ url_for('progress.view_update', update_id=update.id) }}{% else %}{{ url_for('progress.my_updates') }}{% endif %}" class="btn btn-outline-secondary btn-lg">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .section-header {
+        padding-top: 1rem;
+    }
+    
+    .section-header h6 {
+        letter-spacing: 0.15em;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .section-header .border-bottom {
+        margin-top: 0.5rem;
+        opacity: 0.3;
+    }
+    
+    .form-label {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        font-size: 0.95rem;
+        border-radius: 0.375rem;
+    }
+    
+    textarea.form-control {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        resize: vertical;
+    }
+</style>
+{% endblock %}

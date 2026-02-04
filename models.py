@@ -591,3 +591,180 @@ class StarredItem(db.Model):
     
     def __repr__(self):
         return f'<StarredItem {self.item_type}:{self.item_id}>'
+
+
+class ProgressUpdate(db.Model):
+    """Employee progress update model for performance tracking and reporting"""
+    __tablename__ = 'progress_update'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    
+    # Reporting details
+    reporting_period = db.Column(db.String(20), nullable=False)  # 'daily', 'weekly', 'monthly'
+    period_start_date = db.Column(db.Date, nullable=False)
+    period_end_date = db.Column(db.Date, nullable=False)
+    
+    # Work completed
+    completed_work_encrypted = db.Column(db.Text, nullable=False)  # What was accomplished
+    work_in_progress_encrypted = db.Column(db.Text, nullable=False)  # Current work
+    blocked_tasks_encrypted = db.Column(db.Text)  # Tasks that are blocked
+    blocked_reasons_encrypted = db.Column(db.Text)  # Reasons for blocked tasks
+    
+    # Time and effort
+    hours_spent = db.Column(db.Float, default=0)  # Hours worked during period
+    effort_level = db.Column(db.String(20), default='medium')  # low, medium, high
+    
+    # Contributions
+    individual_contributions_encrypted = db.Column(db.Text)  # Personal achievements
+    team_work_encrypted = db.Column(db.Text)  # Team collaboration and support
+    
+    # Product work
+    features_worked_encrypted = db.Column(db.Text)  # Features developed
+    bugs_fixed_encrypted = db.Column(db.Text)  # Bugs fixed
+    improvements_encrypted = db.Column(db.Text)  # Improvements made
+    
+    # Status and tracking
+    project_status = db.Column(db.String(20), default='on_track')  # 'on_track', 'at_risk', 'delayed'
+    risks_dependencies_encrypted = db.Column(db.Text)  # Risks and dependencies
+    challenges_encrypted = db.Column(db.Text)  # Challenges faced
+    
+    # Planning
+    next_priorities_encrypted = db.Column(db.Text)  # Plans for next period
+    notes_encrypted = db.Column(db.Text)  # General notes
+    escalations_encrypted = db.Column(db.Text)  # Items needing admin attention
+    
+    # Review tracking
+    submitted_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    reviewed_at = db.Column(db.DateTime)  # When admin reviewed it
+    admin_comments_encrypted = db.Column(db.Text)  # Admin feedback
+    review_status = db.Column(db.String(20), default='pending')  # 'pending', 'reviewed', 'approved'
+    reviewed_by_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))  # Admin who reviewed
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='progress_updates')
+    reviewed_by = db.relationship('User', foreign_keys=[reviewed_by_id], backref='reviewed_updates')
+    
+    # Encrypted field properties
+    @property
+    def completed_work(self):
+        return decrypt_field(self.completed_work_encrypted)
+    
+    @completed_work.setter
+    def completed_work(self, value):
+        self.completed_work_encrypted = encrypt_field(value)
+    
+    @property
+    def work_in_progress(self):
+        return decrypt_field(self.work_in_progress_encrypted)
+    
+    @work_in_progress.setter
+    def work_in_progress(self, value):
+        self.work_in_progress_encrypted = encrypt_field(value)
+    
+    @property
+    def blocked_tasks(self):
+        return decrypt_field(self.blocked_tasks_encrypted)
+    
+    @blocked_tasks.setter
+    def blocked_tasks(self, value):
+        self.blocked_tasks_encrypted = encrypt_field(value)
+    
+    @property
+    def blocked_reasons(self):
+        return decrypt_field(self.blocked_reasons_encrypted)
+    
+    @blocked_reasons.setter
+    def blocked_reasons(self, value):
+        self.blocked_reasons_encrypted = encrypt_field(value)
+    
+    @property
+    def individual_contributions(self):
+        return decrypt_field(self.individual_contributions_encrypted)
+    
+    @individual_contributions.setter
+    def individual_contributions(self, value):
+        self.individual_contributions_encrypted = encrypt_field(value)
+    
+    @property
+    def team_work(self):
+        return decrypt_field(self.team_work_encrypted)
+    
+    @team_work.setter
+    def team_work(self, value):
+        self.team_work_encrypted = encrypt_field(value)
+    
+    @property
+    def features_worked(self):
+        return decrypt_field(self.features_worked_encrypted)
+    
+    @features_worked.setter
+    def features_worked(self, value):
+        self.features_worked_encrypted = encrypt_field(value)
+    
+    @property
+    def bugs_fixed(self):
+        return decrypt_field(self.bugs_fixed_encrypted)
+    
+    @bugs_fixed.setter
+    def bugs_fixed(self, value):
+        self.bugs_fixed_encrypted = encrypt_field(value)
+    
+    @property
+    def improvements(self):
+        return decrypt_field(self.improvements_encrypted)
+    
+    @improvements.setter
+    def improvements(self, value):
+        self.improvements_encrypted = encrypt_field(value)
+    
+    @property
+    def risks_dependencies(self):
+        return decrypt_field(self.risks_dependencies_encrypted)
+    
+    @risks_dependencies.setter
+    def risks_dependencies(self, value):
+        self.risks_dependencies_encrypted = encrypt_field(value)
+    
+    @property
+    def challenges(self):
+        return decrypt_field(self.challenges_encrypted)
+    
+    @challenges.setter
+    def challenges(self, value):
+        self.challenges_encrypted = encrypt_field(value)
+    
+    @property
+    def next_priorities(self):
+        return decrypt_field(self.next_priorities_encrypted)
+    
+    @next_priorities.setter
+    def next_priorities(self, value):
+        self.next_priorities_encrypted = encrypt_field(value)
+    
+    @property
+    def notes(self):
+        return decrypt_field(self.notes_encrypted)
+    
+    @notes.setter
+    def notes(self, value):
+        self.notes_encrypted = encrypt_field(value)
+    
+    @property
+    def escalations(self):
+        return decrypt_field(self.escalations_encrypted)
+    
+    @escalations.setter
+    def escalations(self, value):
+        self.escalations_encrypted = encrypt_field(value)
+    
+    @property
+    def admin_comments(self):
+        return decrypt_field(self.admin_comments_encrypted)
+    
+    @admin_comments.setter
+    def admin_comments(self, value):
+        self.admin_comments_encrypted = encrypt_field(value)
+    
+    def __repr__(self):
+        return f'<ProgressUpdate {self.user.username} {self.reporting_period} {self.submitted_at.date()}>'

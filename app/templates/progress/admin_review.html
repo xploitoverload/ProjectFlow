@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Review Progress Update - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-comments text-primary"></i> Review Progress Update
+                </h1>
+                <a href="{{ url_for('progress.admin_pending') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Queue
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Update Preview Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-0">{{ update.user.username }}'s Progress Update</h5>
+                            <small class="text-muted">
+                                {{ update.reporting_period|title }} • 
+                                {{ update.period_start_date }} to {{ update.period_end_date }}
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="badge bg-warning">Pending Review</span>
+                            <span class="badge bg-primary">{{ update.effort_level|title }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Quick Stats -->
+                    <div class="row mb-4 pb-4 border-bottom">
+                        <div class="col-md-3">
+                            <small class="text-muted d-block mb-1">PROJECT STATUS</small>
+                            <span class="badge fs-6
+                                {% if update.project_status == 'on_track' %}
+                                    bg-success
+                                {% elif update.project_status == 'at_risk' %}
+                                    bg-warning
+                                {% else %}
+                                    bg-danger
+                                {% endif %}
+                            ">
+                                {{ update.project_status|replace('_', ' ')|title }}
+                            </span>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block mb-1">HOURS SPENT</small>
+                            <h6 class="mb-0">{{ update.hours_spent or 'N/A' }} hrs</h6>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block mb-1">HAS BLOCKERS</small>
+                            {% if update.blocked_tasks %}
+                                <span class="badge bg-danger">Yes</span>
+                            {% else %}
+                                <span class="badge bg-success">No</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block mb-1">SUBMITTED</small>
+                            <small class="text-muted">{{ update.submitted_at.strftime('%b %d') }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Key Sections Summary -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-2">Completed Work Summary:</h6>
+                        <p class="text-muted mb-0" style="max-height: 150px; overflow-y: auto;">
+                            {{ update.completed_work[:500] }}{% if update.completed_work|length > 500 %}...{% endif %}
+                        </p>
+                    </div>
+
+                    {% if update.blocked_tasks %}
+                    <div class="alert alert-warning">
+                        <strong><i class="fas fa-exclamation-triangle"></i> Has Blocked Tasks</strong>
+                        <p class="mb-0 mt-2">{{ update.blocked_tasks[:200] }}{% if update.blocked_tasks|length > 200 %}...{% endif %}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if update.escalations %}
+                    <div class="alert alert-danger">
+                        <strong><i class="fas fa-exclamation-circle"></i> Escalations Noted</strong>
+                        <p class="mb-0 mt-2">{{ update.escalations[:200] }}{% if update.escalations|length > 200 %}...{% endif %}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="text-end mt-3">
+                        <a href="{{ url_for('progress.view_update', update_id=update.id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-expand"></i> View Full Update
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Form -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-pen"></i> Your Review</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="form-group mb-3">
+                            {{ form.review_status.label(class="form-label fw-bold") }}
+                            {{ form.review_status(class="form-select" + (" is-invalid" if form.review_status.errors else "")) }}
+                            {% if form.review_status.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.review_status.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-2">
+                                Mark whether this update has been reviewed and if approved.
+                            </small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            {{ form.admin_comments.label(class="form-label fw-bold") }}
+                            {{ form.admin_comments(class="form-control" + (" is-invalid" if form.admin_comments.errors else ""), rows=6, placeholder="Your feedback and observations on this progress update...") }}
+                            {% if form.admin_comments.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.admin_comments.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-2">
+                                Provide constructive feedback, observations, or recognition for this update.
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.submit(class="btn btn-primary w-100 btn-lg") }}
+                        </div>
+                    </form>
+
+                    <!-- Quick Actions -->
+                    <div class="border-top pt-3 mt-3">
+                        <p class="text-muted small mb-2">Quick Actions:</p>
+                        <div class="btn-group d-grid gap-2" role="group">
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="setTemplate('Looks great! Keep up the excellent work.')">
+                                👍 Approve
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm" onclick="setTemplate('Please provide more details on blockers.')">
+                                ⚠️ Needs Info
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setTemplate(message) {
+    document.querySelector('textarea[name="admin_comments"]').value = message;
+    document.querySelector('select[name="review_status"]').focus();
+}
+</script>
+{% endblock %}

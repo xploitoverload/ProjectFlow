@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Progress Updates Statistics - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-chart-bar text-primary"></i> Progress Updates Dashboard
+                    </h1>
+                    <p class="text-muted small mb-0">System-wide statistics and insights</p>
+                </div>
+                <a href="{{ url_for('progress.admin_pending') }}" class="btn btn-warning">
+                    <i class="fas fa-hourglass-half"></i> Pending Reviews
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Total Updates</p>
+                            <h3 class="text-primary mb-0">{{ stats['total_updates'] }}</h3>
+                        </div>
+                        <div style="font-size: 32px; color: #0d6efd;" class="opacity-50">
+                            <i class="fas fa-list-check"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top">
+                        <small class="text-muted">All time submissions</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Pending Review</p>
+                            <h3 class="text-warning mb-0">{{ stats['pending_reviews'] }}</h3>
+                        </div>
+                        <div style="font-size: 32px; color: #ffc107;" class="opacity-50">
+                            <i class="fas fa-hourglass-half"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top">
+                        <small class="text-muted">Awaiting action</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Approved</p>
+                            <h3 class="text-success mb-0">{{ stats['approved_reviews'] }}</h3>
+                        </div>
+                        <div style="font-size: 32px; color: #198754;" class="opacity-50">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top">
+                        <small class="text-muted">Reviewed positively</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small mb-1">Needs Revision</p>
+                            <h3 class="text-info mb-0">{{ stats['needs_revision'] }}</h3>
+                        </div>
+                        <div style="font-size: 32px; color: #0dcaf0;" class="opacity-50">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top">
+                        <small class="text-muted">Awaiting resubmission</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Project Status Breakdown</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">On Track</span>
+                            <strong class="text-success">{{ stats['on_track'] }}</strong>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" style="width: {{ (stats['on_track'] / (stats['on_track'] + stats['at_risk'] + stats['delayed']) * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">At Risk</span>
+                            <strong class="text-warning">{{ stats['at_risk'] }}</strong>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" style="width: {{ (stats['at_risk'] / (stats['on_track'] + stats['at_risk'] + stats['delayed']) * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">Delayed</span>
+                            <strong class="text-danger">{{ stats['delayed'] }}</strong>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-danger" style="width: {{ (stats['delayed'] / (stats['on_track'] + stats['at_risk'] + stats['delayed']) * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Effort Level Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">Low</span>
+                            <strong>{{ stats['effort_low'] }}</strong>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" style="width: {{ (stats['effort_low'] / stats['total_updates'] * 100)|int }}%; background-color: #6c757d;"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">Medium</span>
+                            <strong>{{ stats['effort_medium'] }}</strong>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" style="width: {{ (stats['effort_medium'] / stats['total_updates'] * 100)|int }}%; background-color: #0dcaf0;"></div>
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">High</span>
+                            <strong>{{ stats['effort_high'] }}</strong>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: {{ (stats['effort_high'] / stats['total_updates'] * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Submission by Period</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">Daily</span>
+                            <strong>{{ stats['period_daily'] }}</strong>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" style="width: {{ (stats['period_daily'] / stats['total_updates'] * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">Weekly</span>
+                            <strong>{{ stats['period_weekly'] }}</strong>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: {{ (stats['period_weekly'] / stats['total_updates'] * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">Monthly</span>
+                            <strong>{{ stats['period_monthly'] }}</strong>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: {{ (stats['period_monthly'] / stats['total_updates'] * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Submitters -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-crown"></i> Top Submitters</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% if top_submitters %}
+                        {% for user, count in top_submitters %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="d-block">{{ user.username }}</strong>
+                                <small class="text-muted">{{ user.email or 'N/A' }}</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-3">
+                        No data available
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-clock"></i> Average Hours by User</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% if avg_hours %}
+                        {% for user, avg_hrs in avg_hours %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="d-block">{{ user.username }}</strong>
+                                <small class="text-muted">Average per update</small>
+                            </div>
+                            <span class="badge bg-info rounded-pill">{{ avg_hrs|round(1) }} hrs</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-3">
+                        No data available
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Submissions -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-history"></i> Recent Submissions</h6>
+                </div>
+                <div class="table-responsive">
+                    {% if recent_updates %}
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>User</th>
+                                <th>Period</th>
+                                <th>Project Status</th>
+                                <th>Hours</th>
+                                <th>Submitted</th>
+                                <th>Review Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for update in recent_updates %}
+                            <tr>
+                                <td>{{ update.user.username }}</td>
+                                <td>{{ update.reporting_period|title }}</td>
+                                <td>
+                                    <span class="badge {% if update.project_status == 'on_track' %}bg-success{% elif update.project_status == 'at_risk' %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ update.project_status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td>{{ update.hours_spent or '0' }} hrs</td>
+                                <td><small class="text-muted">{{ update.submitted_at.strftime('%b %d, %Y') }}</small></td>
+                                <td>
+                                    {% if update.review_status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% elif update.review_status == 'approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% else %}
+                                    <span class="badge bg-info">Needs Revision</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('progress.view_update', update_id=update.id) }}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <p>No recent submissions</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
