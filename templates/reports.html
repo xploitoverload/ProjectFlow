@@ -244,6 +244,209 @@
                     </div>
                 </div>
 
+                <!-- Reports Tabs -->
+                <div class="mb-6" style="display: flex; gap: 8px; border-bottom: 2px solid var(--gray-200); padding-bottom: 0;">
+                    <button class="tab-button active" onclick="switchReportTab('user')" style="padding: 12px 24px; border: none; background: none; cursor: pointer; font-weight: 500; border-bottom: 3px solid var(--primary); color: var(--primary);">
+                        <i data-lucide="user" style="width: 18px; height: 18px; display: inline-block; margin-right: 8px; vertical-align: middle;"></i>
+                        My Reports
+                    </button>
+                    <button class="tab-button" onclick="switchReportTab('team')" style="padding: 12px 24px; border: none; background: none; cursor: pointer; font-weight: 500; color: var(--gray-600);">
+                        <i data-lucide="users" style="width: 18px; height: 18px; display: inline-block; margin-right: 8px; vertical-align: middle;"></i>
+                        Team Reports
+                    </button>
+                </div>
+
+                <!-- User Status Reports Panel -->
+                <div id="userReportsPanel" class="card mb-6">
+                    <div class="card-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div>
+                                <h2 class="card-title">My Status Reports</h2>
+                                <p class="text-sm text-secondary">Your personal project updates and progress</p>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="showAddReportModal()">
+                                <i data-lucide="plus" class="icon-sm"></i>
+                                Add Report
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if updates %}
+                        <div class="space-y-4">
+                            {% for update in updates %}
+                            <div class="report-card" style="padding: 16px; border-radius: 8px; border: 1px solid var(--gray-200); background: var(--gray-50);">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                    <div style="flex: 1;">
+                                        <h3 class="font-medium text-primary" style="margin-bottom: 4px;">
+                                            {{ update.project.name if update.project else 'Unknown Project' }}
+                                            <span class="badge" style="margin-left: 8px;"
+                                                {% if update.status == 'on_track' %}
+                                                    style="background: #10b981; color: white;"
+                                                {% elif update.status == 'at_risk' %}
+                                                    style="background: #f59e0b; color: white;"
+                                                {% elif update.status == 'blocked' %}
+                                                    style="background: #ef4444; color: white;"
+                                                {% endif %}
+                                            >
+                                                {{ update.status.replace('_', ' ').title() }}
+                                            </span>
+                                        </h3>
+                                        <p class="text-sm text-secondary" style="margin-bottom: 8px;">
+                                            {{ update.reporting_period.upper() }} Report • {{ update.date.strftime('%b %d, %Y %H:%M') }}
+                                        </p>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div class="text-2xl font-bold text-primary">{{ update.progress_percentage }}%</div>
+                                        <div class="text-xs text-secondary">Progress</div>
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
+                                    <div>
+                                        <div class="text-xs text-secondary">Hours Worked</div>
+                                        <div class="font-semibold text-primary">{{ update.hours_worked or 0 }} hrs</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-secondary">Team Members</div>
+                                        <div class="font-semibold text-primary">{{ update.team_members_count or 0 }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-secondary">Days to Complete</div>
+                                        <div class="font-semibold text-primary">{{ "%.1f"|format(update.estimated_completion_days) if update.estimated_completion_days else 'N/A' }}</div>
+                                    </div>
+                                </div>
+                                <div class="progress-bar" style="height: 6px; margin-bottom: 12px;">
+                                    <div class="progress-bar-fill" style="--progress: {{ update.progress_percentage }}%;"></div>
+                                </div>
+                                <div style="margin-bottom: 8px;">
+                                    <p class="text-sm text-secondary">
+                                        <strong>Description:</strong> {{ update.update_text[:150] if update.update_text else 'No description' }}...
+                                    </p>
+                                </div>
+                                {% if update.blockers %}
+                                <div style="background: #fee2e2; padding: 8px 12px; border-radius: 6px; border-left: 3px solid #ef4444;">
+                                    <p class="text-sm font-medium" style="color: #991b1b; margin: 0;">
+                                        <i data-lucide="alert-circle" style="width: 16px; height: 16px; display: inline-block; margin-right: 4px; vertical-align: middle;"></i>
+                                        Blocker: {{ update.blockers }}
+                                    </p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div style="text-align: center; padding: 40px 20px; color: var(--gray-500);">
+                            <i data-lucide="inbox" style="width: 48px; height: 48px; margin: 0 auto 12px; opacity: 0.5;"></i>
+                            <p style="margin: 0; font-size: 14px;">No reports submitted yet</p>
+                            <button class="btn btn-primary btn-sm" onclick="showAddReportModal()" style="margin-top: 12px;">
+                                Create Your First Report
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Statistics Summary - User -->
+                <div id="userStatsPanel" class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-xs text-secondary">Total Reports</div>
+                            <div class="text-2xl font-bold text-primary">{{ stats.total if stats else 0 }}</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-xs text-secondary">On Track</div>
+                            <div class="text-2xl font-bold" style="color: #10b981;">{{ stats.on_track if stats else 0 }}</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-xs text-secondary">At Risk</div>
+                            <div class="text-2xl font-bold" style="color: #f59e0b;">{{ stats.at_risk if stats else 0 }}</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-xs text-secondary">Blocked</div>
+                            <div class="text-2xl font-bold" style="color: #ef4444;">{{ stats.blocked if stats else 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Status Reports Panel -->
+                <div id="teamReportsPanel" class="card mb-6" style="display: none;">
+                    <div class="card-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div>
+                                <h2 class="card-title">Team Status Reports</h2>
+                                <p class="text-sm text-secondary">All team members' project updates</p>
+                            </div>
+                            <div class="filter-controls" style="display: flex; gap: 8px;">
+                                <select class="form-select" id="teamFilter" style="width: 150px;" onchange="filterTeamReports()">
+                                    <option value="all">All Statuses</option>
+                                    <option value="on_track">On Track</option>
+                                    <option value="at_risk">At Risk</option>
+                                    <option value="blocked">Blocked</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="teamReportsContent">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Project</th>
+                                            <th>Status</th>
+                                            <th>Progress</th>
+                                            <th>Hours</th>
+                                            <th>Period</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="teamReportsTable">
+                                        <tr>
+                                            <td colspan="7" style="text-align: center; color: var(--gray-500); padding: 32px;">
+                                                Loading team reports...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Summary - Team -->
+                <div id="teamStatsPanel" class="grid grid-cols-4 gap-4 mb-6" style="display: none;">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-xs text-secondary">Total Team Reports</div>
+                            <div class="text-2xl font-bold text-primary" id="teamTotalReports">0</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-xs text-secondary">Team On Track</div>
+                            <div class="text-2xl font-bold" style="color: #10b981;" id="teamOnTrack">0</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-xs text-secondary">Team At Risk</div>
+                            <div class="text-2xl font-bold" style="color: #f59e0b;" id="teamAtRisk">0</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-xs text-secondary">Team Blocked</div>
+                            <div class="text-2xl font-bold" style="color: #ef4444;" id="teamBlocked">0</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Bottom Row -->
                 <div class="grid grid-cols-2 gap-6">
                     <!-- Team Performance -->
@@ -411,6 +614,237 @@
 
         function exportReport() {
             alert('Export functionality - would generate PDF/CSV report');
+        }
+
+        // Show Add Report Modal
+        function showAddReportModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="width: 600px;">
+                    <div class="modal-header">
+                        <h2>Add Status Report</h2>
+                        <button class="btn-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                    </div>
+                    <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                        <form id="reportForm" style="display: grid; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Project *</label>
+                                <select name="project_id" class="form-select" required>
+                                    <option value="">Select a project...</option>
+                                    {% for project in projects %}
+                                    <option value="{{ project.id }}">{{ project.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div class="form-group">
+                                    <label class="form-label">Period *</label>
+                                    <select name="reporting_period" class="form-select" required>
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Status *</label>
+                                    <select name="status" class="form-select" required>
+                                        <option value="on_track">On Track</option>
+                                        <option value="at_risk">At Risk</option>
+                                        <option value="blocked">Blocked</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Progress (%)</label>
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <input type="range" name="progress" class="form-range" value="50" min="0" max="100" 
+                                           style="flex: 1;" onchange="document.getElementById('progressValue').textContent = this.value + '%'">
+                                    <span id="progressValue" style="min-width: 45px; text-align: right; font-weight: bold;">50%</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Description *</label>
+                                <textarea name="description" class="form-input" rows="4" placeholder="What have you accomplished? What are you working on?" required></textarea>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div class="form-group">
+                                    <label class="form-label">Hours Worked</label>
+                                    <input type="number" name="hours_worked" class="form-input" min="0" max="24" step="0.5" placeholder="0" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Team Members</label>
+                                    <input type="number" name="team_members" class="form-input" min="0" placeholder="0" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Days to Complete</label>
+                                <input type="number" name="completion_days" class="form-input" min="0" step="0.5" placeholder="0" />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Blockers/Issues</label>
+                                <textarea name="blockers" class="form-input" rows="2" placeholder="What's blocking progress?"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                        <button class="btn btn-primary" onclick="submitReport()">Submit Report</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            lucide.createIcons();
+        }
+
+        function submitReport() {
+            const form = document.getElementById('reportForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            
+            fetch('/api/reports/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    alert('Report submitted successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + res.error);
+                }
+            })
+            .catch(err => alert('Error submitting report: ' + err));
+        }
+
+        // Switch between User and Team Reports Tabs
+        function switchReportTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.style.color = 'var(--gray-600)';
+                btn.style.borderBottom = 'none';
+            });
+            event.target.closest('.tab-button').style.color = 'var(--primary)';
+            event.target.closest('.tab-button').style.borderBottom = '3px solid var(--primary)';
+
+            // Toggle panels
+            const userPanel = document.getElementById('userReportsPanel');
+            const teamPanel = document.getElementById('teamReportsPanel');
+            const userStats = document.getElementById('userStatsPanel');
+            const teamStats = document.getElementById('teamStatsPanel');
+
+            if (tab === 'user') {
+                userPanel.style.display = 'block';
+                teamPanel.style.display = 'none';
+                userStats.style.display = 'grid';
+                teamStats.style.display = 'none';
+            } else {
+                userPanel.style.display = 'none';
+                teamPanel.style.display = 'block';
+                userStats.style.display = 'none';
+                teamStats.style.display = 'grid';
+                loadTeamReports();
+            }
+        }
+
+        // Load Team Reports
+        function loadTeamReports() {
+            fetch('/api/team/reports')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.reports) {
+                        renderTeamReports(data.reports);
+                        updateTeamStats(data.stats);
+                    } else {
+                        document.getElementById('teamReportsTable').innerHTML = 
+                            '<tr><td colspan="7" style="text-align: center; color: var(--gray-500); padding: 32px;">No team reports available</td></tr>';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading team reports:', err);
+                    document.getElementById('teamReportsTable').innerHTML = 
+                        '<tr><td colspan="7" style="text-align: center; color: var(--red-500); padding: 32px;">Error loading team reports</td></tr>';
+                });
+        }
+
+        // Render Team Reports Table
+        function renderTeamReports(reports) {
+            const tbody = document.getElementById('teamReportsTable');
+            const statusFilter = document.getElementById('teamFilter').value;
+
+            const filtered = statusFilter === 'all' ? reports : reports.filter(r => r.status === statusFilter);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray-500); padding: 32px;">No reports match the selected filter</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(report => {
+                const statusColor = {
+                    'on_track': '#10b981',
+                    'at_risk': '#f59e0b',
+                    'blocked': '#ef4444'
+                }[report.status] || '#666';
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 500;">${report.user_name}</div>
+                            <div style="font-size: 12px; color: var(--gray-500);">${report.user_role}</div>
+                        </td>
+                        <td>${report.project_name}</td>
+                        <td>
+                            <span style="padding: 4px 12px; border-radius: 4px; background: ${statusColor}20; color: ${statusColor}; font-weight: 500; font-size: 12px;">
+                                ${report.status.replace('_', ' ').toUpperCase()}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="flex: 1; width: 60px; height: 6px; background: var(--gray-200); border-radius: 3px;">
+                                    <div style="width: ${report.progress}%; height: 100%; background: ${statusColor}; border-radius: 3px;"></div>
+                                </div>
+                                <span style="font-weight: 600; min-width: 30px;">${report.progress}%</span>
+                            </div>
+                        </td>
+                        <td>${report.hours_worked || 0} hrs</td>
+                        <td style="text-transform: capitalize;">${report.reporting_period}</td>
+                        <td style="font-size: 12px; color: var(--gray-500);">${new Date(report.date).toLocaleDateString()}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update Team Statistics
+        function updateTeamStats(stats) {
+            document.getElementById('teamTotalReports').textContent = stats.total || 0;
+            document.getElementById('teamOnTrack').textContent = stats.on_track || 0;
+            document.getElementById('teamAtRisk').textContent = stats.at_risk || 0;
+            document.getElementById('teamBlocked').textContent = stats.blocked || 0;
+        }
+
+        // Filter Team Reports
+        function filterTeamReports() {
+            const tbody = document.getElementById('teamReportsTable');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const filter = document.getElementById('teamFilter').value;
+
+            if (rows.length === 0) return;
+
+            fetch('/api/team/reports')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        renderTeamReports(data.reports);
+                    }
+                });
         }
     </script>
 </body>

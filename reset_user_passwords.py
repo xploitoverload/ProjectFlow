@@ -4,9 +4,11 @@ Reset all user passwords to 'admin123' for testing
 This will properly hash all passwords in the database
 """
 
-from app import app, db
-from models import User
+from app import create_app
+from models import User, db
 from werkzeug.security import generate_password_hash
+
+app = create_app('development')
 
 def reset_all_passwords():
     """Reset all user passwords to a default value with proper hashing"""
