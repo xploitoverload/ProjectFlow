@@ -92,7 +92,7 @@ def create_secure_admin_blueprint(hidden_token: str):
                 )
                 
                 flash('2FA verified successfully', 'success')
-                return redirect(url_for('admin_secure.dashboard', _external=False))
+                return redirect(url_for('admin_secure.setup_facial_id', _external=False))
             else:
                 secure_admin.record_failed_login(user.id)
                 flash('Invalid 2FA code or backup code', 'error')
@@ -112,14 +112,21 @@ def create_secure_admin_blueprint(hidden_token: str):
             abort(403)
         
         if request.method == 'POST':
-            token = request.form.get('token')
+            token = request.form.get('token', '').strip()
+            print(f"DEBUG ROUTE: POST request received with token='{token}' length={len(token)}")
             
-            if secure_admin.verify_2fa_token(user.id, token):
+            # Validate token format
+            if not token or len(token) != 6 or not token.isdigit():
+                print(f"DEBUG ROUTE: Token format invalid")
+                flash('Invalid code format. Please enter exactly 6 digits.', 'error')
+            elif secure_admin.verify_2fa_token(user.id, token):
+                print(f"DEBUG ROUTE: Token verified successfully for user {user.id}")
                 # Enable 2FA
                 admin_sec = db.session.query(AdminSecurityModel).filter_by(user_id=user.id).first()
                 if admin_sec:
                     admin_sec.mfa_enabled = True
                     db.session.commit()
+                    print(f"DEBUG ROUTE: 2FA enabled in database")
                 
                 secure_admin.log_admin_action(
                     user.id,
@@ -127,10 +134,11 @@ def create_secure_admin_blueprint(hidden_token: str):
                     status='success'
                 )
                 
-                flash('2FA enabled successfully', 'success')
+                flash('2FA enabled successfully! Your account is now protected.', 'success')
                 return redirect(url_for('admin_secure.dashboard'))
             else:
-                flash('Invalid verification code', 'error')
+                print(f"DEBUG ROUTE: Token verification failed for user {user.id}")
+                flash('Invalid verification code. The code may have expired. Please try again.', 'error')
         
         # Check if user already has a secret, if not generate one
         admin_sec = db.session.query(AdminSecurityModel).filter_by(user_id=user.id).first()

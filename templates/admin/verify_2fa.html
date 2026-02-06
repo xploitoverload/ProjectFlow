@@ -175,6 +175,22 @@
                 <p>Enter your authentication code</p>
             </div>
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            <div class="verify-error">
+                                <strong>❌ Error:</strong> {{ message }}
+                            </div>
+                        {% elif category == 'success' %}
+                            <div class="verify-success">
+                                <strong>✅ Success!</strong> {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
             {% if error %}
             <div class="verify-error">
                 <strong>Error:</strong> {{ error }}
@@ -202,12 +218,13 @@
             </div>
 
             <form method="POST" class="verify-2fa-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
-                    <label for="totp_code">Authentication Code</label>
+                    <label for="token">Authentication Code</label>
                     <input 
                         type="text" 
-                        id="totp_code" 
-                        name="totp_code" 
+                        id="token" 
+                        name="token" 
                         placeholder="000000" 
                         maxlength="6" 
                         pattern="[0-9]{6}" 

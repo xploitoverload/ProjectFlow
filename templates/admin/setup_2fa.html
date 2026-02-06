@@ -284,6 +284,22 @@
                 <p>Secure your admin account with Google Authenticator</p>
             </div>
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            <div class="error-message">
+                                <strong>❌ Error:</strong> {{ message }}
+                            </div>
+                        {% elif category == 'success' %}
+                            <div class="success-message">
+                                <strong>✅ Success!</strong> {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
             {% if error %}
             <div class="error-message">
                 <strong>❌ Error:</strong> {{ error }}
@@ -358,6 +374,7 @@
                         
                         <div class="verify-section">
                             <form method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="form-group">
                                     <label for="token">Authentication Code</label>
                                     <input 
@@ -365,7 +382,7 @@
                                         id="token" 
                                         name="token" 
                                         placeholder="000000" 
-                                        maxlength="6" 
+                ength="6" 
                                         pattern="[0-9]{6}" 
                                         required 
                                         autofocus

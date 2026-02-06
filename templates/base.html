@@ -169,10 +169,7 @@
                         <span class="iconify nav-icon" data-icon="solar:shield-check-bold-duotone"></span>
                         <span>Security</span>
                     </a>
-                    <a href="{{ url_for('progress.admin_pending') }}" class="sidebar-nav-item {% if request.endpoint == 'progress.admin_pending' %}active{% endif %}">
-                        <span class="iconify nav-icon" data-icon="solar:inbox-in-bold-duotone"></span>
-                        <span>Progress Reviews</span>
-                    </a>
+                    <!-- Progress Reviews disabled - blueprint not registered -->
                 </div>
                 {% endif %}
             </nav>

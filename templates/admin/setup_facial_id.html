@@ -62,19 +62,25 @@
           <canvas id="canvasPreview" style="display: none;"></canvas>
           <div id="captureOverlay" class="capture-overlay">
             <div class="face-detection-guide">
-              <svg viewBox="0 0 300 400" class="face-guide-svg">
-                <!-- Face outline guide -->
-                <ellipse cx="150" cy="150" rx="80" ry="100" fill="none" stroke="#0284c7" stroke-width="3"/>
-                <text x="150" y="280" text-anchor="middle" fill="#0284c7" font-size="14">
-                  Position your face in the oval
+              <svg viewBox="0 0 400 500" class="face-guide-svg">
+                <!-- Large face outline guide - bigger oval -->
+                <ellipse cx="200" cy="200" rx="120" ry="150" fill="none" stroke="#0284c7" stroke-width="4"/>
+                <!-- Eyes guide -->
+                <circle cx="160" cy="160" r="8" fill="none" stroke="#0284c7" stroke-width="2" opacity="0.6"/>
+                <circle cx="240" cy="160" r="8" fill="none" stroke="#0284c7" stroke-width="2" opacity="0.6"/>
+                <!-- Nose guide -->
+                <line x1="200" y1="170" x2="200" y2="210" stroke="#0284c7" stroke-width="2" opacity="0.6"/>
+                <!-- Instructions -->
+                <text x="200" y="420" text-anchor="middle" fill="#0284c7" font-size="16" font-weight="bold">
+                  Position face in oval
                 </text>
-                <text x="150" y="300" text-anchor="middle" fill="#666" font-size="12">
-                  Good lighting, face forward, no glasses
+                <text x="200" y="445" text-anchor="middle" fill="#888" font-size="12">
+                  Face forward, good lighting
                 </text>
               </svg>
             </div>
           </div>
-          <div id="faceDetectionStatus" class="detection-status">
+          <div id="faceDetectionStatus" class="detection-status" style="display: none;">
             <span class="status-text">🔍 Detecting face...</span>
           </div>
         </div>
@@ -116,6 +122,7 @@
         </div>
 
         <input type="hidden" id="faceImageData" name="face_image_base64" />
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Complete Enrollment</button>
@@ -214,11 +221,14 @@
 .camera-preview-wrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  max-width: 600px;
+  aspect-ratio: 4 / 5;
   background: #000;
   border-radius: 0.5rem;
   overflow: hidden;
-  margin-bottom: 1.5rem;
+  margin: 0 auto 2rem;
+  border: 3px solid var(--primary-light);
+  box-shadow: 0 0 30px rgba(2, 132, 199, 0.3);
 }
 
 #cameraFeed,
@@ -241,9 +251,9 @@
 }
 
 .face-detection-guide {
-  width: 200px;
-  height: 280px;
-  opacity: 0.8;
+  width: 280px;
+  height: 360px;
+  opacity: 0.9;
 }
 
 .face-guide-svg {
@@ -279,8 +289,11 @@
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin: 2rem auto;
   flex-wrap: wrap;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .captured-preview {
@@ -351,6 +364,24 @@
   border: 1px solid var(--primary);
 }
 
+.status-message.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--error);
+}
+
+.status-message.error #statusText {
+  color: var(--error);
+}
+
+.status-message.success {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: var(--success);
+}
+
+.status-message.success #statusText {
+  color: var(--success);
+}
+
 .spinner {
   width: 40px;
   height: 40px;
@@ -388,6 +419,12 @@
 }
 </style>
 
+<!-- Load face-api.js for best facial recognition -->
+<!-- Load TensorFlow.js (required dependency) -->
+<script async src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.0.0"></script>
+<!-- Load face-api.js (best library for face detection & uniqueness) -->
+<script async src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
 <script>
 const startCameraBtn = document.getElementById('startCameraBtn');
 const capturePhotoBtn = document.getElementById('capturePhotoBtn');
@@ -405,130 +442,259 @@ const cancelEnrollBtn = document.getElementById('cancelEnrollBtn');
 const detectionStatus = document.getElementById('faceDetectionStatus');
 
 let stream = null;
-let faceFound = false;
+let faceDetector = null;
+let detectionActive = false;
+let faceDetected = false;
+let capturedFaceData = null;
+let modelsLoaded = false;
 
-// Start camera
-startCameraBtn.addEventListener('click', async () => {
+// Load face-api.js models on page load
+async function loadFaceApiModels() {
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
-    cameraFeed.srcObject = stream;
-    startCameraBtn.style.display = 'none';
-    stopCameraBtn.style.display = 'inline-block';
-    capturePhotoBtn.disabled = false;
-    startFaceDetection();
-  } catch (err) {
-    alert('Unable to access camera: ' + err.message);
+    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/';
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+      faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+    ]);
+    modelsLoaded = true;
+    console.log('✅ Face-API models loaded successfully');
+  } catch (error) {
+    console.error('❌ Failed to load face-API models:', error);
+    modelsLoaded = false;
   }
+}
+
+// Load models when page loads
+window.addEventListener('load', loadFaceApiModels);
+
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Facial ID setup page loaded');
+  attachEventListeners();
 });
 
-// Stop camera
-stopCameraBtn.addEventListener('click', () => {
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-  }
-  startCameraBtn.style.display = 'inline-block';
-  stopCameraBtn.style.display = 'none';
-  capturePhotoBtn.disabled = true;
-  detectionStatus.innerHTML = '<span class="status-text">🔍 Camera stopped</span>';
-});
+function attachEventListeners() {
+  const startCameraBtn = document.getElementById('startCameraBtn');
+  const capturePhotoBtn = document.getElementById('capturePhotoBtn');
+  const stopCameraBtn = document.getElementById('stopCameraBtn');
+  const cameraFeed = document.getElementById('cameraFeed');
+  const capturedImage = document.getElementById('capturedImage');
+  const capturedPreview = document.getElementById('capturedPreview');
+  const enrollmentForm = document.getElementById('enrollmentForm');
+  const enrollmentStatus = document.getElementById('enrollmentStatus');
+  const faceImageData = document.getElementById('faceImageData');
+  const retakePicBtn = document.getElementById('retakePicBtn');
+  const usePictureBtn = document.getElementById('usePictureBtn');
+  const cancelEnrollBtn = document.getElementById('cancelEnrollBtn');
+  const detectionStatus = document.getElementById('faceDetectionStatus');
+  const canvasPreview = document.getElementById('canvasPreview');
 
-// Capture photo
-capturePhotoBtn.addEventListener('click', () => {
-  const ctx = canvasPreview.getContext('2d');
-  canvasPreview.width = cameraFeed.videoWidth;
-  canvasPreview.height = cameraFeed.videoHeight;
-  ctx.drawImage(cameraFeed, 0, 0);
-
-  capturedImage.src = canvasPreview.toDataURL('image/jpeg');
-  capturedPreview.style.display = 'block';
-  cameraFeed.style.display = 'none';
-});
-
-// Retake
-retakePicBtn.addEventListener('click', () => {
-  capturedPreview.style.display = 'none';
-  cameraFeed.style.display = 'block';
-});
-
-// Use picture
-usePictureBtn.addEventListener('click', () => {
-  faceImageData.value = canvasPreview.toDataURL('image/jpeg').split(',')[1];
-  capturedPreview.style.display = 'none';
-  enrollmentForm.style.display = 'grid';
-});
-
-// Cancel enrollment
-cancelEnrollBtn.addEventListener('click', () => {
-  enrollmentForm.style.display = 'none';
-  capturedPreview.style.display = 'none';
-  cameraFeed.style.display = 'block';
-});
-
-// Form submission
-enrollmentForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  enrollmentStatus.style.display = 'block';
-  const statusText = document.getElementById('statusText');
-
-  try {
-    const base64Data = faceImageData.value;
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+  // Start camera
+  startCameraBtn.addEventListener('click', async () => {
+    try {
+      console.log('Requesting camera access...');
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { max: 640 }, height: { max: 480 } }
+      });
+      console.log('Camera stream obtained');
+      cameraFeed.srcObject = stream;
+      startCameraBtn.style.display = 'none';
+      stopCameraBtn.style.display = 'inline-block';
+      detectionStatus.style.display = 'block';
+      detectionStatus.innerHTML = '<span class="status-text">🔍 Detecting face...</span>';
+      
+      // Start auto-detection
+      if (modelsLoaded) {
+        startAutoDetection(cameraFeed, detectionStatus, canvasPreview, faceImageData, capturedPreview, enrollmentForm);
+      } else {
+        detectionStatus.innerHTML = '<span class="status-text">⚠️ Models loading... please wait</span>';
+        setTimeout(() => {
+          if (modelsLoaded) {
+            startAutoDetection(cameraFeed, detectionStatus, canvasPreview, faceImageData, capturedPreview, enrollmentForm);
+          }
+        }, 2000);
+      }
+    } catch (err) {
+      console.error('Camera error:', err);
+      alert('Unable to access camera: ' + err.message);
     }
+  });
 
-    const formData = new FormData();
-    formData.append('face_image', new Blob([bytes], { type: 'image/jpeg' }), 'face.jpg');
-    formData.append('label', document.getElementById('enrollmentLabel').value);
+  // Stop camera
+  stopCameraBtn.addEventListener('click', () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    startCameraBtn.style.display = 'inline-block';
+    stopCameraBtn.style.display = 'none';
+    detectionActive = false;
+  });
 
-    const response = await fetch('{{ url_for("admin_secure.setup_facial_id") }}', {
-      method: 'POST',
-      body: formData
-    });
+  // Retake photo
+  retakePicBtn.addEventListener('click', () => {
+    capturedPreview.style.display = 'none';
+    cameraFeed.style.display = 'block';
+    startAutoDetection(cameraFeed, detectionStatus, canvasPreview, faceImageData, capturedPreview, enrollmentForm);
+  });
 
-    const result = await response.json();
+  // Use picture
+  usePictureBtn.addEventListener('click', () => {
+    capturedPreview.style.display = 'none';
+    enrollmentForm.style.display = 'grid';
+  });
 
-    if (result.success) {
-      statusText.textContent = '✅ Enrollment successful!';
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    } else {
-      statusText.textContent = '❌ ' + result.message;
+  // Cancel enrollment
+  cancelEnrollBtn.addEventListener('click', () => {
+    enrollmentForm.style.display = 'none';
+    capturedPreview.style.display = 'none';
+    cameraFeed.style.display = 'block';
+  });
+
+  // Form submission
+  enrollmentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    enrollmentStatus.style.display = 'block';
+    const statusText = document.getElementById('statusText');
+    const label = document.getElementById('enrollmentLabel').value;
+
+    try {
+      if (!label || label.trim().length === 0) {
+        statusText.textContent = '❌ Please enter a label';
+        return;
+      }
+
+      statusText.textContent = '🔐 Processing enrollment...';
+
+      const base64Data = faceImageData.value;
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      const formData = new FormData();
+      formData.append('face_image', new Blob([bytes], { type: 'image/jpeg' }), 'face.jpg');
+      formData.append('label', label);
+      formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+
+      statusText.textContent = '🔐 Encrypting and saving...';
+
+      const response = await fetch('{{ url_for("admin_secure.setup_facial_id") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        statusText.textContent = '✅ Facial ID enrolled successfully!';
+        enrollmentStatus.classList.remove('error');
+        enrollmentStatus.classList.add('success');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        statusText.textContent = '❌ ' + result.message;
+        enrollmentStatus.classList.add('error');
+      }
+    } catch (error) {
+      statusText.textContent = '❌ Error: ' + error.message;
       enrollmentStatus.classList.add('error');
     }
-  } catch (error) {
-    statusText.textContent = '❌ Error: ' + error.message;
-    enrollmentStatus.classList.add('error');
-  }
-});
+  });
+}
 
-// Simple face detection simulation
-function startFaceDetection() {
-  const detectInterval = setInterval(() => {
-    if (!stream || !cameraFeed.srcObject) {
-      clearInterval(detectInterval);
+// AUTO-CAPTURE when face detected
+async function startAutoDetection(videoElement, statusEl, canvasEl, imageDataEl, previewEl, formEl) {
+  if (!modelsLoaded) {
+    console.warn('⚠️ Face models not ready');
+    statusEl.innerHTML = '<span class="status-text">⏳ Loading models...</span>';
+    return;
+  }
+
+  detectionActive = true;
+  let captureAttempts = 0;
+  const maxCaptures = 1; // Auto-capture once when face is good
+  let goodFaceFrames = 0; // Count consecutive good frames
+
+  const detectInterval = setInterval(async () => {
+    if (!stream || !videoElement.srcObject || !detectionActive || captureAttempts >= maxCaptures) {
+      if (captureAttempts >= maxCaptures) {
+        clearInterval(detectInterval);
+      }
       return;
     }
 
-    // Simulate face detection - in production use ml5.js or TensorFlow.js
-    // For now, just show detection status
-    faceFound = Math.random() > 0.3;
+    try {
+      const detections = await faceapi.detectAllFaces(
+        videoElement,
+        new faceapi.TinyFaceDetectorOptions()
+      ).withFaceLandmarks().withFaceDescriptors();
 
-    if (faceFound) {
-      detectionStatus.classList.add('face-detected');
-      detectionStatus.classList.remove('no-face');
-      detectionStatus.innerHTML = '<span class="status-text">✅ Face detected - Ready to capture</span>';
-    } else {
-      detectionStatus.classList.remove('face-detected');
-      detectionStatus.classList.add('no-face');
-      detectionStatus.innerHTML = '<span class="status-text">❌ Face not detected</span>';
+      if (detections && detections.length === 1) {
+        const face = detections[0];
+        const confidence = face.detection.score;
+        
+        // Check if face is good quality
+        if (confidence > 0.75) {
+          goodFaceFrames++;
+          statusEl.classList.add('face-detected');
+          statusEl.classList.remove('no-face');
+          statusEl.innerHTML = `<span class="status-text">✅ Perfect face detected (${Math.round(confidence * 100)}%) - Auto-capturing...</span>`;
+          
+          // AUTO-CAPTURE after 2 good frames (ensures stable detection)
+          if (goodFaceFrames >= 2) {
+            console.log('🎬 Auto-capturing face...');
+            captureAttempts++;
+            clearInterval(detectInterval);
+            
+            // Draw on canvas and capture
+            canvasEl.width = videoElement.videoWidth;
+            canvasEl.height = videoElement.videoHeight;
+            const ctx = canvasEl.getContext('2d');
+            ctx.drawImage(videoElement, 0, 0);
+            
+            // Save image
+            const capturedImg = canvasEl.toDataURL('image/jpeg');
+            imageDataEl.value = capturedImg.split(',')[1];
+            
+            // Show captured preview
+            const img = new Image();
+            img.src = capturedImg;
+            document.getElementById('capturedImage').src = capturedImg;
+            previewEl.style.display = 'block';
+            videoElement.style.display = 'none';
+            detectionActive = false;
+            statusEl.innerHTML = '<span class="status-text">✅ Face captured! Ready for enrollment</span>';
+          }
+        } else {
+          goodFaceFrames = 0;
+          statusEl.classList.remove('face-detected');
+          statusEl.classList.add('no-face');
+          statusEl.innerHTML = `<span class="status-text">🔍 Better lighting needed (${Math.round(confidence * 100)}%)</span>`;
+        }
+      } else if (detections && detections.length > 1) {
+        goodFaceFrames = 0;
+        statusEl.classList.remove('face-detected');
+        statusEl.classList.add('no-face');
+        statusEl.innerHTML = '<span class="status-text">❌ Multiple faces detected - show only your face</span>';
+      } else {
+        goodFaceFrames = 0;
+        statusEl.classList.remove('face-detected');
+        statusEl.classList.add('no-face');
+        statusEl.innerHTML = '<span class="status-text">🔍 No face detected - look at camera</span>';
+      }
+    } catch (error) {
+      console.error('Detection error:', error);
     }
-  }, 500);
+  }, 200); // Check every 200ms for smooth detection
 }
+
+} // Close attachEventListeners function
 </script>
 {% endblock %}

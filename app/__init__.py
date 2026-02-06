@@ -219,8 +219,16 @@ def _register_blueprints(app):
     app.register_blueprint(api_bp, url_prefix='/api/v1')
     app.register_blueprint(projects_bp, url_prefix='/project')
     
-    # Register secure admin blueprint with hidden token
-    hidden_token = secrets.token_urlsafe(32)
+    # Register secure admin blueprint with persistent hidden token
+    token_file = os.path.join(os.path.dirname(__file__), '.secure_token')
+    if os.path.exists(token_file):
+        with open(token_file, 'r') as f:
+            hidden_token = f.read().strip()
+    else:
+        hidden_token = secrets.token_urlsafe(32)
+        with open(token_file, 'w') as f:
+            f.write(hidden_token)
+    
     admin_secure_bp = create_secure_admin_blueprint(hidden_token)
     app.register_blueprint(admin_secure_bp, url_prefix=f'/secure-mgmt-{hidden_token}/')
     
