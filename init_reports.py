@@ -3,7 +3,9 @@
 
 import os
 import sys
+import secrets
 from datetime import datetime, timedelta
+from werkzeug.security import generate_password_hash
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -29,27 +31,61 @@ def init_database():
                 db.session.add(team)
                 db.session.commit()
             
+            # Get passwords from environment or generate secure defaults
+            admin_password_hash = generate_password_hash(
+                os.environ.get('ADMIN_PASSWORD', f'Admin{secrets.randbelow(10000):04d}!'),
+                method='pbkdf2:sha256:600000'
+            )
+            dev_password_hash = generate_password_hash(
+                os.environ.get('DEV_PASSWORD', f'Dev{secrets.randbelow(10000):04d}!'),
+                method='pbkdf2:sha256:600000'
+            )
+            
             # Get existing users or use defaults
             admin = User.query.filter_by(username='admin').first()
             dev1 = User.query.filter_by(username='john_doe').first()
             dev2 = User.query.filter_by(username='jane_smith').first()
             designer = User.query.filter_by(username='test').first()
             
-            # If users don't exist, create them
+            # If users don't exist, create them with secure passwords
             if not admin:
-                admin = User(username='admin', email_encrypted='admin@example.com', password='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5YmMxSUmGEJiq', role='admin', team_id=team.id)
+                admin = User(
+                    username='admin',
+                    email_encrypted='admin@example.com',
+                    password=admin_password_hash,  # Use secure hash from environment or generated
+                    role='admin',
+                    team_id=team.id
+                )
                 db.session.add(admin)
             
             if not dev1:
-                dev1 = User(username='john_doe', email_encrypted='john@example.com', password='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5YmMxSUmGEJiq', role='developer', team_id=team.id)
+                dev1 = User(
+                    username='john_doe',
+                    email_encrypted='john@example.com',
+                    password=dev_password_hash,  # Use secure hash from environment or generated
+                    role='developer',
+                    team_id=team.id
+                )
                 db.session.add(dev1)
             
             if not dev2:
-                dev2 = User(username='jane_smith', email_encrypted='jane@example.com', password='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5YmMxSUmGEJiq', role='developer', team_id=team.id)
+                dev2 = User(
+                    username='jane_smith',
+                    email_encrypted='jane@example.com',
+                    password=dev_password_hash,  # Use secure hash from environment or generated
+                    role='developer',
+                    team_id=team.id
+                )
                 db.session.add(dev2)
             
             if not designer:
-                designer = User(username='test', email_encrypted='test@example.com', password='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5YmMxSUmGEJiq', role='designer', team_id=team.id)
+                designer = User(
+                    username='test',
+                    email_encrypted='test@example.com',
+                    password=dev_password_hash,  # Use secure hash from environment or generated
+                    role='designer',
+                    team_id=team.id
+                )
                 db.session.add(designer)
             
             db.session.commit()

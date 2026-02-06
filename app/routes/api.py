@@ -526,57 +526,6 @@ def add_report():
         return jsonify({'success': False, 'error': message}), 400
 
 
-@api_bp.route('/team/reports', methods=['GET'])
-@api_auth_required
-def get_team_reports():
-    """Get all team reports for the user's team."""
-    from app.models import User, ProjectUpdate, Project
-    
-    try:
-        user = User.query.get(session['user_id'])
-        if not user or not user.team_id:
-            return jsonify({'success': False, 'reports': [], 'stats': {
-                'total': 0, 'on_track': 0, 'at_risk': 0, 'blocked': 0
-            }}), 200
-        
-        # Get all reports from team members
-        team_reports = ProjectUpdate.query.join(User).filter(
-            User.team_id == user.team_id
-        ).order_by(ProjectUpdate.date.desc()).all()
-        
-        reports = []
-        for report in team_reports:
-            reports.append({
-                'id': report.id,
-                'user_name': report.user.username,
-                'user_role': report.user.role.title() if report.user.role else 'User',
-                'project_name': report.project.name if report.project else 'Unknown',
-                'status': report.status,
-                'progress': report.progress_percentage or 0,
-                'hours_worked': report.hours_worked or 0,
-                'reporting_period': report.reporting_period,
-                'date': report.date.isoformat(),
-                'description': report.update_text[:100] if report.update_text else ''
-            })
-        
-        # Calculate statistics
-        stats = {
-            'total': len(reports),
-            'on_track': sum(1 for r in reports if r['status'] == 'on_track'),
-            'at_risk': sum(1 for r in reports if r['status'] == 'at_risk'),
-            'blocked': sum(1 for r in reports if r['status'] == 'blocked')
-        }
-        
-        return jsonify({
-            'success': True,
-            'reports': reports,
-            'stats': stats
-        }), 200
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
 # ============= RECENT ITEMS & STARRED =============
 
 @api_bp.route('/recent-items', methods=['GET'])

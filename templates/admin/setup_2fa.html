@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Two-Factor Authentication - {{ app_name }}</title>
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    <style>
+        .setup-2fa-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .setup-2fa-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .setup-2fa-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .setup-2fa-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 35px;
+        }
+
+        .setup-2fa-header h1 {
+            font-size: 1.8em;
+            margin: 0 0 10px 0;
+            color: #1a1a1a;
+        }
+
+        .setup-2fa-header p {
+            color: #666;
+            margin: 0;
+            font-size: 0.95em;
+        }
+
+        .setup-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .step {
+            display: flex;
+            gap: 15px;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .step-content h3 {
+            margin: 0 0 8px 0;
+            color: #1a1a1a;
+            font-size: 1.05em;
+        }
+
+        .step-content p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .qr-code-container {
+            background: #f5f5f5;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-code-container img {
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .qr-code-info {
+            background: #fffbea;
+            border-left: 4px solid #ffc857;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 0.85em;
+            color: #755a1a;
+            line-height: 1.6;
+        }
+
+        .app-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .app-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #667eea;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .app-link:hover {
+            background: #e8e8ff;
+            border-color: #667eea;
+        }
+
+        .verify-section {
+            background: #f0f9ff;
+            border: 1px solid #cce5ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .verify-section h3 {
+            margin: 0 0 15px 0;
+            color: #1a1a1a;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 0.95em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-align: center;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .verify-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .verify-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .warning-box {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 0.9em;
+            color: #7f1d1d;
+            line-height: 1.6;
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .error-message {
+            background: #fecaca;
+            border: 1px solid #ef4444;
+            color: #7f1d1d;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            border: 1px solid #22c55e;
+            color: #166534;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: color 0.3s;
+        }
+
+        .back-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-2fa-page">
+        <div class="setup-2fa-container">
+            <div class="setup-2fa-header">
+                <div class="setup-2fa-icon">🔐</div>
+                <h1>Setup Two-Factor Authentication</h1>
+                <p>Secure your admin account with Google Authenticator</p>
+            </div>
+
+            {% if error %}
+            <div class="error-message">
+                <strong>❌ Error:</strong> {{ error }}
+            </div>
+            {% endif %}
+
+            {% if success %}
+            <div class="success-message">
+                <strong>✅ Success!</strong> {{ success }}
+            </div>
+            {% endif %}
+
+            <div class="setup-steps">
+                <!-- Step 1 -->
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Install Authenticator App</h3>
+                        <p>Download and install one of these authenticator apps on your phone:</p>
+                        <div class="app-links">
+                            <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" class="app-link">
+                                <span>🔐</span>
+                                <span>Google Authenticator (Android)</span>
+                            </a>
+                            <a href="https://apps.apple.com/us/app/google-authenticator/id388497605" target="_blank" class="app-link">
+                                <span>🔐</span>
+                                <span>Google Authenticator (iOS)</span>
+                            </a>
+                            <a href="https://authy.com/download/" target="_blank" class="app-link">
+                                <span>🔑</span>
+                                <span>Authy (Cross-platform)</span>
+                            </a>
+                            <a href="https://www.microsoft.com/en-us/account/authenticator" target="_blank" class="app-link">
+                                <span>🔐</span>
+                                <span>Microsoft Auth (All devices)</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Scan QR Code</h3>
+                        <p>Open your authenticator app and scan this QR code:</p>
+                        
+                        <div class="qr-code-container">
+                            {% if qr_code %}
+                                <img src="{{ qr_code }}" alt="2FA QR Code">
+                            {% else %}
+                                <p style="color: #999;">QR Code will appear here</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="qr-code-info">
+                            <strong>💡 Can't scan?</strong><br>
+                            Manually enter this code in your app:<br>
+                            <code style="background: white; padding: 8px 12px; border-radius: 4px; display: block; margin-top: 8px; word-break: break-all; font-family: monospace;">
+                                {{ qr_code_secret if qr_code_secret else 'Secret will appear after QR generation' }}
+                            </code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Verify Authentication Code</h3>
+                        <p>Enter the 6-digit code from your authenticator app to confirm setup:</p>
+                        
+                        <div class="verify-section">
+                            <form method="POST">
+                                <div class="form-group">
+                                    <label for="token">Authentication Code</label>
+                                    <input 
+                                        type="text" 
+                                        id="token" 
+                                        name="token" 
+                                        placeholder="000000" 
+                                        maxlength="6" 
+                                        pattern="[0-9]{6}" 
+                                        required 
+                                        autofocus
+                                        autocomplete="one-time-code"
+                                    >
+                                </div>
+
+                                <button type="submit" class="verify-btn">Verify & Enable 2FA</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Important:</strong> Save your recovery codes in a safe place. You'll need them if you lose access to your authenticator app. Lost codes cannot be recovered.
+            </div>
+
+            <div class="back-link">
+                <a href="{{ url_for('main.settings') }}">← Back to Settings</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-format TOTP input
+        const tokenInput = document.getElementById('token');
+        if (tokenInput) {
+            tokenInput.addEventListener('input', function(e) {
+                // Only allow digits
+                this.value = this.value.replace(/[^0-9]/g, '');
+                // Auto-submit when 6 digits entered
+                if (this.value.length === 6) {
+                    // Optionally auto-submit
+                    // this.form.submit();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

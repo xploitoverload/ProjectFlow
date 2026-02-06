@@ -403,3 +403,30 @@ def update_profile():
     
     flash('Profile updated successfully!', 'success')
     return redirect(url_for('main.settings'))
+
+
+@main_bp.route('/facial-setup-guide')
+@login_required
+def facial_setup_guide():
+    """Show facial ID setup guide with working links"""
+    from flask import current_app
+    
+    user = User.query.get(session['user_id'])
+    
+    # Only admins can set up facial ID
+    if user.role not in ['admin', 'super_admin']:
+        abort(403)
+    
+    hidden_token = current_app.config.get('HIDDEN_ADMIN_TOKEN')
+    
+    setup_links = {
+        'setup_facial_id': f'/secure-mgmt-{hidden_token}/setup-facial-id',
+        'facial_login': f'/secure-mgmt-{hidden_token}/facial-login',
+        'facial_settings': f'/secure-mgmt-{hidden_token}/facial-id-settings',
+        'verify_2fa': f'/secure-mgmt-{hidden_token}/verify-2fa',
+    }
+    
+    return render_template('facial_setup_guide.html', 
+                          setup_links=setup_links, 
+                          hidden_token=hidden_token)
+

@@ -5,6 +5,7 @@ Supports environment variables for secrets and environment-specific settings.
 """
 
 import os
+import secrets
 from datetime import timedelta
 
 
@@ -24,7 +25,15 @@ class Config:
     APP_VERSION = '2.0.0'
     
     # Secret Key - MUST be set via environment variable in production
-    SECRET_KEY = get_env_variable('SECRET_KEY', 'dev-secret-key-change-in-production-immediately')
+    # For development, generate a random key if not provided
+    _env = os.environ.get('FLASK_ENV', 'development')
+    if _env == 'production':
+        SECRET_KEY = os.environ.get('SECRET_KEY')
+        if not SECRET_KEY:
+            raise ValueError("SECRET_KEY environment variable is REQUIRED in production")
+    else:
+        # Development and test environments
+        SECRET_KEY = os.environ.get('SECRET_KEY', secrets.token_hex(32))
     
     # Database - use absolute path
     _basedir = os.path.abspath(os.path.dirname(__file__))
@@ -162,8 +171,8 @@ class TestingConfig(Config):
     # Disable rate limiting for tests
     RATELIMIT_ENABLED = False
     
-    # Simple secret key for testing
-    SECRET_KEY = 'test-secret-key-not-for-production'
+    # Generate random secret key for each test run
+    SECRET_KEY = secrets.token_hex(32)
     
     # Fast password hashing for tests
     PASSWORD_HASH_ROUNDS = 4

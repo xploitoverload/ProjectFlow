@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facial ID Setup Guide - {{ app_name }}</title>
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    <style>
+        .facial-setup-page {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .facial-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .facial-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+
+        .facial-header p {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .facial-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .facial-card h2 {
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .facial-card h2 i {
+            font-size: 1.3em;
+            color: #4CAF50;
+        }
+
+        .facial-card p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .facial-steps {
+            background: #f5f5f5;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        .facial-steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .facial-steps li {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .facial-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .facial-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .facial-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .facial-link h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1em;
+        }
+
+        .facial-link p {
+            margin: 0;
+            font-size: 0.9em;
+            opacity: 0.95;
+        }
+
+        .facial-link-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .facial-link-tertiary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .facial-token {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-family: monospace;
+            word-break: break-all;
+            color: #856404;
+        }
+
+        .facial-token label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #856404;
+        }
+
+        .facial-warning {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            color: #742a2a;
+        }
+
+        .facial-success {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            color: #166534;
+        }
+
+        .facial-code {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid #e0e0e0;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .facial-checklist {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .facial-checklist ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .facial-checklist li {
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .facial-checklist li:last-child {
+            border-bottom: none;
+        }
+
+        .facial-checklist input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .facial-links {
+                grid-template-columns: 1fr;
+            }
+
+            .facial-header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="facial-setup-page">
+        <!-- Header -->
+        <div class="facial-header">
+            <h1>🔐 Facial ID Setup Guide</h1>
+            <p>Secure your admin account with biometric authentication</p>
+        </div>
+
+        <!-- Overview Card -->
+        <div class="facial-card">
+            <h2>
+                <i data-lucide="eye"></i>
+                What is Facial ID?
+            </h2>
+            <p>Facial ID is a biometric authentication system that allows you to unlock your admin account using facial recognition instead of passwords. This provides maximum security while maintaining convenience.</p>
+            <div class="facial-success">
+                <strong>✓ Benefits:</strong><br>
+                • No passwords to hack<br>
+                • Works with 2FA (Two-Factor Authentication)<br>
+                • Impossible to bypass with traditional attacks<br>
+                • Live face detection prevents photos/videos
+            </div>
+        </div>
+
+        <!-- Setup Steps -->
+        <div class="facial-card">
+            <h2>
+                <i data-lucide="arrow-down"></i>
+                Step-by-Step Setup
+            </h2>
+
+            <div class="facial-steps">
+                <ol>
+                    <li><strong>Enable 2FA (Two-Factor Authentication)</strong>
+                        <br><small>Set up your TOTP code for additional security</small></li>
+                    <li><strong>Enroll Your Face</strong>
+                        <br><small>Capture your face from your camera (needs 3-5 good shots)</small></li>
+                    <li><strong>Verify Enrollment</strong>
+                        <br><small>Test that facial recognition works with your captured face</small></li>
+                    <li><strong>Use Facial Login</strong>
+                        <br><small>Login to admin panel using only your face + 2FA</small></li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Direct Links -->
+        <div class="facial-card">
+            <h2>
+                <i data-lucide="link"></i>
+                Direct Links
+            </h2>
+
+            <div class="facial-token">
+                <label>Your Hidden Admin Token:</label>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <code>{{ hidden_token }}</code>
+                    <button class="copy-btn" onclick="copyToClipboard('{{ hidden_token }}')">Copy</button>
+                </div>
+            </div>
+
+            <p style="margin-top: 20px;"><strong>⚠️ Important:</strong> Keep this token secret! It provides access to your secure admin panel.</p>
+
+            <div class="facial-links">
+                <a href="{{ setup_links.setup_facial_id }}" class="facial-link">
+                    <h3>📸 Enroll Face</h3>
+                    <p>Set up facial recognition</p>
+                </a>
+
+                <a href="{{ setup_links.verify_2fa }}" class="facial-link facial-link-secondary">
+                    <h3>🔑 Setup 2FA</h3>
+                    <p>Enable two-factor auth first</p>
+                </a>
+
+                <a href="{{ setup_links.facial_settings }}" class="facial-link facial-link-tertiary">
+                    <h3>⚙️ Facial Settings</h3>
+                    <p>Manage facial ID settings</p>
+                </a>
+
+                <a href="{{ setup_links.facial_login }}" class="facial-link facial-link-secondary">
+                    <h3>👤 Facial Login</h3>
+                    <p>Login with your face</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- URL Reference -->
+        <div class="facial-card">
+            <h2>
+                <i data-lucide="list"></i>
+                All Facial ID URLs
+            </h2>
+            <p>Bookmark these URLs for easy access:</p>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #f5f5f5;">
+                    <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: 600;">Feature</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: 600;">URL</th>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;">Setup 2FA</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">
+                        <code style="background: #f5f5f5; padding: 5px 8px; border-radius: 4px;">
+                            /secure-mgmt-{{ hidden_token[:15] }}...{{ hidden_token[-10:] }}/setup-2fa
+                        </code>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;">Enroll Face</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">
+                        <code style="background: #f5f5f5; padding: 5px 8px; border-radius: 4px;">
+                            /secure-mgmt-{{ hidden_token[:15] }}...{{ hidden_token[-10:] }}/setup-facial-id
+                        </code>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;">Facial Settings</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">
+                        <code style="background: #f5f5f5; padding: 5px 8px; border-radius: 4px;">
+                            /secure-mgmt-{{ hidden_token[:15] }}...{{ hidden_token[-10:] }}/facial-id-settings
+                        </code>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;">Facial Login</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">
+                        <code style="background: #f5f5f5; padding: 5px 8px; border-radius: 4px;">
+                            /secure-mgmt-{{ hidden_token[:15] }}...{{ hidden_token[-10:] }}/facial-login
+                        </code>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;">Verify Facial</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">
+                        <code style="background: #f5f5f5; padding: 5px 8px; border-radius: 4px;">
+                            /secure-mgmt-{{ hidden_token[:15] }}...{{ hidden_token[-10:] }}/verify-facial-id
+                        </code>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Requirements -->
+        <div class="facial-card">
+            <h2>
+                <i data-lucide="check-circle"></i>
+                Requirements
+            </h2>
+
+            <div class="facial-checklist">
+                <ul>
+                    <li>
+                        <input type="checkbox" id="req1">
+                        <label for="req1">✓ You are logged in as an admin user</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="req2">
+                        <label for="req2">✓ You have a working webcam/camera</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="req3">
+                        <label for="req3">✓ Good lighting in your environment</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="req4">
+                        <label for="req4">✓ Browser has camera permissions enabled</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="req5">
+                        <label for="req5">✓ You can open your mouth slightly for liveness detection</label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Security Tips -->
+        <div class="facial-card">
+            <h2>
+                <i data-lucide="shield"></i>
+                Security Tips
+            </h2>
+
+            <div class="facial-warning">
+                <strong>⚠️ Important Security Notes:</strong><br><br>
+                • Your facial data is <strong>encrypted</strong> at rest using AES-128<br>
+                • Never share your hidden token URL with anyone<br>
+                • Always enable 2FA alongside facial recognition<br>
+                • Facial login works even if someone steals your password<br>
+                • Live face detection prevents spoofing with photos/videos<br>
+                • Each enrollment creates a 128-dimensional face vector (impossible to reverse-engineer)
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="facial-card">
+            <h2>
+                <i data-lucide="help-circle"></i>
+                Frequently Asked Questions
+            </h2>
+
+            <div style="margin-top: 20px;">
+                <h3 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">Can I use facial ID without 2FA?</h3>
+                <p>No, facial ID must be used together with 2FA (TOTP) for maximum security. This provides two layers of authentication.</p>
+
+                <h3 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">What if facial recognition fails?</h3>
+                <p>If you can't enroll or facial login fails, you can still use traditional password + 2FA to access your account.</p>
+
+                <h3 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">Can someone else access my account with a photo of me?</h3>
+                <p>No! The system has <strong>live face detection</strong> that detects if you're a real person. Photos, videos, and masks won't work.</p>
+
+                <h3 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">How many faces can I enroll?</h3>
+                <p>Currently one primary face per admin. You can re-enroll anytime if your face changes.</p>
+
+                <h3 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">Where is my facial data stored?</h3>
+                <p>Only encrypted 128-dimensional face vectors are stored. The actual facial image is never saved.</p>
+            </div>
+        </div>
+
+        <!-- Getting Help -->
+        <div class="facial-card" style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+            <h2 style="color: white; justify-content: center;">
+                <i data-lucide="help-circle"></i>
+                Need Help?
+            </h2>
+            <p>If you encounter any issues with facial ID setup:</p>
+            <ul style="text-align: left; display: inline-block; list-style: none;">
+                <li>✓ Ensure camera permissions are granted</li>
+                <li>✓ Check browser console for errors (F12)</li>
+                <li>✓ Try in a brighter environment</li>
+                <li>✓ Clear browser cache and try again</li>
+                <li>✓ Contact system administrator</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Token copied to clipboard!');
+            });
+        }
+
+        // Add Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

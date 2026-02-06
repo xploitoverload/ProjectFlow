@@ -210,14 +210,23 @@ def _register_blueprints(app):
     from app.routes.admin import admin_bp
     from app.routes.api import api_bp
     from app.routes.projects import projects_bp
-    from app.routes.progress import progress_bp
+    from app.admin_secure.routes import create_secure_admin_blueprint
+    import secrets
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(api_bp, url_prefix='/api/v1')
     app.register_blueprint(projects_bp, url_prefix='/project')
-    app.register_blueprint(progress_bp, url_prefix='/progress')
+    
+    # Register secure admin blueprint with hidden token
+    hidden_token = secrets.token_urlsafe(32)
+    admin_secure_bp = create_secure_admin_blueprint(hidden_token)
+    app.register_blueprint(admin_secure_bp, url_prefix=f'/secure-mgmt-{hidden_token}/')
+    
+    # Store hidden token in app config for access in templates
+    app.config['HIDDEN_ADMIN_TOKEN'] = hidden_token
+    app.logger.info(f'Secure admin panel available at: /secure-mgmt-{hidden_token}/')
 
 
 def _register_error_handlers(app):

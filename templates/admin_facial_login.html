@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Facial Recognition Login - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <style>
+        :root {
+            --dark-bg: #0f1117;
+            --dark-surface: #161b22;
+            --dark-border: #30363d;
+            --dark-text: #c9d1d9;
+            --dark-text-muted: #8b949e;
+            --primary: #0284c7;
+            --primary-light: #38bdf8;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--dark-bg);
+            color: var(--dark-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .facial-login-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+        }
+
+        .facial-login-card {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .facial-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .facial-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .facial-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #0284c7 0%, #9333ea 100%);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.75rem;
+        }
+
+        .facial-logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .facial-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .facial-subtitle {
+            color: var(--dark-text-muted);
+            font-size: 0.95rem;
+        }
+
+        .facial-camera-wrapper {
+            position: relative;
+            margin-bottom: 2rem;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 2px solid var(--dark-border);
+            aspect-ratio: 4 / 5;
+            background: var(--dark-bg);
+        }
+
+        .facial-camera {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .facial-guide-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 320px;
+            border: 3px solid var(--primary-light);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0.7;
+            animation: pulse-guide 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-guide {
+            0%, 100% { opacity: 0.5; border-color: var(--primary-light); }
+            50% { opacity: 0.8; border-color: var(--success); }
+        }
+
+        .facial-status-overlay {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .facial-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--error);
+            animation: pulse-dot 1s ease-in-out infinite;
+        }
+
+        .facial-status-dot.detected {
+            background: var(--success);
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .facial-confidence {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--dark-border);
+            border-radius: 3px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--error), var(--primary-light), var(--success));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .facial-info {
+            background: rgba(2, 132, 199, 0.1);
+            border: 1px solid rgba(2, 132, 199, 0.2);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--dark-text-muted);
+        }
+
+        .facial-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .facial-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .facial-info-icon {
+            color: var(--primary-light);
+        }
+
+        .facial-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--dark-surface);
+            color: var(--dark-text);
+            border: 1px solid var(--dark-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(2, 132, 199, 0.1);
+            border-color: var(--primary);
+        }
+
+        .facial-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        .btn-primary.loading .facial-spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .facial-result {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .facial-result.success {
+            display: block;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+
+        .facial-result.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .facial-result-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .facial-result-text {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .facial-result-details {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .facial-fallback {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: #ef4444;
+            font-size: 0.875rem;
+        }
+
+        .facial-admin-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary) 0%, #9333ea 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .facial-login-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--dark-border);
+            font-size: 0.875rem;
+            color: var(--dark-text-muted);
+        }
+
+        .facial-login-footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .facial-login-footer a:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 600px) {
+            .facial-login-card {
+                padding: 1.5rem;
+            }
+
+            .facial-title {
+                font-size: 1.25rem;
+            }
+
+            .facial-camera-wrapper {
+                aspect-ratio: 1 / 1;
+            }
+
+            .facial-guide-overlay {
+                width: 200px;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="facial-login-container">
+        <div class="facial-login-card">
+            <div class="facial-header">
+                <div class="facial-logo">
+                    <div class="facial-logo-icon">🔐</div>
+                    <div class="facial-logo-text">ProjectFlow</div>
+                </div>
+                <h1 class="facial-title">
+                    Admin Access
+                    <span class="facial-admin-badge">Facial ID</span>
+                </h1>
+                <p class="facial-subtitle">Scan your face to unlock admin panel</p>
+            </div>
+
+            <!-- Camera Feed -->
+            <div class="facial-camera-wrapper">
+                <video class="facial-camera" id="faceVideo" autoplay playsinline muted></video>
+                
+                <!-- Guide Overlay -->
+                <div class="facial-guide-overlay"></div>
+                
+                <!-- Status -->
+                <div class="facial-status-overlay">
+                    <div class="facial-status-dot" id="facialStatusDot"></div>
+                    <span id="facialStatusText">Waiting for face...</span>
+                </div>
+                
+                <!-- Confidence Meter -->
+                <div class="facial-confidence">
+                    <div>Confidence: <span id="confidenceValue">0</span>%</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="facial-info">
+                <div class="facial-info-item">
+                    <span class="facial-info-icon">📷</span>
+                    <span>Position your face in the oval frame</span>
+                </div>
+                <div class="facial-info-item">
+                    <span class="facial-info-icon">💡</span>
+                    <span>Ensure good lighting and no obstructions</span>
+                </div>
+                <div class="facial-info-item">
+                    <span class="facial-info-icon">✓</span>
+                    <span>Authentication takes 2-5 seconds</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="facial-actions">
+                <button class="btn btn-primary" id="verifyBtn" onclick="verifyFace()">
+                    Verify Face
+                    <span class="facial-spinner"></span>
+                </button>
+                <button class="btn btn-secondary" onclick="goBackToLogin()">Back</button>
+            </div>
+
+            <!-- Fallback Warning -->
+            <div class="facial-fallback" id="fallbackWarning" style="display: none;">
+                ⚠️ Camera access denied. Please check permissions or use password login.
+            </div>
+
+            <!-- Result Messages -->
+            <div class="facial-result" id="successResult">
+                <div class="facial-result-icon">✓</div>
+                <div class="facial-result-text">Face Verified!</div>
+                <div class="facial-result-details">Redirecting to admin panel...</div>
+            </div>
+
+            <div class="facial-result error" id="errorResult">
+                <div class="facial-result-icon">✗</div>
+                <div class="facial-result-text" id="errorTitle">Verification Failed</div>
+                <div class="facial-result-details" id="errorMessage">Please try again</div>
+            </div>
+
+            <!-- Footer -->
+            <div class="facial-login-footer">
+                <p>
+                    👤 <a href="{{ url_for('auth.login') }}">Use password login instead</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stream = null;
+        let isVerifying = false;
+        let confidenceLevel = 0;
+        let faceDetected = false;
+
+        // Initialize camera
+        async function initCamera() {
+            try {
+                const video = document.getElementById('faceVideo');
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+                video.srcObject = stream;
+                startFaceDetection();
+            } catch (error) {
+                console.error('Camera error:', error);
+                document.getElementById('fallbackWarning').style.display = 'block';
+            }
+        }
+
+        // Simulate face detection (in production, use face_recognition library)
+        function startFaceDetection() {
+            const video = document.getElementById('faceVideo');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            setInterval(() => {
+                if (!video.paused) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0);
+
+                    // Simulate confidence increase over time
+                    confidenceLevel = Math.min(95, confidenceLevel + Math.random() * 5);
+                    faceDetected = confidenceLevel > 60;
+
+                    updateUI();
+                }
+            }, 300);
+        }
+
+        function updateUI() {
+            const dot = document.getElementById('facialStatusDot');
+            const text = document.getElementById('facialStatusText');
+            const confidenceFill = document.getElementById('confidenceFill');
+            const confidenceValue = document.getElementById('confidenceValue');
+
+            confidenceValue.textContent = Math.round(confidenceLevel);
+            confidenceFill.style.width = confidenceLevel + '%';
+
+            if (faceDetected) {
+                dot.classList.add('detected');
+                text.textContent = 'Face detected ✓';
+            } else {
+                dot.classList.remove('detected');
+                text.textContent = 'Align your face';
+            }
+        }
+
+        // Verify face
+        async function verifyFace() {
+            if (!faceDetected || confidenceLevel < 60) {
+                showError('Please align your face properly and try again');
+                return;
+            }
+
+            if (isVerifying) return;
+            isVerifying = true;
+
+            const video = document.getElementById('faceVideo');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+
+            const imageData = canvas.toDataURL('image/jpeg');
+            const btn = document.getElementById('verifyBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('{{ url_for("admin_secure.facial_login_verify") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: imageData,
+                        confidence: confidenceLevel
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess();
+                    setTimeout(() => {
+                        window.location.href = '{{ url_for("admin.admin_dashboard") }}';
+                    }, 2000);
+                } else {
+                    showError(data.message || 'Face verification failed');
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                showError('Verification failed. Please try again.');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                isVerifying = false;
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('successResult').style.display = 'block';
+            document.getElementById('errorResult').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorResult').style.display = 'block';
+            document.getElementById('successResult').style.display = 'none';
+        }
+
+        function goBackToLogin() {
+            window.location.href = '{{ url_for("auth.login") }}';
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initCamera);
+        window.addEventListener('beforeunload', () => {
+            if (stream) stream.getTracks().forEach(track => track.stop());
+        });
+    </script>
+</body>
+</html>

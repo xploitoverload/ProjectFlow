@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # create_sample_data.py - Create sample data matching the Jira images
 
+import os
+import secrets
 from app import create_app
 from models import (
     User, Team, Project, Issue, Epic, Label, Comment, Sprint,
@@ -21,6 +23,9 @@ def create_sample_data():
     db.create_all()
     print("✓ Database recreated")
     
+    # Get passwords from environment or generate secure defaults
+    sample_password = os.environ.get('SAMPLE_USER_PASSWORD', f'Sample{secrets.randbelow(10000):04d}!')
+    
     # Create users
     admin_user = User(
         username='admin',
@@ -28,7 +33,7 @@ def create_sample_data():
         avatar_color='#667eea'
     )
     admin_user.email = 'admin@example.com'
-    admin_user.set_password('password123')
+    admin_user.set_password(sample_password)
     
     user1 = User(
         username='john_doe',
@@ -36,7 +41,7 @@ def create_sample_data():
         avatar_color='#0c66e4'
     )
     user1.email = 'john@example.com'
-    user1.set_password('password123')
+    user1.set_password(f'John{secrets.randbelow(10000):04d}!')
     
     user2 = User(
         username='jane_smith',
@@ -44,7 +49,7 @@ def create_sample_data():
         avatar_color='#22a06b'
     )
     user2.email = 'jane@example.com'
-    user2.set_password('password123')
+    user2.set_password(f'Jane{secrets.randbelow(10000):04d}!')
     
     user3 = User(
         username='bob_wilson',
@@ -52,7 +57,7 @@ def create_sample_data():
         avatar_color='#e2b203'
     )
     user3.email = 'bob@example.com'
-    user3.set_password('password123')
+    user3.set_password(f'Bob{secrets.randbelow(10000):04d}!')
     
     db.session.add_all([admin_user, user1, user2, user3])
     db.session.commit()
@@ -756,11 +761,15 @@ def create_sample_data():
     print(f"  • Total Sprints: 4")
     print(f"  • Total Epics: 4")
     print(f"  • Total Labels: 12")
-    print(f"\n👥 TEST USERS (Password: password123):")
-    print(f"  ✓ admin (Admin role)")
-    print(f"  ✓ john_doe (Developer)")
-    print(f"  ✓ jane_smith (Developer)")
-    print(f"  ✓ bob_wilson (Designer)")
+    print(f"\n👥 TEST USERS:")
+    print(f"  ✓ admin (Admin role) - password from SAMPLE_USER_PASSWORD env var")
+    print(f"  ✓ john_doe (Developer) - secure random password")
+    print(f"  ✓ jane_smith (Developer) - secure random password")
+    print(f"  ✓ bob_wilson (Designer) - secure random password")
+    print(f"\n⚠️  PASSWORD CONFIGURATION:")
+    print(f"  Set SAMPLE_USER_PASSWORD environment variable for default password:")
+    print(f"  export SAMPLE_USER_PASSWORD='YourSecurePassword@123'")
+    print(f"  python create_sample_data.py")
     print(f"\n👨‍💼 TEAM:")
     print(f"  ✓ Beyond Gravity - 4 members")
     print(f"\n" + "="*70)

@@ -17,6 +17,16 @@ Flask-Limiter==3.5.0
 Flask-Compress==1.14
 python-dotenv==1.0.0
 
+# Two-Factor Authentication & QR Codes
+pyotp==2.9.0
+qrcode==8.2
+pillow==12.1.0
+
+# Facial Recognition (optional)
+face-recognition==1.3.5
+numpy==1.26.3
+opencv-python==4.8.1.78
+
 # Database Migrations
 Flask-Migrate==4.0.5
 alembic==1.13.1

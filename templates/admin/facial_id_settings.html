@@ -1,0 +1,574 @@
+{% extends "base.html" %}
+
+{% block title %}Facial ID Settings - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>🔐 Facial ID Settings</h1>
+    <p>Manage your facial recognition authentication</p>
+  </div>
+
+  <div class="settings-container">
+    <!-- Overview Stats -->
+    <div class="settings-overview">
+      <h2>Your Biometric Data</h2>
+      
+      {% if facial_stats.enrolled %}
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-icon">📸</div>
+            <div class="stat-info">
+              <div class="stat-label">Enrolled Faces</div>
+              <div class="stat-value">{{ facial_stats.enrollment_count }}</div>
+            </div>
+          </div>
+
+          <div class="stat-box">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+              <div class="stat-label">Verified & Active</div>
+              <div class="stat-value">{{ facial_stats.verified_count }}</div>
+            </div>
+          </div>
+
+          <div class="stat-box">
+            <div class="stat-icon">🔓</div>
+            <div class="stat-info">
+              <div class="stat-label">Successful Unlocks</div>
+              <div class="stat-value">{{ facial_stats.total_unlocks }}</div>
+            </div>
+          </div>
+
+          <div class="stat-box">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-info">
+              <div class="stat-label">Failed Attempts</div>
+              <div class="stat-value">{{ facial_stats.total_failed }}</div>
+            </div>
+          </div>
+        </div>
+
+        {% if facial_stats.enrolled_at %}
+          <div class="enrollment-info">
+            <p>
+              <strong>First enrolled:</strong> {{ facial_stats.enrolled_at | dateformat }}
+            </p>
+            {% if facial_stats.last_unlock %}
+              <p>
+                <strong>Last successful unlock:</strong> {{ facial_stats.last_unlock | dateformat }}
+              </p>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="empty-state-box">
+          <p>No facial IDs enrolled yet</p>
+          <a href="{{ url_for('admin_secure.setup_facial_id') }}" class="btn btn-primary">
+            Enroll Now
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Enrolled Faces List -->
+    {% if facial_data_list %}
+    <div class="enrolled-faces-section">
+      <h2>Enrolled Faces</h2>
+      
+      <div class="faces-list">
+        {% for facial_data in facial_data_list %}
+        <div class="face-card {{ 'verified' if facial_data.is_verified else 'pending' }}">
+          <!-- Face Preview -->
+          <div class="face-preview">
+            {% if facial_data.face_preview %}
+              <img src="data:image/jpeg;base64,{{ facial_data.face_preview }}" alt="Face preview">
+            {% else %}
+              <div class="no-preview">
+                <span class="preview-icon">📸</span>
+              </div>
+            {% endif %}
+            
+            <div class="face-status-badge">
+              {% if facial_data.is_verified %}
+                <span class="badge badge-success">✅ Verified</span>
+              {% else %}
+                <span class="badge badge-warning">⏳ Pending</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Face Info -->
+          <div class="face-info">
+            <h3>{{ facial_data.encoding_label }}</h3>
+            
+            <div class="face-details">
+              <div class="detail-row">
+                <span class="detail-label">Enrolled:</span>
+                <span class="detail-value">{{ facial_data.enrolled_at | dateformat }}</span>
+              </div>
+
+              {% if facial_data.verified_at %}
+              <div class="detail-row">
+                <span class="detail-label">Verified:</span>
+                <span class="detail-value">{{ facial_data.verified_at | dateformat }}</span>
+              </div>
+              {% endif %}
+
+              <div class="detail-row">
+                <span class="detail-label">Successful Unlocks:</span>
+                <span class="detail-value">{{ facial_data.successful_unlocks }}</span>
+              </div>
+
+              <div class="detail-row">
+                <span class="detail-label">Failed Attempts:</span>
+                <span class="detail-value">{{ facial_data.failed_attempts }}</span>
+              </div>
+
+              {% if facial_data.last_unlock_at %}
+              <div class="detail-row">
+                <span class="detail-label">Last Unlock:</span>
+                <span class="detail-value">{{ facial_data.last_unlock_at | dateformat }}</span>
+              </div>
+              {% endif %}
+
+              {% if facial_data.device_info %}
+              <div class="detail-row">
+                <span class="detail-label">Device:</span>
+                <span class="detail-value">{{ facial_data.device_info }}</span>
+              </div>
+              {% endif %}
+
+              {% if facial_data.capture_quality %}
+              <div class="detail-row">
+                <span class="detail-label">Quality:</span>
+                <span class="detail-value">{{ (facial_data.capture_quality * 100)|int }}%</span>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="face-actions">
+              {% if not facial_data.is_verified %}
+              <form method="POST" class="inline-form">
+                <input type="hidden" name="action" value="verify_facial_id">
+                <input type="hidden" name="facial_id" value="{{ facial_data.id }}">
+                <button type="submit" class="btn btn-sm btn-success">Verify & Enable</button>
+              </form>
+              {% endif %}
+
+              <form method="POST" class="inline-form" onsubmit="return confirm('Delete this facial ID enrollment? This action cannot be undone.');">
+                <input type="hidden" name="action" value="delete_facial_id">
+                <input type="hidden" name="facial_id" value="{{ facial_data.id }}">
+                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="action-footer">
+        <a href="{{ url_for('admin_secure.setup_facial_id') }}" class="btn btn-primary">
+          Add Another Face
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Security Guidelines -->
+    <div class="security-section">
+      <h2>🛡️ Security Guidelines</h2>
+      
+      <div class="guidelines-grid">
+        <div class="guideline-card">
+          <h3>Best Practices</h3>
+          <ul>
+            <li>Enroll multiple angles of your face</li>
+            <li>Use good lighting conditions</li>
+            <li>Enroll from different locations/devices</li>
+            <li>Keep enrolled faces current</li>
+            <li>Delete old/unused enrollments</li>
+            <li>Monitor verification history</li>
+          </ul>
+        </div>
+
+        <div class="guideline-card">
+          <h3>Privacy & Data</h3>
+          <ul>
+            <li>Facial encodings are encrypted</li>
+            <li>Data stored only on secure servers</li>
+            <li>Never shared with third parties</li>
+            <li>Compliant with GDPR & CCPA</li>
+            <li>You can delete anytime</li>
+            <li>Access logs maintained</li>
+          </ul>
+        </div>
+
+        <div class="guideline-card">
+          <h3>Troubleshooting</h3>
+          <ul>
+            <li>Poor lighting? Use a lamp or window</li>
+            <li>Glasses causing issues? Remove them</li>
+            <li>Multiple failed attempts? Try different angle</li>
+            <li>Not recognized? Re-enroll in same setting</li>
+            <li>Account locked? Wait 30 minutes</li>
+            <li>Still stuck? Use backup codes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compliance Info -->
+    <div class="compliance-section">
+      <h2>📋 Compliance & Regulations</h2>
+      
+      <div class="compliance-notice">
+        <p>
+          Our facial recognition system is designed with privacy and security in mind:
+        </p>
+        
+        <div class="compliance-items">
+          <div class="compliance-item">
+            <strong>GDPR Compliance:</strong> Your facial data is treated as personal data with full GDPR protections. You have the right to request access, correction, or deletion.
+          </div>
+
+          <div class="compliance-item">
+            <strong>CCPA Compliance:</strong> California residents have rights regarding personal information including facial data. Contact your administrator for details.
+          </div>
+
+          <div class="compliance-item">
+            <strong>Data Security:</strong> Facial encodings are encrypted using industry-standard encryption and never transmitted unencrypted.
+          </div>
+
+          <div class="compliance-item">
+            <strong>Audit Trail:</strong> All facial verification attempts are logged and can be reviewed for security purposes.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.settings-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.settings-overview {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.settings-overview h2 {
+  margin-top: 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.stat-box {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: var(--dark-bg);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--dark-border);
+}
+
+.stat-icon {
+  font-size: 2rem;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--dark-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary-light);
+}
+
+.enrollment-info {
+  background: rgba(2, 132, 199, 0.05);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--primary);
+}
+
+.enrollment-info p {
+  margin: 0.5rem 0;
+}
+
+.empty-state-box {
+  text-align: center;
+  padding: 2rem;
+  background: var(--dark-bg);
+  border-radius: 0.5rem;
+  border: 1px dashed var(--dark-border);
+}
+
+.enrolled-faces-section {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.faces-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  margin: 1.5rem 0;
+}
+
+.face-card {
+  background: var(--dark-bg);
+  border: 1px solid var(--dark-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.face-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+
+.face-card.pending {
+  opacity: 0.8;
+}
+
+.face-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background: #000;
+  overflow: hidden;
+}
+
+.face-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--dark-surface);
+}
+
+.preview-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.face-status-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: rgba(34, 197, 94, 0.2);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+.face-info {
+  padding: 1.5rem;
+}
+
+.face-info h3 {
+  margin: 0 0 1rem;
+  color: var(--primary-light);
+}
+
+.face-details {
+  margin: 1rem 0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--dark-border);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: var(--dark-text-muted);
+}
+
+.detail-value {
+  color: var(--dark-text);
+  font-weight: 500;
+}
+
+.face-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.inline-form {
+  flex: 1;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--error), #dc2626);
+  color: white;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+.action-footer {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--dark-border);
+}
+
+.security-section {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.guidelines-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.guideline-card {
+  background: var(--dark-bg);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--dark-border);
+  border-left: 3px solid var(--primary);
+}
+
+.guideline-card h3 {
+  margin-top: 0;
+  color: var(--primary-light);
+}
+
+.guideline-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.guideline-card li {
+  padding: 0.5rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  color: var(--dark-text);
+}
+
+.guideline-card li:before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.compliance-section {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: 0.75rem;
+  padding: 2rem;
+}
+
+.compliance-notice {
+  background: rgba(2, 132, 199, 0.05);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--primary);
+}
+
+.compliance-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.compliance-item {
+  background: var(--dark-bg);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--success);
+  line-height: 1.6;
+}
+
+.compliance-item strong {
+  color: var(--primary-light);
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .faces-list {
+    grid-template-columns: 1fr;
+  }
+
+  .face-actions {
+    flex-direction: column;
+  }
+}
+</style>
+{% endblock %}

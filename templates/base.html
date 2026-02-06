@@ -8,7 +8,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Webify Theme (Primary) -->
+    <!-- Modern Professional Theme (Primary) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-modern.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth-modern.css') }}">
+    
+    <!-- Webify Theme (Fallback) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/webify-theme.css') }}">
     
     <!-- Additional Styles -->
@@ -126,7 +131,7 @@
                         <span class="iconify nav-icon" data-icon="solar:chart-bold-duotone"></span>
                         <span>Analytics</span>
                     </a>
-                    <a href="{{ url_for('progress.submit_update') }}" class="sidebar-nav-item {% if request.endpoint == 'progress.submit_update' %}active{% endif %}">
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
                         <span class="iconify nav-icon" data-icon="solar:document-add-bold-duotone"></span>
                         <span>Progress Updates</span>
                     </a>

@@ -260,10 +260,10 @@
                                                 <h4 class="font-medium">Two-Factor Authentication</h4>
                                                 <p class="text-secondary text-sm">Add an extra layer of security to your account</p>
                                             </div>
-                                            <button class="btn btn-secondary btn-sm" disabled>
+                                            <a href="{{ url_for('admin_secure.setup_2fa') }}" class="btn btn-secondary btn-sm">
                                                 <i data-lucide="smartphone" style="width: 16px; height: 16px;"></i>
-                                                Coming Soon
-                                            </button>
+                                                Setup 2FA
+                                            </a>
                                         </div>
 
                                         <!-- Active Sessions -->
@@ -278,6 +278,22 @@
                                             </button>
                                         </div>
 
+                                        {% if current_user.role in ['admin', 'super_admin'] %}
+                                        <!-- Facial ID Authentication -->
+                                        <div class="setting-item" style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 20px;">
+                                            <div class="setting-info">
+                                                <h4 class="font-medium" style="display: flex; align-items: center; gap: 8px;">
+                                                    <i data-lucide="eye" style="width: 18px; height: 18px; color: #667eea;"></i>
+                                                    Facial ID Authentication
+                                                </h4>
+                                                <p class="text-secondary text-sm">Secure your admin account with biometric authentication</p>
+                                            </div>
+                                            <a href="{{ url_for('main.facial_setup_guide') }}" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                                <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+                                                Setup Facial ID
+                                            </a>
+                                        </div>
+                                        {% endif %}
                                         <!-- Last Login -->
                                         <div class="setting-item">
                                             <div class="setting-info">

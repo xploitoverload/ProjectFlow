@@ -7,24 +7,50 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/webify-theme.css') }}">
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <style>
-        .auth-container {
-            display: flex;
-            min-height: 100vh;
+        :root {
+            --dark-bg: #0f1117;
+            --dark-surface: #161b22;
+            --dark-border: #30363d;
+            --dark-text: #c9d1d9;
+            --dark-text-muted: #8b949e;
+            --primary: #0284c7;
+            --primary-light: #38bdf8;
         }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--dark-bg);
+            color: var(--dark-text);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+            display: contents;
+        }
+
+        /* Left column - login form */
         .auth-left {
-            flex: 1;
+            background: var(--dark-bg);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: var(--webify-space-8);
-            background: var(--webify-bg-primary);
+            padding: 2rem;
             position: relative;
         }
-        
+
         .auth-left::before {
             content: '';
             position: absolute;
@@ -32,128 +58,229 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(ellipse 100% 100% at 0% 0%, rgba(124, 58, 237, 0.1), transparent 70%);
+            background: radial-gradient(ellipse 100% 100% at 0% 0%, rgba(2, 132, 199, 0.1), transparent 70%);
             pointer-events: none;
         }
-        
+
         .auth-card {
-            width: 100%;
-            max-width: 420px;
-            padding: var(--webify-space-8);
-            background: var(--webify-bg-card);
-            border: 1px solid var(--webify-border-primary);
-            border-radius: var(--webify-radius-2xl);
             position: relative;
             z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 0.75rem;
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        
-        .auth-card::before {
-            content: '';
-            position: absolute;
-            top: -1px;
-            left: 20%;
-            right: 20%;
-            height: 2px;
-            background: var(--webify-gradient-primary);
-            border-radius: 2px;
-        }
-        
+
         .auth-logo {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: var(--webify-space-3);
-            margin-bottom: var(--webify-space-8);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
         }
-        
+
         .auth-logo-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--webify-gradient-primary);
-            border-radius: var(--webify-radius-xl);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0284c7 0%, #9333ea 100%);
+            border-radius: 0.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            box-shadow: var(--webify-shadow-glow);
         }
-        
+
         .auth-logo-text {
-            font-size: var(--webify-text-2xl);
-            font-weight: 800;
-            background: var(--webify-gradient-text);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .auth-title {
-            font-size: var(--webify-text-2xl);
+            font-size: 1.25rem;
             font-weight: 700;
-            color: var(--webify-text-primary);
-            text-align: center;
-            margin-bottom: var(--webify-space-2);
+            color: white;
         }
-        
+
+        .auth-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
         .auth-subtitle {
-            font-size: var(--webify-text-sm);
-            color: var(--webify-text-tertiary);
+            font-size: 0.95rem;
+            color: var(--dark-text-muted);
             text-align: center;
-            margin-bottom: var(--webify-space-8);
+            margin-bottom: 1.5rem;
         }
-        
+
         .auth-form {
             display: flex;
             flex-direction: column;
-            gap: var(--webify-space-5);
+            gap: 1.5rem;
         }
-        
-        .auth-form .form-input {
-            padding-left: 48px;
+
+        .form-group {
+            margin-bottom: 0;
         }
-        
-        .auth-form .input-group-icon {
-            left: 16px;
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.95rem;
         }
-        
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--dark-bg);
+            color: var(--dark-text);
+            border: 1px solid var(--dark-border);
+            border-radius: 0.5rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+            background: rgba(2, 132, 199, 0.02);
+        }
+
+        input::placeholder {
+            color: var(--dark-text-muted);
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .text-sm {
+            font-size: 0.9rem;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-lg {
+            padding: 0.85rem 1.5rem;
+        }
+
         .auth-footer {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--dark-border);
             text-align: center;
-            margin-top: var(--webify-space-8);
-            padding-top: var(--webify-space-6);
-            border-top: 1px solid var(--webify-border-secondary);
         }
-        
+
+        .auth-footer p {
+            color: var(--dark-text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
         .auth-footer-badges {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: var(--webify-space-6);
-            margin-top: var(--webify-space-4);
+            gap: 1rem;
+            flex-wrap: wrap;
         }
-        
+
         .auth-badge {
             display: flex;
             align-items: center;
-            gap: var(--webify-space-2);
-            font-size: var(--webify-text-xs);
-            color: var(--webify-text-muted);
+            gap: 0.35rem;
+            font-size: 0.8rem;
+            color: var(--dark-text-muted);
         }
-        
-        .auth-badge .iconify {
-            color: var(--webify-accent-secondary);
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.9rem;
         }
-        
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border-left-color: #ef4444;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #86efac;
+            border-left-color: #22c55e;
+        }
+
+        /* Right column - features */
         .auth-right {
-            flex: 1;
-            background: var(--webify-gradient-secondary);
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: var(--webify-space-12);
+            padding: 2rem;
             position: relative;
             overflow: hidden;
         }
-        
+
         .auth-right::before {
             content: '';
             position: absolute;
@@ -161,10 +288,10 @@
             right: -50%;
             width: 100%;
             height: 200%;
-            background: radial-gradient(circle, rgba(124, 58, 237, 0.4) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(2, 132, 199, 0.3) 0%, transparent 60%);
             animation: pulse-glow 4s ease-in-out infinite;
         }
-        
+
         .auth-right::after {
             content: '';
             position: absolute;
@@ -172,73 +299,69 @@
             left: -30%;
             width: 80%;
             height: 80%;
-            background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(147, 51, 234, 0.2) 0%, transparent 60%);
             animation: pulse-glow 5s ease-in-out infinite reverse;
         }
-        
+
         @keyframes pulse-glow {
             0%, 100% { opacity: 0.5; transform: scale(1); }
             50% { opacity: 0.8; transform: scale(1.1); }
         }
-        
+
         .auth-right-content {
             position: relative;
             z-index: 1;
             text-align: center;
-            max-width: 500px;
+            max-width: 400px;
             color: white;
         }
-        
+
         .auth-right-icon {
             width: 80px;
             height: 80px;
-            margin: 0 auto var(--webify-space-8);
+            margin: 0 auto 1.5rem;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: var(--webify-radius-2xl);
+            border-radius: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .auth-right-title {
-            font-size: var(--webify-text-4xl);
+            font-size: 2.25rem;
             font-weight: 800;
-            margin-bottom: var(--webify-space-4);
+            margin-bottom: 1rem;
             line-height: 1.2;
         }
-        
+
         .auth-right-text {
-            font-size: var(--webify-text-lg);
-            opacity: 0.8;
+            font-size: 1.125rem;
+            opacity: 0.9;
             line-height: 1.6;
-            margin-bottom: var(--webify-space-8);
+            margin-bottom: 2rem;
         }
-        
+
         .auth-features {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: var(--webify-space-3);
+            gap: 0.75rem;
         }
-        
+
         .auth-feature-pill {
             display: flex;
             align-items: center;
-            gap: var(--webify-space-2);
-            padding: var(--webify-space-2) var(--webify-space-4);
+            gap: 0.35rem;
+            padding: 0.5rem 1rem;
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: var(--webify-radius-full);
-            font-size: var(--webify-text-sm);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            font-size: 0.9rem;
             backdrop-filter: blur(10px);
         }
-        
-        .auth-feature-pill .iconify {
-            color: var(--webify-accent-tertiary);
-        }
-        
+
         .auth-stats {
             position: absolute;
             bottom: 40px;
@@ -246,24 +369,34 @@
             right: 40px;
             display: flex;
             justify-content: space-between;
-            font-size: var(--webify-text-sm);
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.6);
             z-index: 1;
         }
-        
+
         @media (max-width: 1024px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+
             .auth-right {
                 display: none;
             }
         }
-        
+
         @media (max-width: 480px) {
             .auth-left {
-                padding: var(--webify-space-4);
+                padding: 1rem;
             }
-            
+
             .auth-card {
-                padding: var(--webify-space-6);
+                padding: 1.5rem;
+            }
+
+            .auth-title {
+                font-size: 1.25rem;
             }
         }
     </style>
@@ -272,11 +405,11 @@
     <div class="auth-container">
         <!-- Left Side - Login Form -->
         <div class="auth-left">
-            <div class="auth-card animate-fadeInUp">
+            <div class="auth-card">
                 <!-- Logo -->
                 <div class="auth-logo">
                     <div class="auth-logo-icon">
-                        <span class="iconify" data-icon="solar:layers-bold-duotone" style="width: 26px; height: 26px;"></span>
+                        <span class="iconify" data-icon="solar:layers-bold-duotone" style="width: 24px; height: 24px;"></span>
                     </div>
                     <span class="auth-logo-text">ProjectFlow</span>
                 </div>
@@ -289,9 +422,9 @@
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}" style="margin-bottom: var(--webify-space-6);">
-                                <span class="iconify alert-icon" data-icon="{{ 'solar:danger-triangle-bold' if category in ['danger', 'error'] else 'solar:check-circle-bold' }}"></span>
-                                <div class="alert-content">{{ message }}</div>
+                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
+                                <span class="iconify" data-icon="{{ 'solar:danger-triangle-bold' if category in ['danger', 'error'] else 'solar:check-circle-bold' }}" style="width: 18px; height: 18px; flex-shrink: 0;"></span>
+                                <div>{{ message }}</div>
                             </div>
                         {% endfor %}
                     {% endif %}
@@ -302,57 +435,60 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     
                     <div class="form-group">
-                        <label class="form-label" for="username">Username</label>
-                        <div class="input-group">
-                            <span class="iconify input-group-icon" data-icon="solar:user-bold" style="width: 18px; height: 18px;"></span>
-                            <input 
-                                type="text" 
-                                id="username" 
-                                name="username" 
-                                class="form-input form-input-lg" 
-                                placeholder="Enter your username"
-                                required
-                                autocomplete="username"
-                                autofocus
-                            >
-                        </div>
+                        <label for="username">Username</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            placeholder="Enter your username"
+                            required
+                            autocomplete="username"
+                            autofocus
+                        >
                     </div>
 
                     <div class="form-group">
                         <div class="flex items-center justify-between mb-2">
-                            <label class="form-label mb-0" for="password">Password</label>
-                            <a href="{{ url_for('auth.forgot_password') }}" class="text-sm" style="color: var(--webify-accent-secondary);">Forgot password?</a>
+                            <label for="password">Password</label>
+                            <a href="{{ url_for('auth.forgot_password') }}" class="text-sm" style="color: #38bdf8; text-decoration: none;">Forgot password?</a>
                         </div>
-                        <div class="input-group">
-                            <span class="iconify input-group-icon" data-icon="solar:lock-password-bold" style="width: 18px; height: 18px;"></span>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password" 
-                                class="form-input form-input-lg" 
-                                placeholder="Enter your password"
-                                required
-                                autocomplete="current-password"
-                            >
-                        </div>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Enter your password"
+                            required
+                            autocomplete="current-password"
+                        >
                     </div>
 
                     <div class="form-group">
                         <label class="form-check">
                             <input type="checkbox" name="remember" class="form-check-input">
-                            <span class="form-check-label">Keep me signed in</span>
+                            <span>Keep me signed in</span>
                         </label>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-full">
-                        <span class="iconify icon-sm" data-icon="solar:login-2-bold"></span>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <span class="iconify" data-icon="solar:login-2-bold" style="width: 18px; height: 18px;"></span>
                         Sign in to workspace
                     </button>
+
+                    <!-- Facial Login for Admins - Coming Soon -->
+                    <!-- Note: Facial login will be available after admin enrollment -->
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--dark-border);">
+                        <p style="font-size: 0.85rem; color: var(--dark-text-muted); margin-bottom: 0.75rem;">Admin access:</p>
+                        <button type="button" class="btn btn-secondary" style="width: 100%; justify-content: center; cursor: not-allowed; opacity: 0.6;" disabled>
+                            <span class="iconify" data-icon="solar:face-scan-bold" style="width: 18px; height: 18px;"></span>
+                            Sign in with Facial ID (Coming Soon)
+                        </button>
+                        <p style="font-size: 0.75rem; color: var(--dark-text-muted); margin-top: 0.5rem;">Please use password login. Facial ID enrollment available in admin settings.</p>
+                    </div>
                 </form>
 
                 <!-- Footer -->
                 <div class="auth-footer">
-                    <p class="text-sm text-secondary">Protected by enterprise-grade security</p>
+                    <p>Protected by enterprise-grade security</p>
                     <div class="auth-footer-badges">
                         <span class="auth-badge">
                             <span class="iconify" data-icon="solar:shield-check-bold" style="width: 14px; height: 14px;"></span>
@@ -379,7 +515,7 @@
                 </div>
                 <h2 class="auth-right-title">Manage projects with clarity</h2>
                 <p class="auth-right-text">
-                    Streamline your workflow, track progress in real-time, and deliver exceptional results with our modern project management platform.
+                    Streamline your workflow, track progress in real-time, and deliver exceptional results.
                 </p>
                 
                 <!-- Feature Pills -->
@@ -396,32 +532,15 @@
                         <span class="iconify" data-icon="solar:check-circle-bold" style="width: 16px; height: 16px;"></span>
                         Team Collaboration
                     </span>
-                    <span class="auth-feature-pill">
-                        <span class="iconify" data-icon="solar:check-circle-bold" style="width: 16px; height: 16px;"></span>
-                        Real-time Updates
-                    </span>
                 </div>
             </div>
 
             <!-- Stats -->
             <div class="auth-stats">
                 <span>Trusted by 10,000+ teams</span>
-                <span>99.9% uptime guaranteed</span>
+                <span>99.9% uptime</span>
             </div>
         </div>
     </div>
-
-    <script>
-        // Add subtle animation to form inputs
-        document.querySelectorAll('.form-input').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-                this.parentElement.style.transition = 'transform 0.2s ease';
-            });
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-            });
-        });
-    </script>
 </body>
 </html>

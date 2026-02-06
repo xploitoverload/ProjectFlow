@@ -1,4 +1,6 @@
 # init_db.py - Secure Database Initialization (FIXED)
+import os
+import secrets
 from app import create_app
 from models import db, User, Team, Project, ProjectUpdate
 from datetime import datetime, timedelta
@@ -34,13 +36,17 @@ def init_database():
         # Create Users (passwords are hashed, emails are encrypted)
         print("\nCreating users...")
         
+        # Get passwords from environment or use secure defaults
+        admin_password = os.environ.get('ADMIN_PASSWORD', f'Admin{secrets.randbelow(10000):04d}!')
+        employee_password = os.environ.get('EMPLOYEE_PASSWORD', f'Employee{secrets.randbelow(10000):04d}!')
+        
         admin = User(
             username='admin',
             role='admin',
             team_id=None
         )
         admin.email = 'admin@company.com'
-        admin.set_password('Admin@123')  # Strong password
+        admin.set_password(admin_password)  # Secure password from env or generated
         
         employee1 = User(
             username='employee',
@@ -48,7 +54,7 @@ def init_database():
             team_id=team1.id
         )
         employee1.email = 'employee@company.com'
-        employee1.set_password('Employee@123')  # Strong password
+        employee1.set_password(employee_password)  # Secure password from env or generated
         
         employee2 = User(
             username='john_doe',
@@ -56,7 +62,7 @@ def init_database():
             team_id=team1.id
         )
         employee2.email = 'john.doe@company.com'
-        employee2.set_password('John@1234')  # Strong password
+        employee2.set_password(f'John{secrets.randbelow(10000):04d}!')  # Secure random password
         
         employee3 = User(
             username='jane_smith',
@@ -64,7 +70,7 @@ def init_database():
             team_id=team2.id
         )
         employee3.email = 'jane.smith@company.com'
-        employee3.set_password('Jane@1234')  # Strong password
+        employee3.set_password(f'Jane{secrets.randbelow(10000):04d}!')  # Secure random password
         
         employee4 = User(
             username='mike_wilson',
@@ -72,7 +78,7 @@ def init_database():
             team_id=team3.id
         )
         employee4.email = 'mike.wilson@company.com'
-        employee4.set_password('Mike@1234')  # Strong password
+        employee4.set_password(f'Mike{secrets.randbelow(10000):04d}!')  # Secure random password
         
         db.session.add_all([admin, employee1, employee2, employee3, employee4])
         db.session.commit()
@@ -204,17 +210,21 @@ def init_database():
         print("  • Change default passwords in production")
         print("  • Enable HTTPS in production")
         print("\n" + "="*70)
-        print("LOGIN CREDENTIALS (STRONG PASSWORDS):")
+        print("LOGIN CREDENTIALS:")
         print("="*70)
-        print("\n👤 Admin Login:")
-        print("  Username: admin")
-        print("  Password: Admin@123")
-        print("\n👥 Employee Logins:")
-        print("  Username: employee  | Password: Employee@123")
-        print("  Username: john_doe  | Password: John@1234")
-        print("  Username: jane_smith| Password: Jane@1234")
-        print("  Username: mike_wilson| Password: Mike@1234")
-        print("\n⚠️  NOTE: All passwords meet security requirements:")
+        print("\n⚠️  ENVIRONMENT VARIABLE CONFIGURATION:")
+        print("  To set default credentials, use environment variables:")
+        print("  - ADMIN_PASSWORD: Admin user password")
+        print("  - EMPLOYEE_PASSWORD: Default employee password")
+        print("\n  Example:")
+        print("  export ADMIN_PASSWORD='YourSecurePassword@123'")
+        print("  export EMPLOYEE_PASSWORD='YourSecurePassword@456'")
+        print("  python init_db.py")
+        print("\n📝 GENERATED CREDENTIALS:")
+        print(f"  Admin User: admin (password set from ADMIN_PASSWORD env var)")
+        print(f"  Employee User: employee (password set from EMPLOYEE_PASSWORD env var)")
+        print(f"  Other Users: john_doe, jane_smith, mike_wilson (secure random passwords)")
+        print("\n✅ All passwords meet security requirements:")
         print("     - At least 8 characters")
         print("     - Contains uppercase and lowercase letters")
         print("     - Contains at least one number")

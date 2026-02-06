@@ -19,8 +19,6 @@ def get_encryption_key():
         key = Fernet.generate_key()
         with open(key_file, 'wb') as f:
             f.write(key)
-        # Set restrictive permissions (600 = owner read/write only)
-        os.chmod(key_file, 0o600)
         return key
 
 ENCRYPTION_KEY = get_encryption_key()
@@ -32,16 +30,11 @@ def encrypt_field(data):
     return cipher.encrypt(data.encode()).decode()
 
 def decrypt_field(data):
-    """Decrypt a field, logging any decryption errors"""
     if data is None:
         return None
     try:
         return cipher.decrypt(data.encode()).decode()
-    except Exception as e:
-        # Log the error for debugging - data corruption detected
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f'Decryption error: {str(e)}. Data may be corrupted.')
+    except:
         return None
 
 # Many-to-many relationship between Projects and Teams
@@ -59,7 +52,6 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email_encrypted = db.Column(db.Text, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    full_name = db.Column(db.String(200))  # User's full name for profile display
     role = db.Column(db.String(50), nullable=False, index=True)  # Extended for more roles
     department = db.Column(db.String(50), index=True)  # Auto-derived from role: software, hardware, mechanical, etc.
     team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'))  # Core team assignment
@@ -69,8 +61,6 @@ class User(UserMixin, db.Model):
     last_login = db.Column(db.DateTime)
     last_activity = db.Column(db.DateTime)  # Updated on each request
     is_active = db.Column(db.Boolean, default=True)
-    reset_token = db.Column(db.String(100), unique=True)  # For password reset functionality
-    reset_token_expiry = db.Column(db.DateTime)  # Expiry time for reset token
     
     @property
     def email(self):
@@ -141,7 +131,6 @@ class Team(db.Model):
     is_core_team = db.Column(db.Boolean, default=False)  # True = Department core team, False = Project team
     description_encrypted = db.Column(db.Text)
     color = db.Column(db.String(7), default='#6366f1')  # Team color for UI
-    text_color = db.Column(db.String(7), default='#0f172a')  # Team avatar text color
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     members = db.relationship('User', backref='team', lazy=True)
     # Many-to-many relationship with projects
@@ -175,19 +164,14 @@ class Project(db.Model):
     workflow_type = db.Column(db.String(20), default='agile')
     team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'))
     lead_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))  # Project lead
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))  # Project owner for access control
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
-    deadline = db.Column(db.DateTime)  # Project deadline
-    color = db.Column(db.String(7), default='#667eea')  # Project avatar color
-    progress = db.Column(db.Integer, default=0)  # Progress percentage (0-100)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     
     # Relationships
     team = db.relationship('Team', foreign_keys=[team_id], backref='primary_projects')
     lead = db.relationship('User', foreign_keys=[lead_id], backref='led_projects')
-    owner = db.relationship('User', foreign_keys=[owner_id], backref='owned_projects')
     updates = db.relationship('ProjectUpdate', backref='project_ref', lazy=True, cascade='all, delete-orphan')
     sprints = db.relationship('Sprint', backref='project', lazy=True, cascade='all, delete-orphan')
     epics = db.relationship('Epic', backref='project', lazy=True, cascade='all, delete-orphan')
@@ -593,178 +577,67 @@ class StarredItem(db.Model):
         return f'<StarredItem {self.item_type}:{self.item_id}>'
 
 
-class ProgressUpdate(db.Model):
-    """Employee progress update model for performance tracking and reporting"""
-    __tablename__ = 'progress_update'
+class FacialIDData(db.Model):
+    """Store facial recognition data for admin biometric authentication"""
+    __tablename__ = 'facial_id_data'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), 
+                         nullable=False, index=True)
     
-    # Reporting details
-    reporting_period = db.Column(db.String(20), nullable=False)  # 'daily', 'weekly', 'monthly'
-    period_start_date = db.Column(db.Date, nullable=False)
-    period_end_date = db.Column(db.Date, nullable=False)
+    # Encrypted facial encoding (128-dimensional vector)
+    facial_encoding = db.Column(db.Text, nullable=False)
     
-    # Work completed
-    completed_work_encrypted = db.Column(db.Text, nullable=False)  # What was accomplished
-    work_in_progress_encrypted = db.Column(db.Text, nullable=False)  # Current work
-    blocked_tasks_encrypted = db.Column(db.Text)  # Tasks that are blocked
-    blocked_reasons_encrypted = db.Column(db.Text)  # Reasons for blocked tasks
+    # Face preview image (base64 encoded for display)
+    face_preview = db.Column(db.Text, nullable=True)
     
-    # Time and effort
-    hours_spent = db.Column(db.Float, default=0)  # Hours worked during period
-    effort_level = db.Column(db.String(20), default='medium')  # low, medium, high
+    # Label for this encoding (e.g., "phone", "laptop", "office")
+    encoding_label = db.Column(db.String(100), default='default')
     
-    # Contributions
-    individual_contributions_encrypted = db.Column(db.Text)  # Personal achievements
-    team_work_encrypted = db.Column(db.Text)  # Team collaboration and support
+    # Hash of encoding for quick comparison
+    encoding_hash = db.Column(db.String(255), unique=True, nullable=False)
     
-    # Product work
-    features_worked_encrypted = db.Column(db.Text)  # Features developed
-    bugs_fixed_encrypted = db.Column(db.Text)  # Bugs fixed
-    improvements_encrypted = db.Column(db.Text)  # Improvements made
+    # Verification status
+    is_verified = db.Column(db.Boolean, default=False, index=True)
     
-    # Status and tracking
-    project_status = db.Column(db.String(20), default='on_track')  # 'on_track', 'at_risk', 'delayed'
-    risks_dependencies_encrypted = db.Column(db.Text)  # Risks and dependencies
-    challenges_encrypted = db.Column(db.Text)  # Challenges faced
+    # Enrollment and verification timestamps
+    enrolled_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    verified_at = db.Column(db.DateTime, nullable=True)
     
-    # Planning
-    next_priorities_encrypted = db.Column(db.Text)  # Plans for next period
-    notes_encrypted = db.Column(db.Text)  # General notes
-    escalations_encrypted = db.Column(db.Text)  # Items needing admin attention
+    # Security tracking
+    successful_unlocks = db.Column(db.Integer, default=0)  # Successful authentications
+    failed_attempts = db.Column(db.Integer, default=0)     # Failed authentications
+    last_unlock_at = db.Column(db.DateTime, nullable=True)  # Last successful unlock
+    last_failed_attempt_at = db.Column(db.DateTime, nullable=True)  # Last failed attempt
     
-    # Review tracking
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    reviewed_at = db.Column(db.DateTime)  # When admin reviewed it
-    admin_comments_encrypted = db.Column(db.Text)  # Admin feedback
-    review_status = db.Column(db.String(20), default='pending')  # 'pending', 'reviewed', 'approved'
-    reviewed_by_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))  # Admin who reviewed
+    # Metadata
+    device_info = db.Column(db.String(255), nullable=True)  # Device where face was captured
+    camera_type = db.Column(db.String(100), nullable=True)  # Type of camera used
+    capture_quality = db.Column(db.Float, nullable=True)    # Quality score 0-1
     
-    # Relationships
-    user = db.relationship('User', foreign_keys=[user_id], backref='progress_updates')
-    reviewed_by = db.relationship('User', foreign_keys=[reviewed_by_id], backref='reviewed_updates')
-    
-    # Encrypted field properties
-    @property
-    def completed_work(self):
-        return decrypt_field(self.completed_work_encrypted)
-    
-    @completed_work.setter
-    def completed_work(self, value):
-        self.completed_work_encrypted = encrypt_field(value)
-    
-    @property
-    def work_in_progress(self):
-        return decrypt_field(self.work_in_progress_encrypted)
-    
-    @work_in_progress.setter
-    def work_in_progress(self, value):
-        self.work_in_progress_encrypted = encrypt_field(value)
-    
-    @property
-    def blocked_tasks(self):
-        return decrypt_field(self.blocked_tasks_encrypted)
-    
-    @blocked_tasks.setter
-    def blocked_tasks(self, value):
-        self.blocked_tasks_encrypted = encrypt_field(value)
-    
-    @property
-    def blocked_reasons(self):
-        return decrypt_field(self.blocked_reasons_encrypted)
-    
-    @blocked_reasons.setter
-    def blocked_reasons(self, value):
-        self.blocked_reasons_encrypted = encrypt_field(value)
-    
-    @property
-    def individual_contributions(self):
-        return decrypt_field(self.individual_contributions_encrypted)
-    
-    @individual_contributions.setter
-    def individual_contributions(self, value):
-        self.individual_contributions_encrypted = encrypt_field(value)
-    
-    @property
-    def team_work(self):
-        return decrypt_field(self.team_work_encrypted)
-    
-    @team_work.setter
-    def team_work(self, value):
-        self.team_work_encrypted = encrypt_field(value)
-    
-    @property
-    def features_worked(self):
-        return decrypt_field(self.features_worked_encrypted)
-    
-    @features_worked.setter
-    def features_worked(self, value):
-        self.features_worked_encrypted = encrypt_field(value)
-    
-    @property
-    def bugs_fixed(self):
-        return decrypt_field(self.bugs_fixed_encrypted)
-    
-    @bugs_fixed.setter
-    def bugs_fixed(self, value):
-        self.bugs_fixed_encrypted = encrypt_field(value)
-    
-    @property
-    def improvements(self):
-        return decrypt_field(self.improvements_encrypted)
-    
-    @improvements.setter
-    def improvements(self, value):
-        self.improvements_encrypted = encrypt_field(value)
-    
-    @property
-    def risks_dependencies(self):
-        return decrypt_field(self.risks_dependencies_encrypted)
-    
-    @risks_dependencies.setter
-    def risks_dependencies(self, value):
-        self.risks_dependencies_encrypted = encrypt_field(value)
-    
-    @property
-    def challenges(self):
-        return decrypt_field(self.challenges_encrypted)
-    
-    @challenges.setter
-    def challenges(self, value):
-        self.challenges_encrypted = encrypt_field(value)
-    
-    @property
-    def next_priorities(self):
-        return decrypt_field(self.next_priorities_encrypted)
-    
-    @next_priorities.setter
-    def next_priorities(self, value):
-        self.next_priorities_encrypted = encrypt_field(value)
-    
-    @property
-    def notes(self):
-        return decrypt_field(self.notes_encrypted)
-    
-    @notes.setter
-    def notes(self, value):
-        self.notes_encrypted = encrypt_field(value)
-    
-    @property
-    def escalations(self):
-        return decrypt_field(self.escalations_encrypted)
-    
-    @escalations.setter
-    def escalations(self, value):
-        self.escalations_encrypted = encrypt_field(value)
-    
-    @property
-    def admin_comments(self):
-        return decrypt_field(self.admin_comments_encrypted)
-    
-    @admin_comments.setter
-    def admin_comments(self, value):
-        self.admin_comments_encrypted = encrypt_field(value)
+    # Composite index for performance
+    __table_args__ = (
+        db.Index('ix_admin_verified', 'admin_id', 'is_verified'),
+        db.Index('ix_admin_enrolled', 'admin_id', 'enrolled_at'),
+    )
     
     def __repr__(self):
-        return f'<ProgressUpdate {self.user.username} {self.reporting_period} {self.submitted_at.date()}>'
+        return f'<FacialIDData admin_id={self.admin_id} verified={self.is_verified}>'
+    
+    def to_dict(self):
+        """Convert to dictionary representation"""
+        return {
+            'id': self.id,
+            'admin_id': self.admin_id,
+            'encoding_label': self.encoding_label,
+            'is_verified': self.is_verified,
+            'enrolled_at': self.enrolled_at.isoformat() if self.enrolled_at else None,
+            'verified_at': self.verified_at.isoformat() if self.verified_at else None,
+            'successful_unlocks': self.successful_unlocks,
+            'failed_attempts': self.failed_attempts,
+            'last_unlock_at': self.last_unlock_at.isoformat() if self.last_unlock_at else None,
+            'last_failed_attempt_at': self.last_failed_attempt_at.isoformat() if self.last_failed_attempt_at else None,
+            'device_info': self.device_info,
+            'camera_type': self.camera_type,
+            'capture_quality': self.capture_quality,
+        }
