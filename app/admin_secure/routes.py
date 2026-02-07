@@ -4,6 +4,7 @@ All admin routes moved to random hidden location with 2FA requirement
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, abort
+from flask_login import login_user
 from functools import wraps
 from datetime import datetime
 import base64
@@ -13,6 +14,7 @@ from app.admin_secure.auth import secure_admin, require_admin_with_2fa, AdminAud
 from app.admin_secure.facial_recognition import facial_id_manager, require_facial_id
 from app.authorization.rbac import RoleBasedAccessControl, require_permission, init_permissions
 from app.models import User, Team, Project, Issue, db
+from app import csrf
 
 # Import models needed for facial ID
 from models import FacialIDData
@@ -178,22 +180,45 @@ def create_secure_admin_blueprint(hidden_token: str):
         
         if request.method == 'POST':
             try:
-                # Get uploaded image
-                if 'face_image' not in request.files:
+                logger.info("POST /setup-facial-id - Enrollment request received")
+                logger.info(f"Request content type: {request.content_type}")
+                logger.info(f"Request files: {list(request.files.keys())}")
+                logger.info(f"Request form: {list(request.form.keys())}")
+                
+                # Get image - can be file upload or base64
+                image_data = None
+                
+                # Try file upload first
+                if 'face_image' in request.files:
+                    image_file = request.files['face_image']
+                    if image_file.filename != '':
+                        image_data = image_file.read()
+                        logger.info(f"Image from file: {len(image_data)} bytes, filename: {image_file.filename}")
+                
+                # Try base64 from form if no file
+                elif 'face_image_base64' in request.form:
+                    base64_str = request.form.get('face_image_base64', '')
+                    if base64_str:
+                        import base64
+                        try:
+                            image_data = base64.b64decode(base64_str)
+                            logger.info(f"Image from base64: {len(image_data)} bytes")
+                        except Exception as e:
+                            logger.error(f"Failed to decode base64: {e}")
+                            return jsonify({'success': False, 'message': 'Invalid image data'}), 400
+                
+                if not image_data:
+                    logger.error("No image data provided")
                     return jsonify({'success': False, 'message': 'No image provided'}), 400
                 
-                image_file = request.files['face_image']
-                if image_file.filename == '':
-                    return jsonify({'success': False, 'message': 'No image selected'}), 400
-                
-                image_data = image_file.read()
-                
                 # Enroll face
+                logger.info(f"Calling enroll_admin_face for admin {user.id}...")
                 result = facial_id_manager.enroll_admin_face(
                     user.id,
                     image_data,
                     image_label=request.form.get('label', 'default')
                 )
+                logger.info(f"Enrollment result: {result}")
                 
                 if result['success']:
                     secure_admin.log_admin_action(
@@ -212,10 +237,11 @@ def create_secure_admin_blueprint(hidden_token: str):
                         'face_preview': result['face_preview']
                     }), 200
                 else:
+                    logger.error(f"Enrollment failed: {result}")
                     return jsonify({'success': False, 'message': result.get('message', 'Enrollment failed')}), 400
                     
             except Exception as e:
-                logger.error(f"Facial ID enrollment error: {e}")
+                logger.error(f"Facial ID enrollment error: {e}", exc_info=True)
                 secure_admin.log_admin_action(
                     user.id,
                     'ENROLL_FACIAL_ID',
@@ -225,7 +251,11 @@ def create_secure_admin_blueprint(hidden_token: str):
                 return jsonify({'success': False, 'message': str(e)}), 500
         
         # Get facial ID stats
-        facial_stats = facial_id_manager.get_admin_facial_stats(user.id)
+        try:
+            facial_stats = facial_id_manager.get_admin_facial_stats(user.id)
+        except Exception as e:
+            logger.error(f"Error getting facial stats: {e}")
+            facial_stats = {'enrolled': False}
         
         return render_template(
             'admin/setup_facial_id.html',
@@ -235,24 +265,65 @@ def create_secure_admin_blueprint(hidden_token: str):
     
     
     @admin_bp.route('/verify-facial-id', methods=['GET', 'POST'])
-    @require_admin_with_2fa
     def verify_facial_id():
-        """Verify admin identity using facial recognition"""
+        """Verify admin identity using facial recognition (supports both file and descriptor)"""
+        
+        # Check authentication
+        if 'user_id' not in session:
+            if request.method == 'POST':
+                return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+            return redirect(url_for('auth.login'))
         
         user = User.query.get(session['user_id'])
         if not user or user.role not in ['admin', 'super_admin']:
             abort(403)
         
+        # For GET requests, require 2FA
+        if request.method == 'GET':
+            admin_sec = AdminSecurityModel.query.filter_by(user_id=user.id).first()
+            if admin_sec and admin_sec.mfa_enabled:
+                if '2fa_verified' not in session:
+                    return redirect(url_for('admin_secure.verify_2fa'))
+        
         if request.method == 'POST':
             try:
-                if 'face_image' not in request.files:
-                    return jsonify({'success': False, 'message': 'No image provided'}), 400
+                logger.info(f"Facial verification request from admin {user.id}")
+                logger.info(f"Request content type: {request.content_type}")
+                logger.info(f"Request files: {list(request.files.keys())}")
                 
-                image_file = request.files['face_image']
-                image_data = image_file.read()
+                # Check if JSON descriptor is provided (from auto-verification)
+                if request.is_json:
+                    logger.info("Processing JSON descriptor request")
+                    data = request.get_json()
+                    if 'face_descriptor' not in data:
+                        logger.error("No face descriptor provided in JSON")
+                        return jsonify({'success': False, 'message': 'No face descriptor provided'}), 400
+                    
+                    # Verify using descriptor
+                    logger.info("Calling verify_admin_face_descriptor...")
+                    is_verified, details = facial_id_manager.verify_admin_face_descriptor(
+                        user.id,
+                        data['face_descriptor']
+                    )
+                # Check if file upload is provided
+                elif 'face_image' in request.files:
+                    logger.info("Processing face image upload")
+                    image_file = request.files['face_image']
+                    image_data = image_file.read()
+                    logger.info(f"Image data received: {len(image_data)} bytes, filename: {image_file.filename}")
+                    
+                    if not image_data:
+                        logger.error("Image data is empty")
+                        return jsonify({'success': False, 'message': 'Image is empty'}), 400
+                    
+                    # Verify face from image
+                    logger.info(f"Calling verify_admin_face for admin {user.id}...")
+                    is_verified, details = facial_id_manager.verify_admin_face(user.id, image_data)
+                else:
+                    logger.warning(f"No image or descriptor provided - Files: {list(request.files.keys())}, Is JSON: {request.is_json}")
+                    return jsonify({'success': False, 'message': 'No image or descriptor provided'}), 400
                 
-                # Verify face
-                is_verified, details = facial_id_manager.verify_admin_face(user.id, image_data)
+                logger.info(f"Verification result - verified: {is_verified}, details: {details}")
                 
                 if is_verified:
                     # Mark facial ID as verified in session
@@ -264,42 +335,252 @@ def create_secure_admin_blueprint(hidden_token: str):
                         'VERIFY_FACIAL_ID',
                         status='success',
                         details={
-                            'confidence': details['confidence'],
-                            'match_count': details['match_count']
+                            'confidence': details.get('confidence', 0),
+                            'match_count': details.get('match_count', 0)
                         }
                     )
+                    
+                    logger.info(f"Facial verification successful for admin {user.id}")
                     
                     return jsonify({
                         'success': True,
                         'message': 'Face verified successfully',
-                        'confidence': details['confidence'],
-                        'match_count': details['match_count']
+                        'confidence': details.get('confidence', 0),
+                        'match_count': details.get('match_count', 0)
                     }), 200
                 else:
                     secure_admin.log_admin_action(
                         user.id,
                         'VERIFY_FACIAL_ID',
                         status='failure',
-                        details={'reason': details['message']}
+                        details={'reason': details.get('message', 'Verification failed')}
                     )
+                    
+                    logger.warning(f"Facial verification failed for admin {user.id}: {details}")
                     
                     return jsonify({
                         'success': False,
-                        'message': details['message'],
-                        'confidence': details['confidence']
+                        'message': details.get('message', 'Face did not match'),
+                        'confidence': details.get('confidence', 0)
                     }), 401
                     
             except Exception as e:
-                logger.error(f"Facial ID verification error: {e}")
+                logger.error(f"Facial ID verification error: {e}", exc_info=True)
                 secure_admin.log_admin_action(
                     user.id,
                     'VERIFY_FACIAL_ID',
                     status='failure',
                     details={'error': str(e)}
                 )
-                return jsonify({'success': False, 'message': str(e)}), 500
+                return jsonify({'success': False, 'message': f'Verification error: {str(e)}'}), 500
         
         return render_template('admin/verify_facial_id.html', user=user)
+    
+    
+    @admin_bp.route('/get-facial-stats', methods=['GET'])
+    def get_facial_stats():
+        """Get facial ID stats for current admin"""
+        if 'user_id' not in session:
+            return jsonify({'error': 'Not authenticated'}), 401
+        try:
+            user = User.query.get(session.get('user_id'))
+            if not user:
+                return jsonify({'error': 'User not found'}), 401
+            
+            stats = facial_id_manager.get_admin_facial_stats(user.id)
+            return jsonify(stats), 200
+        except Exception as e:
+            logger.error(f"Error getting facial stats: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    
+    @admin_bp.route('/get-enrolled-faces', methods=['GET'])
+    def get_enrolled_faces():
+        """Get enrolled faces for current admin"""
+        if 'user_id' not in session:
+            return jsonify({'error': 'Not authenticated'}), 401
+        try:
+            user = User.query.get(session.get('user_id'))
+            if not user:
+                return jsonify({'error': 'User not found'}), 401
+            
+            facial_data_list = FacialIDData.query.filter_by(admin_id=user.id).all()
+            faces = []
+            for fd in facial_data_list:
+                faces.append({
+                    'id': fd.id,
+                    'label': fd.encoding_label or 'Enrolled Face',
+                    'enrolled_at': fd.enrolled_at.isoformat() if fd.enrolled_at else None,
+                    'preview': fd.face_preview or '',
+                    'capture_quality': fd.capture_quality or 0.0
+                })
+            
+            return jsonify({'faces': faces}), 200
+        except Exception as e:
+            logger.error(f"Error getting enrolled faces: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @admin_bp.route('/delete-enrolled-face/<int:face_id>', methods=['DELETE', 'POST'])
+    def delete_enrolled_face(face_id):
+        """Delete an enrolled facial ID"""
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        try:
+            from app import db
+            user = User.query.get(session.get('user_id'))
+            if not user:
+                return jsonify({'success': False, 'error': 'User not found'}), 401
+            
+            # Get the facial data and verify it belongs to this user
+            facial_data = FacialIDData.query.filter_by(id=face_id, admin_id=user.id).first()
+            if not facial_data:
+                return jsonify({'success': False, 'error': 'Face not found or access denied'}), 404
+            
+            # Delete it
+            db.session.delete(facial_data)
+            db.session.commit()
+            
+            secure_admin.log_admin_action(
+                user.id,
+                'DELETE_FACIAL_ID',
+                status='success',
+                details={'face_id': face_id}
+            )
+            
+            return jsonify({'success': True, 'message': f'Face {face_id} deleted'}), 200
+            
+        except Exception as e:
+            logger.error(f"Error deleting enrolled face: {e}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    @admin_bp.route('/delete-all-enrolled-faces', methods=['DELETE', 'POST'])
+    def delete_all_enrolled_faces():
+        """Delete ALL enrolled facial IDs for current admin"""
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        try:
+            from app import db
+            user = User.query.get(session.get('user_id'))
+            if not user:
+                return jsonify({'success': False, 'error': 'User not found'}), 401
+            
+            # Get all facial data for this user
+            facial_data_list = FacialIDData.query.filter_by(admin_id=user.id).all()
+            count = len(facial_data_list)
+            
+            # Delete all
+            for facial_data in facial_data_list:
+                db.session.delete(facial_data)
+            
+            db.session.commit()
+            
+            secure_admin.log_admin_action(
+                user.id,
+                'DELETE_ALL_FACIAL_IDS',
+                status='success',
+                details={'count': count}
+            )
+            
+            return jsonify({'success': True, 'message': f'{count} faces deleted'}), 200
+            
+        except Exception as e:
+            logger.error(f"Error deleting all enrolled faces: {e}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    @admin_bp.route('/enroll-facial-id', methods=['POST'])
+    @require_admin_with_2fa
+    def enroll_facial_id():
+        """Enroll a new facial ID with descriptor"""
+        try:
+            user = User.query.get(session.get('user_id'))
+            if not user:
+                return jsonify({'error': 'User not found'}), 401
+            
+            data = request.get_json()
+            descriptor = data.get('descriptor')
+            label = data.get('label', 'Primary Face')
+            
+            if not descriptor or not isinstance(descriptor, list):
+                return jsonify({'error': 'Invalid descriptor'}), 400
+            
+            # Enroll using descriptor
+            success, details = facial_id_manager.enroll_admin_face_descriptor(
+                user.id,
+                descriptor,
+                label
+            )
+            
+            if success:
+                secure_admin.log_admin_action(
+                    user.id,
+                    'ENROLL_FACIAL_ID',
+                    status='success'
+                )
+                return jsonify({'success': True, 'message': 'Facial ID enrolled'}), 200
+            else:
+                return jsonify({'success': False, 'message': details.get('error', 'Enrollment failed')}), 400
+        except Exception as e:
+            logger.error(f"Error enrolling facial ID: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    
+    @admin_bp.route('/delete-facial-id', methods=['POST'])
+    @require_admin_with_2fa
+    def delete_facial_id():
+        """Delete all facial ID data"""
+        try:
+            user = User.query.get(session.get('user_id'))
+            if not user:
+                return jsonify({'error': 'User not found'}), 401
+            
+            FacialIDData.query.filter_by(admin_id=user.id).delete()
+            db.session.commit()
+            
+            secure_admin.log_admin_action(
+                user.id,
+                'DELETE_FACIAL_ID',
+                status='success'
+            )
+            
+            return jsonify({'success': True}), 200
+        except Exception as e:
+            logger.error(f"Error deleting facial ID: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    
+    @admin_bp.route('/delete-face/<int:face_id>', methods=['DELETE'])
+    @require_admin_with_2fa
+    def delete_face(face_id):
+        """Delete a specific face"""
+        try:
+            user = User.query.get(session.get('user_id'))
+            if not user:
+                return jsonify({'error': 'User not found'}), 401
+            
+            facial_data = FacialIDData.query.filter_by(
+                id=face_id,
+                admin_id=user.id
+            ).first()
+            
+            if facial_data:
+                db.session.delete(facial_data)
+                db.session.commit()
+                
+                secure_admin.log_admin_action(
+                    user.id,
+                    'DELETE_FACIAL_ID_ENROLLMENT',
+                    resource_type='facial_id',
+                    resource_id=face_id,
+                    status='success'
+                )
+                
+                return jsonify({'success': True}), 200
+            else:
+                return jsonify({'error': 'Face not found'}), 404
+        except Exception as e:
+            logger.error(f"Error deleting face: {e}")
+            return jsonify({'error': str(e)}), 500
+    
     
     
     @admin_bp.route('/facial-id-settings', methods=['GET', 'POST'])
@@ -407,10 +688,16 @@ def create_secure_admin_blueprint(hidden_token: str):
         )
         
         return render_template(
-            'admin/secure_dashboard.html',
+            'admin_facial_dashboard.html',
             user=user,
             stats=stats,
-            recent_actions=recent_actions
+            recent_actions=recent_actions,
+            project_count=stats['total_projects'],
+            user_count=stats['total_users'],
+            team_count=stats['total_teams'],
+            issue_count=stats['total_issues'],
+            online_users_count=stats['active_sessions'],
+            facial_id_count=FacialIDData.query.filter_by(is_verified=True).count()
         )
     
     
@@ -618,10 +905,11 @@ def create_secure_admin_blueprint(hidden_token: str):
     @admin_bp.route('/facial-login', methods=['GET'])
     def facial_login():
         """Display facial recognition login page for admins"""
-        return render_template('admin_facial_login.html')
+        return render_template('facial_login_improved.html')
     
     
     @admin_bp.route('/facial-login-verify', methods=['POST'])
+    @csrf.exempt  # CSRF exempt - public facial authentication endpoint
     def facial_login_verify():
         """Verify facial recognition and authenticate admin"""
         data = request.get_json()
@@ -640,93 +928,117 @@ def create_secure_admin_blueprint(hidden_token: str):
             import io
             from PIL import Image
             
+            logger.info("Processing facial login verification request")
+            
             # Remove data URI prefix if present
             if ',' in image_data:
                 image_data = image_data.split(',')[1]
             
-            # Decode base64 to image
+            # Decode base64 to image bytes
             image_bytes = base64.b64decode(image_data)
-            image = Image.open(io.BytesIO(image_bytes))
+            logger.info(f"Decoded image bytes: {len(image_bytes)} bytes")
             
             # Verify against enrolled admin faces
+            # Only check admins who actually have enrolled faces
             admin_users = User.query.filter_by(role='admin').all()
             admin_users.extend(User.query.filter_by(role='super_admin').all())
             
+            # Filter to only users with enrolled faces
+            admin_users_with_faces = []
+            for user in admin_users:
+                has_faces = FacialIDData.query.filter_by(
+                    admin_id=user.id,
+                    is_verified=True
+                ).first()
+                if has_faces:
+                    admin_users_with_faces.append(user)
+            
+            logger.info(f"Found {len(admin_users_with_faces)} admin users with enrolled faces out of {len(admin_users)} total admins")
+            
             verified_user = None
             best_match_confidence = 0
+            verification_details = None
             
-            for admin_user in admin_users:
-                # Get enrolled faces
-                enrollments = FacialIDData.query.filter_by(
-                    admin_id=admin_user.id,
-                    is_verified=True
-                ).all()
-                
-                for enrollment in enrollments:
-                    try:
-                        # Verify face
-                        match_confidence = facial_id_manager.verify_admin_face(
-                            image,
-                            enrollment
-                        )
+            # If no one has enrolled faces, fail immediately
+            if not admin_users_with_faces:
+                logger.warning("No admin users with enrolled faces found")
+                return jsonify({
+                    'success': False,
+                    'message': 'No enrolled faces in system. Please enroll first.'
+                }), 401
+            
+            for admin_user in admin_users_with_faces:
+                try:
+                    logger.info(f"Verifying against admin user {admin_user.id} ({admin_user.username})")
+                    
+                    # Verify face against all enrolled faces for this admin
+                    # Pass image bytes, not PIL Image object
+                    is_verified, details = facial_id_manager.verify_admin_face(
+                        admin_user.id,
+                        image_bytes  # Pass bytes instead of PIL Image
+                    )
+                    
+                    logger.info(f"Verification result for {admin_user.username}: is_verified={is_verified}, confidence={details.get('confidence', 0):.4f}")
+                    
+                    # Track best match across all users
+                    current_confidence = details.get('confidence', 0)
+                    if current_confidence > best_match_confidence:
+                        best_match_confidence = current_confidence
+                        verified_user = admin_user
+                        verification_details = details
                         
-                        # Track best match
-                        if match_confidence > best_match_confidence:
-                            best_match_confidence = match_confidence
-                            verified_user = admin_user
+                        logger.info(f"New best match: user={admin_user.username}, confidence={best_match_confidence:.4f}, is_verified={is_verified}")
+                        
+                        # If verified, we found a match - continue checking others for best match
+                        # (don't break early - find the absolute best match)
                             
-                    except Exception as e:
-                        logger.debug(f"Face verification error: {e}")
-                        continue
+                except Exception as e:
+                    logger.error(f"Face verification error for admin {admin_user.id}: {e}", exc_info=True)
+                    continue
             
-            # Check if face matched with sufficient confidence
-            if verified_user and best_match_confidence > 0.6:
-                # Create session for admin
-                session['user_id'] = verified_user.id
-                session['facial_verified'] = True
-                session['facial_verification_time'] = datetime.now().isoformat()
+            # Check if face matched
+            if verified_user and verification_details:
+                is_match = verification_details.get('success', False)
+                confidence = verification_details.get('confidence', 0)
                 
-                # Log facial authentication
-                facial_id_manager.log_verification(
-                    verified_user.id,
-                    success=True,
-                    confidence=best_match_confidence,
-                    method='login_facial'
-                )
+                logger.info(f"Final verification decision: is_match={is_match}, confidence={confidence:.4f}, user={verified_user.username}")
                 
-                # Log to admin audit
-                secure_admin.log_admin_action(
-                    verified_user.id,
-                    'FACIAL_LOGIN_SUCCESS',
-                    details=f'Confidence: {best_match_confidence:.2%}',
-                    status='success'
-                )
-                
-                logger.info(f"Admin {verified_user.username} logged in via facial recognition")
+                if is_match:
+                    # Get the matched face ID
+                    matched_face_id = None
+                    matched_face_label = None
+                    
+                    if verification_details.get('matches'):
+                        # Find the best matching face
+                        best_match_face = max(
+                            verification_details.get('matches', []),
+                            key=lambda x: x.get('confidence', 0)
+                        )
+                        matched_face_id = best_match_face.get('encoding_id')
+                        matched_face_label = best_match_face.get('label', 'Unknown')
+                    
+                    # Create session for admin - use Flask-Login to properly authenticate
+                    login_user(verified_user, remember=True)
+                    session['facial_verified'] = True
+                    session['2fa_verified'] = datetime.utcnow().timestamp()  # Mark 2FA as verified for facial login
+                    session['facial_verification_time'] = datetime.now().isoformat()
+                    session['facial_encoding_id'] = str(matched_face_id)  # Store matched face ID
+                    
+                    logger.info(f"Admin {verified_user.username} logged in via facial recognition (Face ID: {matched_face_id}, Label: {matched_face_label}, Confidence: {best_match_confidence:.2%})")
                 
                 return jsonify({
                     'success': True,
                     'message': 'Face verified successfully',
-                    'redirect': url_for('admin_secure.admin_dashboard')
+                    'confidence': best_match_confidence,
+                    'face_id': str(matched_face_id),  # Unique ID of matched face
+                    'face_label': matched_face_label,
+                    'admin_id': verified_user.id,
+                    'redirect': '/'
                 }), 200
             else:
                 # Log failed facial verification
                 if verified_user:
-                    facial_id_manager.log_verification(
-                        verified_user.id,
-                        success=False,
-                        confidence=best_match_confidence,
-                        method='login_facial'
-                    )
-                    
-                    secure_admin.log_admin_action(
-                        verified_user.id,
-                        'FACIAL_LOGIN_FAILED',
-                        details=f'Low confidence: {best_match_confidence:.2%}',
-                        status='failed'
-                    )
-                
-                logger.warning(f"Facial recognition login failed - confidence too low: {best_match_confidence:.2%}")
+                    logger.warning(f"Facial verification failed - low confidence: {best_match_confidence:.2%}")
                 
                 return jsonify({
                     'success': False,
@@ -734,11 +1046,30 @@ def create_secure_admin_blueprint(hidden_token: str):
                 }), 401
         
         except Exception as e:
-            logger.error(f"Facial login error: {e}")
-            return jsonify({
-                'success': False,
-                'message': 'Verification error. Please try again.'
-            }), 500
+            import traceback
+            logger.error(f"Facial login error: {e}", exc_info=True)
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            # More specific error messages
+            error_msg = str(e).lower()
+            if 'padding' in error_msg:
+                return jsonify({
+                    'success': False,
+                    'message': 'Invalid image data. Please try again.',
+                    'error_detail': 'Base64 decoding failed'
+                }), 400
+            elif 'face' in error_msg or 'detect' in error_msg:
+                return jsonify({
+                    'success': False,
+                    'message': 'No face detected. Please try again.',
+                    'error_detail': str(e)
+                }), 401
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'Verification error. Please try again.',
+                    'error_detail': str(e)
+                }), 500
     
     
     return admin_bp
