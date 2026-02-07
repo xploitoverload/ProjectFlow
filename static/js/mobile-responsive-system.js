@@ -5,6 +5,14 @@
 
 class MobileResponsiveSystem {
     constructor() {
+        // Define responsiveBreakpoints BEFORE calling detectMobile()
+        this.responsiveBreakpoints = {
+            mobile: 768,
+            tablet: 1024,
+            desktop: 1440
+        };
+        
+        // Now call detectMobile() which depends on responsiveBreakpoints
         this.isMobile = this.detectMobile();
         this.isTouch = 'ontouchstart' in window;
         this.isOffline = !navigator.onLine;
@@ -12,11 +20,6 @@ class MobileResponsiveSystem {
         this.pullThreshold = 80;
         
         this.offlineQueue = [];
-        this.responsiveBreakpoints = {
-            mobile: 768,
-            tablet: 1024,
-            desktop: 1440
-        };
         
         this.init();
     }

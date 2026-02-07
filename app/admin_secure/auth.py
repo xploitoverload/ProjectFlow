@@ -344,6 +344,8 @@ def require_admin_with_2fa(f):
         
         # Check user is logged in
         if 'user_id' not in session:
+            if request.is_json or request.content_type == 'application/json':
+                return jsonify({'success': False, 'message': 'Not authenticated'}), 401
             flash('Please log in first', 'error')
             return redirect(url_for('auth.login'))
         
@@ -351,12 +353,16 @@ def require_admin_with_2fa(f):
         user = User.query.get(session['user_id'])
         if not user or user.role not in ['admin', 'super_admin']:
             logger.warning(f"Non-admin user {session['user_id']} attempted admin access")
+            if request.is_json or request.content_type == 'application/json':
+                return jsonify({'success': False, 'message': 'Forbidden'}), 403
             abort(403)
         
         # Check IP whitelist
         ip_addr = request.remote_addr
         if not secure_admin.validate_ip(user.id, ip_addr):
             logger.warning(f"Admin {user.id} blocked: non-whitelisted IP {ip_addr}")
+            if request.is_json or request.content_type == 'application/json':
+                return jsonify({'success': False, 'message': 'IP not whitelisted'}), 403
             abort(403)
         
         # Check 2FA if enabled
@@ -364,6 +370,8 @@ def require_admin_with_2fa(f):
         if admin_sec and admin_sec.mfa_enabled:
             # Check if 2FA verified and not expired (valid for 24 hours)
             if '2fa_verified' not in session:
+                if request.is_json or request.content_type == 'application/json' or request.method == 'POST':
+                    return jsonify({'success': False, 'message': '2FA verification required'}), 401
                 return redirect(url_for('admin_secure.verify_2fa'))
             
             verified_time = session.get('2fa_verified', 0)
@@ -371,6 +379,8 @@ def require_admin_with_2fa(f):
             # If more than 24 hours have passed, require re-verification
             if current_time - verified_time > 86400:  # 86400 seconds = 24 hours
                 session.pop('2fa_verified', None)
+                if request.is_json or request.content_type == 'application/json' or request.method == 'POST':
+                    return jsonify({'success': False, 'message': '2FA verification expired'}), 401
                 return redirect(url_for('admin_secure.verify_2fa'))
         
         return f(*args, **kwargs)

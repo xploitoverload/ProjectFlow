@@ -60,26 +60,42 @@ def run_development_server():
     port = int(os.environ.get('PORT', 5000))
     host = os.environ.get('HOST', '0.0.0.0')
     
+    # Check for HTTPS certificates
+    use_https = False
+    ssl_context = None
+    protocol = 'http'
+    
+    if os.path.exists('cert.pem') and os.path.exists('key.pem'):
+        use_https = True
+        protocol = 'https'
+        ssl_context = ('cert.pem', 'key.pem')
+    
     print(f"""
 ╔══════════════════════════════════════════════════════════════════╗
 ║                 Project Management System v2.0                    ║
 ╠══════════════════════════════════════════════════════════════════╣
 ║  Environment: {config_name:<15}                                  ║
-║  Server:      http://{host}:{port:<5}                               ║
+║  Server:      {protocol}://{host}:{port:<5}                             ║
 ║  Debug Mode:  {'Enabled' if config_name == 'development' else 'Disabled':<8}                                        ║
+║  SSL/TLS:     {'Enabled (for camera access)' if use_https else 'Disabled':<8}                             ║
+║                                                                  ║
+║  📝 Access via HTTPS ONLY: https://localhost:5000/              ║
+║     (HTTP requests will be redirected to HTTPS)                 ║
 ╚══════════════════════════════════════════════════════════════════╝
     """)
     
     # Create the application
     app = create_app(config_name)
     
+    # If HTTPS is enabled, run on HTTPS only (HTTP redirect handled by Flask middleware)
     # Run the development server
     app.run(
         host=host,
         port=port,
-        debug=(config_name == 'development'),
+        debug=config_name == 'development',
         threaded=True,
-        use_reloader=(config_name == 'development')
+        use_reloader=False,
+        ssl_context=ssl_context if use_https else None
     )
 
 

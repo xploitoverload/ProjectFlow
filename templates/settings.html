@@ -259,11 +259,18 @@
                                             <div class="setting-info">
                                                 <h4 class="font-medium">Two-Factor Authentication</h4>
                                                 <p class="text-secondary text-sm">Add an extra layer of security to your account</p>
+                                                {% if mfa_enabled %}
+                                                    <p class="text-success text-xs mt-2">✓ Enabled</p>
+                                                {% endif %}
                                             </div>
-                                            <a href="{{ url_for('admin_secure.setup_2fa') }}" class="btn btn-secondary btn-sm">
-                                                <i data-lucide="smartphone" style="width: 16px; height: 16px;"></i>
-                                                Setup 2FA
-                                            </a>
+                                            {% if not mfa_enabled %}
+                                                <a href="{{ url_for('admin_secure.setup_2fa') }}" class="btn btn-secondary btn-sm">
+                                                    <i data-lucide="smartphone" style="width: 16px; height: 16px;"></i>
+                                                    Setup 2FA
+                                                </a>
+                                            {% else %}
+                                                <span class="text-success text-sm">Enabled</span>
+                                            {% endif %}
                                         </div>
 
                                         <!-- Active Sessions -->

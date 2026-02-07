@@ -149,9 +149,15 @@ def calendar():
 def profile():
     """User profile page."""
     from app.models import User
+    from app.admin_secure.auth import AdminSecurityModel
     
     user = User.query.get(session['user_id'])
-    return render_template('profile.html', user=user)
+    
+    # Get 2FA status
+    admin_sec = AdminSecurityModel.query.filter_by(user_id=user.id).first()
+    mfa_enabled = admin_sec.mfa_enabled if admin_sec else False
+    
+    return render_template('profile.html', user=user, mfa_enabled=mfa_enabled)
 
 
 @main_bp.route('/settings')
@@ -159,9 +165,15 @@ def profile():
 def settings():
     """User settings page."""
     from app.models import User
+    from app.admin_secure.auth import AdminSecurityModel
     
     user = User.query.get(session['user_id'])
-    return render_template('settings.html', user=user)
+    
+    # Get 2FA status
+    admin_sec = AdminSecurityModel.query.filter_by(user_id=user.id).first()
+    mfa_enabled = admin_sec.mfa_enabled if admin_sec else False
+    
+    return render_template('settings.html', user=user, mfa_enabled=mfa_enabled)
 
 
 @main_bp.route('/issues')

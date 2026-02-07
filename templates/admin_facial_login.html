@@ -548,7 +548,17 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch('{{ url_for("admin_secure.facial_login_verify") }}', {
+                // Build the verify endpoint URL
+                // Extract the full secure-mgmt-{TOKEN} part from URL
+                const pathParts = window.location.pathname.split('/');
+                const secureMgmtPart = pathParts.find(p => p.startsWith('secure-mgmt-'));
+                const verifyUrl = `/${secureMgmtPart}/facial-login-verify`;
+                
+                console.log('Current path:', window.location.pathname);
+                console.log('Secure part:', secureMgmtPart);
+                console.log('Sending verification to:', verifyUrl);
+                
+                const response = await fetch(verifyUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -560,9 +570,25 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showSuccess();
+                    // Show success with unique face ID info
+                    console.log('✅ Facial Authentication Success:', {
+                        face_id: data.face_id,
+                        face_label: data.face_label,
+                        admin_id: data.admin_id,
+                        confidence: data.confidence
+                    });
+                    
+                    // Store authentication info in session
+                    sessionStorage.setItem('facial_auth_face_id', data.face_id);
+                    sessionStorage.setItem('facial_auth_label', data.face_label);
+                    
+                    showSuccess(`Face Verified!\nID: ${data.face_id}\nLabel: ${data.face_label}\nConfidence: ${(data.confidence * 100).toFixed(1)}%`);
+                    
+                    // Redirect to dashboard
                     setTimeout(() => {
-                        window.location.href = '{{ url_for("admin.admin_dashboard") }}';
+                        const pathParts = window.location.pathname.split('/');
+                        const secureMgmtPart = pathParts.find(p => p.startsWith('secure-mgmt-'));
+                        window.location.href = `/${secureMgmtPart}/dashboard`;
                     }, 2000);
                 } else {
                     showError(data.message || 'Face verification failed');
@@ -577,8 +603,17 @@
             }
         }
 
-        function showSuccess() {
-            document.getElementById('successResult').style.display = 'block';
+        function showSuccess(details = '') {
+            const successResult = document.getElementById('successResult');
+            if (details) {
+                // Add details to success message
+                const resultText = successResult.querySelector('.facial-result-text');
+                const resultDetails = successResult.querySelector('.facial-result-details');
+                if (resultDetails) {
+                    resultDetails.textContent = details;
+                }
+            }
+            successResult.style.display = 'block';
             document.getElementById('errorResult').style.display = 'none';
         }
 

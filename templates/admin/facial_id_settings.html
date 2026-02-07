@@ -151,6 +151,7 @@
             <div class="face-actions">
               {% if not facial_data.is_verified %}
               <form method="POST" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="action" value="verify_facial_id">
                 <input type="hidden" name="facial_id" value="{{ facial_data.id }}">
                 <button type="submit" class="btn btn-sm btn-success">Verify & Enable</button>
@@ -158,6 +159,7 @@
               {% endif %}
 
               <form method="POST" class="inline-form" onsubmit="return confirm('Delete this facial ID enrollment? This action cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="action" value="delete_facial_id">
                 <input type="hidden" name="facial_id" value="{{ facial_data.id }}">
                 <button type="submit" class="btn btn-sm btn-danger">Delete</button>

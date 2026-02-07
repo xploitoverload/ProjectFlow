@@ -22,6 +22,7 @@ from models import (
     AuditLog,
     RecentItem,
     StarredItem,
+    FacialIDData,
     encrypt_field,
     decrypt_field
 )
@@ -44,6 +45,8 @@ __all__ = [
     'AuditLog',
     'RecentItem',
     'StarredItem',
+    'FacialIDData',
     'encrypt_field',
     'decrypt_field'
 ]
+

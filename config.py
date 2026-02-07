@@ -92,7 +92,7 @@ class DevelopmentConfig(Config):
     """Development configuration with debug features."""
     
     DEBUG = True
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False  # Disabled for performance
     
     # Less strict session for development
     SESSION_COOKIE_SECURE = False

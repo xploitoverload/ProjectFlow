@@ -75,6 +75,18 @@
             </div>
         </div>
     </div>
+
+    <div class="admin-card">
+        <div class="admin-card-body" style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(124, 77, 255, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="camera" style="width: 24px; height: 24px; color: #7C4DFF;"></i>
+            </div>
+            <div>
+                <div style="font-size: 28px; font-weight: 700; color: var(--admin-text);" id="facialIdCount">0</div>
+                <div style="font-size: 14px; color: var(--admin-text-secondary);">Facial ID Enrolled</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Analytics Section -->
@@ -331,6 +343,10 @@
                         <i data-lucide="shield" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
                         <span style="font-size: 14px;">Security Settings</span>
                     </a>
+                    <a href="{{ url_for('admin_secure.facial_id_settings') }}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--admin-bg-tertiary); border-radius: 8px; text-decoration: none; color: var(--admin-text); transition: all 0.2s ease;">
+                        <i data-lucide="camera" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
+                        <span style="font-size: 14px;">Facial ID Settings</span>
+                    </a>
                     <a href="{{ url_for('admin.audit_logs') }}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--admin-bg-tertiary); border-radius: 8px; text-decoration: none; color: var(--admin-text); transition: all 0.2s ease;">
                         <i data-lucide="scroll-text" style="width: 18px; height: 18px; color: var(--admin-text-secondary);"></i>
                         <span style="font-size: 14px;">Audit Logs</span>
@@ -344,4 +360,35 @@
         </div>
     </div>
 </div>
+
+<script>
+// Load facial ID statistics
+document.addEventListener('DOMContentLoaded', function() {
+    loadFacialIDStats();
+});
+
+async function loadFacialIDStats() {
+    try {
+        // Get admin token from page or localStorage
+        const adminToken = document.querySelector('[data-admin-token]')?.getAttribute('data-admin-token') || 
+                          localStorage.getItem('admin_token') || '';
+        
+        if (!adminToken) return;
+
+        const response = await fetch(`/secure-mgmt-${adminToken}/get-facial-stats`, {
+            headers: {
+                'X-Admin-Token': adminToken
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const count = data.enrolled_faces || 0;
+            document.getElementById('facialIdCount').textContent = count;
+        }
+    } catch (e) {
+        console.error('Error loading facial ID stats:', e);
+    }
+}
+</script>
 {% endblock %}

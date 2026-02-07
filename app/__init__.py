@@ -25,8 +25,9 @@ csrf = CSRFProtect()
 compress = Compress()
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://"
+    default_limits=["2000 per day", "500 per hour"],
+    storage_uri="memory://",
+    enabled=False  # Disabled for debugging
 )
 
 
@@ -78,13 +79,15 @@ def create_app(config_name=None):
     
     # Apply Talisman with environment-appropriate settings
     # In development, use relaxed CSP; in production, use strict CSP with nonces
-    Talisman(app, 
-             content_security_policy=csp if config_name == 'production' else None,
-             force_https=(config_name == 'production'),
-             strict_transport_security=(config_name == 'production'),
-             strict_transport_security_max_age=31536000,
-             session_cookie_secure=(config_name == 'production'),
-             session_cookie_http_only=True)
+    if config_name == 'production':
+        Talisman(app, 
+                 content_security_policy=csp,
+                 force_https=True,
+                 strict_transport_security=True,
+                 strict_transport_security_max_age=31536000,
+                 session_cookie_secure=True,
+                 session_cookie_http_only=True)
+    # Skip Talisman in development for faster startup
     
     # Additional security headers via after_request
     @app.after_request
@@ -97,8 +100,8 @@ def create_app(config_name=None):
         response.headers['X-XSS-Protection'] = '1; mode=block'
         # Referrer Policy
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        # Permissions Policy
-        response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        # Permissions Policy - ALLOW camera and microphone
+        response.headers['Permissions-Policy'] = 'camera=(self), microphone=(self), geolocation=()'
         # Cache control for sensitive pages
         if 'text/html' in response.content_type:
             response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
@@ -334,3 +337,26 @@ def _register_context_processors(app):
             return 'yellow'
         else:
             return 'gray'
+    
+    # Template filter to format dates nicely
+    @app.template_filter('dateformat')
+    def dateformat(value, format_str='%B %d, %Y at %I:%M %p'):
+        """Format date/datetime object to human-readable string"""
+        if not value:
+            return ''
+        # Handle string timestamps (ISO format)
+        if isinstance(value, str):
+            from datetime import datetime
+            try:
+                # Try parsing ISO format
+                if 'T' in value:
+                    value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                else:
+                    value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                return value
+        # Format the datetime
+        try:
+            return value.strftime(format_str)
+        except (AttributeError, ValueError):
+            return str(value)

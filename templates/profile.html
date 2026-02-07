@@ -282,7 +282,11 @@
                                         <p class="font-medium text-primary">Two-Factor Auth</p>
                                         <p class="text-sm text-secondary">Additional security</p>
                                     </div>
-                                    <span class="badge badge-gray">Not enabled</span>
+                                    {% if mfa_enabled %}
+                                        <span class="badge badge-success">Enabled</span>
+                                    {% else %}
+                                        <span class="badge badge-gray">Not enabled</span>
+                                    {% endif %}
                                 </div>
                                 <div class="flex items-center justify-between py-2 mt-2">
                                     <div>

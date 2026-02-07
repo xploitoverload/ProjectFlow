@@ -215,6 +215,19 @@
             box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
         }
 
+        .btn-secondary {
+            background: rgba(147, 51, 234, 0.1);
+            color: #d8b4fe;
+            border: 1px solid rgba(147, 51, 234, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(147, 51, 234, 0.2);
+            border-color: rgba(147, 51, 234, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(147, 51, 234, 0.2);
+        }
+
         .btn-lg {
             padding: 0.85rem 1.5rem;
         }
@@ -474,15 +487,15 @@
                         Sign in to workspace
                     </button>
 
-                    <!-- Facial Login for Admins - Coming Soon -->
-                    <!-- Note: Facial login will be available after admin enrollment -->
+                    <!-- Facial Login for Admins -->
+                    <!-- Note: Facial login is available after admin enrollment -->
                     <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--dark-border);">
                         <p style="font-size: 0.85rem; color: var(--dark-text-muted); margin-bottom: 0.75rem;">Admin access:</p>
-                        <button type="button" class="btn btn-secondary" style="width: 100%; justify-content: center; cursor: not-allowed; opacity: 0.6;" disabled>
+                        <a href="{{ url_for('admin_secure.facial_login') }}" class="btn btn-secondary" style="width: 100%; justify-content: center; text-decoration: none;">
                             <span class="iconify" data-icon="solar:face-scan-bold" style="width: 18px; height: 18px;"></span>
-                            Sign in with Facial ID (Coming Soon)
-                        </button>
-                        <p style="font-size: 0.75rem; color: var(--dark-text-muted); margin-top: 0.5rem;">Please use password login. Facial ID enrollment available in admin settings.</p>
+                            Sign in with Facial ID
+                        </a>
+                        <p style="font-size: 0.75rem; color: var(--dark-text-muted); margin-top: 0.5rem;">Use your enrolled face to login securely.</p>
                     </div>
                 </form>
 

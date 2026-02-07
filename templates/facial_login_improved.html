@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facial Recognition Login - Admin Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --primary-light: #38bdf8;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --dark-bg: #0f1117;
+            --dark-surface: #161b22;
+            --dark-border: #30363d;
+            --dark-text: #c9d1d9;
+            --dark-text-muted: #8b949e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f1117 0%, #161b22 50%, #0a0e13 100%);
+            color: var(--dark-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Layout */
+        .facial-login-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            gap: 0;
+        }
+
+        /* Left Panel - Camera */
+        .facial-panel-camera {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: linear-gradient(180deg, rgba(2, 132, 199, 0.1) 0%, transparent 100%);
+            border-right: 1px solid var(--dark-border);
+            min-width: 0;
+        }
+
+        .facial-camera-container {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 9/16;
+            position: relative;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            border: 1px solid var(--dark-border);
+            box-shadow: 0 20px 60px rgba(2, 132, 199, 0.15);
+            background: var(--dark-bg);
+        }
+
+        .facial-camera-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--dark-bg);
+        }
+
+        .facial-camera {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        /* Face Guide Overlay */
+        .facial-guide-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 240px;
+            height: 280px;
+            border: 3px dashed var(--primary-light);
+            border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+            opacity: 0.6;
+            animation: pulse-guide 2.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-guide {
+            0%, 100% { 
+                opacity: 0.4;
+                transform: translate(-50%, -50%) scale(1);
+                border-color: var(--primary-light);
+            }
+            50% { 
+                opacity: 0.8;
+                transform: translate(-50%, -50%) scale(1.05);
+                border-color: var(--success);
+            }
+        }
+
+        /* Status Indicator */
+        .facial-status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 0.6rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            z-index: 10;
+        }
+
+        .facial-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--error);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        .facial-status-dot.detected {
+            background: var(--success);
+            animation: pulse-dot-success 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        @keyframes pulse-dot-success {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+
+        /* Confidence Indicator */
+        .facial-confidence-badge {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            font-size: 0.8rem;
+            z-index: 10;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--dark-border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+            width: 0%;
+            transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Right Panel - Controls */
+        .facial-panel-controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3rem 2.5rem;
+            min-width: 0;
+            overflow-y: auto;
+        }
+
+        .facial-header {
+            margin-bottom: 2rem;
+        }
+
+        .facial-logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .facial-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+        }
+
+        .facial-brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .facial-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .facial-subtitle {
+            font-size: 0.95rem;
+            color: var(--dark-text-muted);
+            line-height: 1.5;
+        }
+
+        /* Info Cards */
+        .facial-info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .facial-info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .info-icon {
+            margin-top: 0.15rem;
+            color: var(--primary-light);
+            flex-shrink: 0;
+        }
+
+        .info-text {
+            color: var(--dark-text-muted);
+        }
+
+        /* Status Messages */
+        .facial-status-message {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .facial-status-message.visible {
+            display: flex;
+        }
+
+        .facial-status-message.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        .facial-status-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .facial-status-message.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+
+        /* Buttons */
+        .facial-button-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.85rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(2, 132, 199, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--dark-surface);
+            color: var(--dark-text);
+            border: 1px solid var(--dark-border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(2, 132, 199, 0.1);
+            border-color: var(--primary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-icon {
+            font-size: 1.1rem;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-primary.loading .spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Result Messages */
+        .facial-result {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            max-width: 350px;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            display: none;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 1000;
+            animation: slide-up 0.3s ease;
+        }
+
+        .facial-result.success {
+            display: flex;
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        .facial-result.error {
+            display: flex;
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        @keyframes slide-up {
+            from {
+                opacity: 0;
+                transform: translateY(1rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .facial-result-title {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .facial-result-message {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        .facial-footer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--dark-text-muted);
+            margin-top: auto;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--dark-border);
+        }
+
+        .facial-footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .facial-footer a:hover {
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .facial-login-wrapper {
+                flex-direction: column;
+            }
+
+            .facial-panel-camera {
+                flex: 0 0 50%;
+                border-right: none;
+                border-bottom: 1px solid var(--dark-border);
+                padding: 1.5rem;
+            }
+
+            .facial-panel-controls {
+                flex: 1;
+                padding: 2rem 1.5rem;
+            }
+
+            .facial-camera-container {
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .facial-panel-camera {
+                flex: 0 0 45%;
+            }
+
+            .facial-camera-container {
+                max-width: 250px;
+            }
+
+            .facial-panel-controls {
+                padding: 1.5rem 1rem;
+            }
+
+            .facial-title {
+                font-size: 1.5rem;
+            }
+
+            .facial-button-group {
+                gap: 0.5rem;
+            }
+
+            .btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .facial-result {
+                bottom: 1rem;
+                right: 1rem;
+                left: 1rem;
+                max-width: none;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="facial-login-wrapper">
+        <!-- Camera Panel -->
+        <div class="facial-panel-camera">
+            <div class="facial-camera-container">
+                <div class="facial-camera-wrapper">
+                    <video class="facial-camera" id="faceVideo" autoplay playsinline muted></video>
+                    <div class="facial-guide-overlay"></div>
+                    <div class="facial-status-badge">
+                        <div class="facial-status-dot" id="facialStatusDot"></div>
+                        <span id="facialStatusText">Waiting for face...</span>
+                    </div>
+                    <div class="facial-confidence-badge">
+                        <div class="confidence-label">
+                            <span>Confidence</span>
+                            <span id="confidenceValue">0%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidenceFill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="facial-panel-controls">
+            <div class="facial-header">
+                <div class="facial-logo-section">
+                    <div class="facial-logo-icon">🔐</div>
+                    <div class="facial-brand">ProjectFlow</div>
+                </div>
+                <h1 class="facial-title">Facial ID Login</h1>
+                <p class="facial-subtitle">Position your face in the camera and click verify to access the admin panel</p>
+            </div>
+
+            <!-- Instructions -->
+            <div class="facial-info-grid">
+                <div class="facial-info-item">
+                    <span class="info-icon" data-lucide="check-circle"></span>
+                    <span class="info-text">Good lighting and clear view</span>
+                </div>
+                <div class="facial-info-item">
+                    <span class="info-icon" data-lucide="check-circle"></span>
+                    <span class="info-text">Face centered in the guide</span>
+                </div>
+                <div class="facial-info-item">
+                    <span class="info-icon" data-lucide="check-circle"></span>
+                    <span class="info-text">30-60cm distance from camera</span>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            <div class="facial-status-message" id="statusMessage"></div>
+
+            <!-- Action Buttons -->
+            <div class="facial-button-group">
+                <button class="btn btn-primary" id="verifyBtn" onclick="verifyFace()">
+                    <span class="btn-icon" data-lucide="camera"></span>
+                    <span>Verify</span>
+                    <div class="spinner"></div>
+                </button>
+                <button class="btn btn-secondary" id="backBtn" onclick="goBack()">
+                    <span class="btn-icon" data-lucide="arrow-left"></span>
+                    <span>Back</span>
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="facial-footer">
+                <p>Need help? <a href="#">Contact admin support</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Toast -->
+    <div class="facial-result" id="resultToast">
+        <div class="facial-result-title" id="resultTitle">Face Verified!</div>
+        <div class="facial-result-message" id="resultMessage">Redirecting to dashboard...</div>
+    </div>
+
+    <script>
+        let stream = null;
+        const video = document.getElementById('faceVideo');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const statusDot = document.getElementById('facialStatusDot');
+        const statusText = document.getElementById('facialStatusText');
+        const confidenceFill = document.getElementById('confidenceFill');
+        const confidenceValue = document.getElementById('confidenceValue');
+        const statusMessage = document.getElementById('statusMessage');
+        const resultToast = document.getElementById('resultToast');
+
+        // Initialize camera
+        async function initCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                });
+                video.srcObject = stream;
+                startFaceDetection();
+            } catch (error) {
+                showMessage('Camera access denied. Please allow camera permissions.', 'error');
+                verifyBtn.disabled = true;
+            }
+        }
+
+        // Face detection loop
+        function startFaceDetection() {
+            // Placeholder - in real app, integrate face detection library
+            console.log('Face detection started');
+        }
+
+        // Update confidence display
+        function updateConfidence(value) {
+            const percentage = Math.round(value * 100);
+            confidenceValue.textContent = percentage + '%';
+            confidenceFill.style.width = percentage + '%';
+            
+            if (value > 0.7) {
+                statusDot.classList.add('detected');
+                statusText.textContent = 'Face detected!';
+            } else if (value > 0.4) {
+                statusDot.classList.add('detected');
+                statusText.textContent = 'Detecting face...';
+            } else {
+                statusDot.classList.remove('detected');
+                statusText.textContent = 'Waiting for face...';
+            }
+        }
+
+        // Verify face
+        async function verifyFace() {
+            verifyBtn.disabled = true;
+            verifyBtn.classList.add('loading');
+            
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                const imageData = canvas.toDataURL('image/jpeg');
+                
+                // Extract token from URL
+                const pathParts = window.location.pathname.split('/');
+                const secureMgmtPart = pathParts.find(p => p.startsWith('secure-mgmt-'));
+                
+                const response = await fetch(`/${secureMgmtPart}/facial-login-verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult('Face Verified!', 'Success! Redirecting to dashboard...', 'success');
+                    setTimeout(() => {
+                        window.location.href = `/${secureMgmtPart}/`;
+                    }, 1500);
+                } else {
+                    showResult('Verification Failed', data.message || 'Please try again', 'error');
+                    verifyBtn.disabled = false;
+                    verifyBtn.classList.remove('loading');
+                }
+            } catch (error) {
+                showResult('Error', 'An error occurred. Please try again.', 'error');
+                verifyBtn.disabled = false;
+                verifyBtn.classList.remove('loading');
+            }
+        }
+
+        // Show status message
+        function showMessage(text, type) {
+            statusMessage.textContent = text;
+            statusMessage.className = `facial-status-message visible ${type}`;
+        }
+
+        // Show result toast
+        function showResult(title, message, type) {
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultMessage').textContent = message;
+            resultToast.className = `facial-result ${type}`;
+        }
+
+        // Go back
+        function goBack() {
+            window.history.back();
+        }
+
+        // Clean up on unload
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+            initCamera();
+        });
+
+        // Update confidence simulation for demo
+        let demoConfidence = 0;
+        setInterval(() => {
+            demoConfidence = Math.random() * 0.8;
+            updateConfidence(demoConfidence);
+        }, 500);
+    </script>
+</body>
+</html>
