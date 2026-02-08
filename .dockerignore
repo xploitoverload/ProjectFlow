@@ -1,0 +1,90 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+docs/
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+.virtualenv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.spyproject
+.spyderproject
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+htmlcov/
+.tox/
+.nox/
+
+# Database (will be created in container or use external)
+*.db
+*.sqlite3
+instance/
+
+# Logs (will be created in container)
+logs/
+*.log
+
+# Environment files (use Docker secrets/env vars instead)
+.env
+.env.*
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (use volumes or external storage)
+uploads/
+media/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Security
+*.pem
+*.key
+*.crt
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Backup files
+*.backup
+*.bak
+*.old
