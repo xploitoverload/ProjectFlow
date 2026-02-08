@@ -223,6 +223,8 @@ def _register_blueprints(app):
     from app.routes.pwa_routes import pwa_bp
     from app.routes.notifications_routes import notifications_bp
     from app.routes.reporting_routes import reporting_bp
+    from app.routes.integrations_routes import integrations_bp
+    from app.routes.security_routes import security_bp
     from app.admin_secure.routes import create_secure_admin_blueprint
     import secrets
     
@@ -236,6 +238,8 @@ def _register_blueprints(app):
     app.register_blueprint(pwa_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(reporting_bp)
+    app.register_blueprint(integrations_bp)
+    app.register_blueprint(security_bp)
     app.register_blueprint(phase6_bp)
     app.register_blueprint(projects_bp, url_prefix='/project')
     
