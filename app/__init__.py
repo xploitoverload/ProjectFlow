@@ -229,6 +229,9 @@ def _register_blueprints(app):
     from app.routes.compliance_routes import compliance_bp
     from app.routes.knowledge_base_routes import kb_bp
     from app.routes.team_collaboration_routes import team_bp
+    from app.routes.mobile_routes import mobile_bp
+    from app.routes.tenant_routes import tenant_bp
+    from app.routes.customer_portal_routes import portal_bp
     from app.admin_secure.routes import create_secure_admin_blueprint
     import secrets
     
@@ -248,6 +251,9 @@ def _register_blueprints(app):
     app.register_blueprint(compliance_bp)
     app.register_blueprint(kb_bp)
     app.register_blueprint(team_bp)
+    app.register_blueprint(mobile_bp)
+    app.register_blueprint(tenant_bp)
+    app.register_blueprint(portal_bp)
     app.register_blueprint(phase6_bp)
     app.register_blueprint(projects_bp, url_prefix='/project')
     
