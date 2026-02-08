@@ -238,6 +238,10 @@ def _register_blueprints(app):
     from app.routes.api_versioning_routes import api_mgmt_bp
     from app.routes.time_tracking_routes import billing_bp
     from app.routes.finance_routes import finance_bp
+    from app.routes.multi_channel_notifications_routes import multi_notif_bp
+    from app.routes.dr_routes import dr_bp
+    from app.routes.custom_fields_routes import fields_bp
+    from app.routes.testing_routes import testing_bp
     from app.admin_secure.routes import create_secure_admin_blueprint
     import secrets
     
@@ -266,6 +270,10 @@ def _register_blueprints(app):
     app.register_blueprint(api_mgmt_bp)
     app.register_blueprint(billing_bp)
     app.register_blueprint(finance_bp)
+    app.register_blueprint(multi_notif_bp)
+    app.register_blueprint(dr_bp)
+    app.register_blueprint(fields_bp)
+    app.register_blueprint(testing_bp)
     app.register_blueprint(phase6_bp)
     app.register_blueprint(projects_bp, url_prefix='/project')
     
