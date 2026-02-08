@@ -234,6 +234,8 @@ def _register_blueprints(app):
     from app.routes.customer_portal_routes import portal_bp
     from app.routes.video_conferencing_routes import video_bp
     from app.routes.resource_planning_routes import resource_bp
+    from app.routes.performance_routes import perf_bp
+    from app.routes.api_versioning_routes import api_mgmt_bp
     from app.admin_secure.routes import create_secure_admin_blueprint
     import secrets
     
@@ -258,6 +260,8 @@ def _register_blueprints(app):
     app.register_blueprint(portal_bp)
     app.register_blueprint(video_bp)
     app.register_blueprint(resource_bp)
+    app.register_blueprint(perf_bp)
+    app.register_blueprint(api_mgmt_bp)
     app.register_blueprint(phase6_bp)
     app.register_blueprint(projects_bp, url_prefix='/project')
     
