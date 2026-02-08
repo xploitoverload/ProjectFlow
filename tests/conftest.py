@@ -14,8 +14,9 @@ from datetime import datetime
 @pytest.fixture
 def app():
     """Create and configure a test app instance."""
-    # Create a temporary database
-    db_fd, db_path = tempfile.mkstemp()
+    # Create a temporary database in temp directory
+    db_dir = tempfile.gettempdir()
+    db_path = os.path.join(db_dir, 'test_pm_db.db')
     
     app = create_app('testing')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
@@ -28,8 +29,11 @@ def app():
         db.session.remove()
         db.drop_all()
     
-    os.close(db_fd)
-    os.unlink(db_path)
+    # Clean up
+    try:
+        os.unlink(db_path)
+    except:
+        pass
 
 
 @pytest.fixture
