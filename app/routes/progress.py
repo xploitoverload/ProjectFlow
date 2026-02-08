@@ -58,7 +58,7 @@ def submit_update():
         db.session.commit()
         
         flash(
-            f'✓ Progress update for {form.reporting_period.data} period submitted successfully! '
+            f'Progress update for {form.reporting_period.data} period submitted successfully! '
             'Your update has been sent to admin for review.',
             'success'
         )
@@ -158,7 +158,7 @@ def edit_update(update_id):
         
         db.session.commit()
         
-        flash('✓ Progress update updated successfully!', 'success')
+        flash('Progress update updated successfully!', 'success')
         return redirect(url_for('progress.view_update', update_id=update.id))
     
     # Pre-fill form with existing data
@@ -281,7 +281,7 @@ def admin_review(update_id):
         
         # Send notification (if notification system exists)
         flash(
-            f'✓ Progress update from {update.user.username} has been {form.review_status.data}. '
+            f'Progress update from {update.user.username} has been {form.review_status.data}. '
             'Feedback recorded.',
             'success'
         )

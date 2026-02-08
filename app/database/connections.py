@@ -236,7 +236,7 @@ class DatabaseConnectionPool:
             self.engines[primary_type] = self.engines[replica_type]
             self.sessions[primary_type] = self.sessions[replica_type]
             
-            logger.info(f"Failover successful: {primary_type} → {replica_type}")
+            logger.info(f"Failover successful: {primary_type} to {replica_type}")
             return True
             
         except Exception as e:
