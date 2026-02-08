@@ -217,6 +217,9 @@ def _register_blueprints(app):
     from app.routes.api import api_bp
     from app.routes.projects import projects_bp
     from app.routes.phase6_routes import phase6_bp
+    from app.routes.ml_routes import ml_bp
+    from app.routes.analytics_routes import analytics_bp
+    from app.routes.automation_routes import automation_bp
     from app.admin_secure.routes import create_secure_admin_blueprint
     import secrets
     
@@ -224,6 +227,9 @@ def _register_blueprints(app):
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(api_bp, url_prefix='/api/v1')
+    app.register_blueprint(ml_bp)
+    app.register_blueprint(analytics_bp)
+    app.register_blueprint(automation_bp)
     app.register_blueprint(phase6_bp)
     app.register_blueprint(projects_bp, url_prefix='/project')
     
