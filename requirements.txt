@@ -41,6 +41,13 @@ Flask-CORS==4.0.0
 Flask-Swagger==0.2.14
 flasgger==0.9.7.1
 
+# Phase 6 - Enterprise Systems
+flask-socketio==5.3.5
+python-socketio==5.9.0
+python-engineio==4.8.0
+graphene==3.3
+graphene-sqlalchemy==3.0.0
+
 # Email & Notifications
 Flask-Mail==0.9.1
 python-slugify==8.0.1

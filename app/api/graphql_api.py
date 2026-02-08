@@ -140,7 +140,7 @@ class ProjectManagementResolver(GraphQLResolver):
         super().__init__()
         self.db_session = db_session
     
-    @GraphQLResolver.query
+    @GraphQLResolver.query("user")
     def user(self, root, info, id: str) -> Optional[Dict[str, Any]]:
         """Resolve user query."""
         # Implementation would fetch from database
@@ -154,7 +154,7 @@ class ProjectManagementResolver(GraphQLResolver):
             'is_online': True
         }
     
-    @GraphQLResolver.query
+    @GraphQLResolver.query("users")
     def users(self, root, info, limit: int = 10, offset: int = 0) -> List[Dict[str, Any]]:
         """Resolve users query."""
         logger.debug(f"Resolving users query: limit={limit}, offset={offset}")
@@ -169,7 +169,7 @@ class ProjectManagementResolver(GraphQLResolver):
             }
         ]
     
-    @GraphQLResolver.query
+    @GraphQLResolver.query("project")
     def project(self, root, info, id: str) -> Optional[Dict[str, Any]]:
         """Resolve project query."""
         logger.debug(f"Resolving project query: {id}")
@@ -190,26 +190,26 @@ class ProjectManagementResolver(GraphQLResolver):
             'updated_at': datetime.utcnow().isoformat()
         }
     
-    @GraphQLResolver.query
+    @GraphQLResolver.query("projects")
     def projects(self, root, info, limit: int = 10, offset: int = 0) -> List[Dict[str, Any]]:
         """Resolve projects query."""
         logger.debug(f"Resolving projects query: limit={limit}, offset={offset}")
         return []
     
-    @GraphQLResolver.query
+    @GraphQLResolver.query("issues")
     def issues(self, root, info, projectId: str, status: Optional[str] = None, 
                limit: int = 20) -> List[Dict[str, Any]]:
         """Resolve issues query."""
         logger.debug(f"Resolving issues query: projectId={projectId}, status={status}")
         return []
     
-    @GraphQLResolver.query
+    @GraphQLResolver.query("searchIssues")
     def searchIssues(self, root, info, query: str) -> List[Dict[str, Any]]:
         """Resolve issue search."""
         logger.debug(f"Resolving searchIssues: {query}")
         return []
     
-    @GraphQLResolver.mutation
+    @GraphQLResolver.mutation("createProject")
     def createProject(self, root, info, name: str, description: str) -> Dict[str, Any]:
         """Resolve createProject mutation."""
         logger.info(f"Creating project: {name}")
@@ -220,14 +220,14 @@ class ProjectManagementResolver(GraphQLResolver):
             'created_at': datetime.utcnow().isoformat()
         }
     
-    @GraphQLResolver.mutation
+    @GraphQLResolver.mutation("updateProject")
     def updateProject(self, root, info, id: str, name: Optional[str] = None,
                      description: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Resolve updateProject mutation."""
         logger.info(f"Updating project: {id}")
         return {'id': id, 'name': name or 'Project', 'description': description}
     
-    @GraphQLResolver.mutation
+    @GraphQLResolver.mutation("createIssue")
     def createIssue(self, root, info, projectId: str, title: str, 
                    description: str) -> Dict[str, Any]:
         """Resolve createIssue mutation."""

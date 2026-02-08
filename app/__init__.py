@@ -124,6 +124,9 @@ def create_app(config_name=None):
     # Register request hooks for user activity tracking
     _register_request_hooks(app)
     
+    # Initialize Phase 6 Enterprise Systems
+    _init_phase6_systems(app)
+    
     # Create database tables
     with app.app_context():
         db.create_all()
@@ -213,6 +216,7 @@ def _register_blueprints(app):
     from app.routes.admin import admin_bp
     from app.routes.api import api_bp
     from app.routes.projects import projects_bp
+    from app.routes.phase6_routes import phase6_bp
     from app.admin_secure.routes import create_secure_admin_blueprint
     import secrets
     
@@ -220,6 +224,7 @@ def _register_blueprints(app):
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(api_bp, url_prefix='/api/v1')
+    app.register_blueprint(phase6_bp)
     app.register_blueprint(projects_bp, url_prefix='/project')
     
     # Register secure admin blueprint with persistent hidden token
@@ -360,3 +365,49 @@ def _register_context_processors(app):
             return value.strftime(format_str)
         except (AttributeError, ValueError):
             return str(value)
+
+def _init_phase6_systems(app):
+    """Initialize Phase 6 enterprise systems."""
+    
+    # Initialize WebSocket system
+    try:
+        from app.websocket import init_websocket
+        socketio = init_websocket(app, None)  # SocketIO will be initialized separately
+        app.socketio = socketio
+        app.logger.info('✓ WebSocket system initialized')
+    except Exception as e:
+        app.logger.warning(f'WebSocket initialization deferred: {e}')
+    
+    # Initialize Batch Processor
+    try:
+        from app.operations import init_batch_processor
+        init_batch_processor()
+        app.logger.info('✓ Batch processor initialized')
+    except Exception as e:
+        app.logger.warning(f'Batch processor error: {e}')
+    
+    # Initialize Backup Manager
+    try:
+        from app.recovery import init_backup_manager
+        backup_dir = os.path.join(app.instance_path, 'backups')
+        db_path = os.path.join(app.instance_path, 'app.db')
+        init_backup_manager(backup_dir, db_path)
+        app.logger.info('✓ Backup manager initialized')
+    except Exception as e:
+        app.logger.warning(f'Backup manager error: {e}')
+    
+    # Initialize GraphQL
+    try:
+        from app.api.graphql_api import init_graphql
+        init_graphql()
+        app.logger.info('✓ GraphQL API initialized')
+    except Exception as e:
+        app.logger.warning(f'GraphQL initialization error: {e}')
+    
+    # Initialize Performance Monitor
+    try:
+        from app.monitoring.performance import init_performance_monitor
+        init_performance_monitor(history_limit=10000)
+        app.logger.info('✓ Performance monitor initialized')
+    except Exception as e:
+        app.logger.warning(f'Performance monitor error: {e}')

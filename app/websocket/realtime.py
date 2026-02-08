@@ -1,6 +1,7 @@
 # app/websocket/realtime.py
 """
 Real-time WebSocket system for live updates and collaboration.
+Note: Optional flask-socketio integration. Can work without it.
 """
 
 import logging
@@ -9,10 +10,26 @@ import threading
 from typing import Dict, Set, List, Any, Optional, Callable
 from datetime import datetime
 from functools import wraps
-from flask import request, g
-from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
 
 logger = logging.getLogger('websocket')
+
+# Try importing SocketIO (optional)
+try:
+    from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
+    SOCKETIO_AVAILABLE = True
+except ImportError:
+    SOCKETIO_AVAILABLE = False
+    logger.warning('flask-socketio not installed. WebSocket features disabled.')
+    
+    # Provide no-op replacements
+    def emit(*args, **kwargs):
+        pass
+    
+    def join_room(*args, **kwargs):
+        pass
+    
+    def leave_room(*args, **kwargs):
+        pass
 
 
 class WebSocketEvent:
@@ -136,7 +153,7 @@ _socketio: Optional[SocketIO] = None
 _connection_manager: Optional[ConnectionManager] = None
 
 
-def init_websocket(app, socketio: SocketIO) -> SocketIO:
+def init_websocket(app, socketio: Optional[Any] = None) -> Optional[Any]:
     """
     Initialize WebSocket system.
     
@@ -146,14 +163,23 @@ def init_websocket(app, socketio: SocketIO) -> SocketIO:
         socketio = SocketIO(app, cors_allowed_origins="*")
         init_websocket(app, socketio)
     """
+    if not SOCKETIO_AVAILABLE:
+        logger.warning('WebSocket not available - flask-socketio not installed')
+        return None
+    
     global _socketio, _connection_manager
     
     _socketio = socketio
     _connection_manager = ConnectionManager()
     
+    if not SOCKETIO_AVAILABLE:
+        logger.warning('WebSocket not available - flask-socketio not installed')
+        return None
+    
     # Register event handlers
-    @socketio.on('connect')
+    @_socketio.on('connect')
     def handle_connect():
+        from flask import request
         user_id = request.sid
         session_id = request.sid
         _connection_manager.register_connection(user_id, session_id)
@@ -164,15 +190,17 @@ def init_websocket(app, socketio: SocketIO) -> SocketIO:
         broadcast_event('user_online', {'user_id': user_id})
         logger.info(f"Client {user_id} connected")
     
-    @socketio.on('disconnect')
+    @_socketio.on('disconnect')
     def handle_disconnect():
+        from flask import request
         user_id = request.sid
         _connection_manager.unregister_connection(user_id, user_id)
         broadcast_event('user_offline', {'user_id': user_id})
         logger.info(f"Client {user_id} disconnected")
     
-    @socketio.on('join')
+    @_socketio.on('join')
     def on_join(data):
+        from flask import request
         room_id = data.get('room_id')
         user_id = request.sid
         
@@ -188,8 +216,9 @@ def init_websocket(app, socketio: SocketIO) -> SocketIO:
                 'room_id': room_id
             }, room=room_id)
     
-    @socketio.on('leave')
+    @_socketio.on('leave')
     def on_leave(data):
+        from flask import request
         room_id = data.get('room_id')
         user_id = request.sid
         
