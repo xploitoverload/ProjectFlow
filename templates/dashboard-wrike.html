@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ProjectFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/wrike-modern.css') }}">
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">P</div>
+                    <span class="sidebar-logo-text">ProjectFlow</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <!-- For You Section -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">For you</div>
+                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item active">
+                        <span class="iconify nav-icon" data-icon="solar:home-2-bold-duotone"></span>
+                        <span>Home</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <span class="iconify nav-icon" data-icon="solar:clock-circle-bold-duotone"></span>
+                        <span>Recent</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <span class="iconify nav-icon" data-icon="solar:bell-bold-duotone"></span>
+                        <span>Notifications</span>
+                        <span class="notification-badge">0</span>
+                    </a>
+                </div>
+
+                <!-- Work Section -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Work</div>
+                    <a href="{{ url_for('main.board') }}" class="sidebar-nav-item">
+                        <span class="iconify nav-icon" data-icon="solar:widget-5-bold-duotone"></span>
+                        <span>Board</span>
+                    </a>
+                    <a href="{{ url_for('main.issues') }}" class="sidebar-nav-item">
+                        <span class="iconify nav-icon" data-icon="solar:checklist-minimalistic-bold-duotone"></span>
+                        <span>Issues</span>
+                    </a>
+                    <a href="{{ url_for('main.timeline') }}" class="sidebar-nav-item">
+                        <span class="iconify nav-icon" data-icon="solar:calendar-bold-duotone"></span>
+                        <span>Timeline</span>
+                    </a>
+                    <a href="{{ url_for('main.calendar') }}" class="sidebar-nav-item">
+                        <span class="iconify nav-icon" data-icon="solar:calendar-date-bold-duotone"></span>
+                        <span>Calendar</span>
+                    </a>
+                </div>
+
+                <!-- Projects Section -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Projects</div>
+                    <div style="padding: 0 var(--spacing-lg); margin-bottom: var(--spacing-md);">
+                        <button class="btn btn-secondary btn-small" style="width: 100%;">
+                            <span class="iconify" data-icon="solar:add-circle-bold-duotone" style="width: 16px; height: 16px;"></span>
+                            New Project
+                        </button>
+                    </div>
+                    {% if projects %}
+                        {% for project in projects[:5] %}
+                            <a href="{{ url_for('main.project_detail', project_id=project.id) }}" class="sidebar-nav-item">
+                                <span class="iconify nav-icon" data-icon="solar:folder-bold-duotone"></span>
+                                <span>{{ project.name[:20] }}...</span>
+                            </a>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Tools Section -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Tools</div>
+                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
+                        <span class="iconify nav-icon" data-icon="solar:chart-bold-duotone"></span>
+                        <span>Reports</span>
+                    </a>
+                    <a href="#" class="sidebar-nav-item">
+                        <span class="iconify nav-icon" data-icon="solar:settings-bold-duotone"></span>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="app-content">
+            <!-- Top Bar -->
+            <div class="app-topbar">
+                <div class="topbar-left">
+                    <button class="topbar-action-btn" id="sidebarToggle">
+                        <span class="iconify" data-icon="solar:menu-dots-bold-duotone" style="width: 24px; height: 24px;"></span>
+                    </button>
+                    <div class="topbar-search">
+                        <input type="text" class="topbar-search-input" placeholder="Search projects, issues...">
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="topbar-action-btn">
+                        <span class="iconify" data-icon="solar:bell-bold-duotone" style="width: 24px; height: 24px;"></span>
+                    </button>
+                    <button class="topbar-action-btn">
+                        <span class="iconify" data-icon="solar:question-circle-bold-duotone" style="width: 24px; height: 24px;"></span>
+                    </button>
+                    <div class="user-avatar" title="{{ current_user.username }}">{{ current_user.username[0].upper() }}</div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <main class="app-main">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1 class="page-title">Welcome back, {{ current_user.username }}!</h1>
+                    <p class="page-subtitle">Here's what's happening with your projects today</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Active Projects</div>
+                        <div class="stat-value">{{ stats.total_projects if stats else 5 }}</div>
+                        <div class="stat-change positive">+2 this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Open Issues</div>
+                        <div class="stat-value">{{ stats.total_issues if stats else 23 }}</div>
+                        <div class="stat-change negative">-3 from last week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Team Members</div>
+                        <div class="stat-value">{{ stats.total_users if stats else 8 }}</div>
+                        <div class="stat-change positive">+1 new member</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Completion Rate</div>
+                        <div class="stat-value">78%</div>
+                        <div class="stat-change positive">+5% improvement</div>
+                    </div>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-2xl);">
+                    <!-- Recent Issues -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Recent Issues</h3>
+                                <p class="card-subtitle">Issues updated in the last 7 days</p>
+                            </div>
+                            <a href="{{ url_for('main.issues') }}" style="text-decoration: none; color: var(--primary); font-weight: 500;">View all</a>
+                        </div>
+                        <div class="list">
+                            {% if recent_issues %}
+                                {% for issue in recent_issues[:5] %}
+                                    <div class="list-item">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 500; color: var(--gray-900); margin-bottom: 4px;">{{ issue.title }}</div>
+                                            <div style="font-size: var(--font-size-sm); color: var(--gray-500);">{{ issue.project_name }}</div>
+                                        </div>
+                                        <span class="badge badge-primary">{{ issue.status }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div style="padding: var(--spacing-lg); text-align: center; color: var(--gray-500);">
+                                    No issues yet
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Quick Actions</h3>
+                            </div>
+                        </div>
+                        <div class="list">
+                            <div class="list-item" style="border-bottom: 1px solid var(--gray-200);">
+                                <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                                    <span class="iconify" data-icon="solar:add-circle-bold-duotone"></span>
+                                    New Issue
+                                </button>
+                            </div>
+                            <div class="list-item" style="border-bottom: 1px solid var(--gray-200);">
+                                <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                                    <span class="iconify" data-icon="solar:folder-bold-duotone"></span>
+                                    New Project
+                                </button>
+                            </div>
+                            <div class="list-item">
+                                <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                                    <span class="iconify" data-icon="solar:users-group-rounded-bold-duotone"></span>
+                                    Invite Team
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Activity Timeline</h3>
+                            <p class="card-subtitle">Recent updates from your team</p>
+                        </div>
+                    </div>
+                    <div class="list">
+                        <div class="list-item">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--gray-900); margin-bottom: 4px;">John updated task</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Completed module A refactoring • 2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--gray-900); margin-bottom: 4px;">Sarah created issue</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Database optimization needed • 4 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--gray-900); margin-bottom: 4px;">Mike reviewed code</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Pull request #234 merged • 1 day ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle for mobile
+        document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
