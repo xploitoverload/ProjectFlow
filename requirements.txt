@@ -37,13 +37,13 @@ Flask-Caching==2.0.2
 redis==5.0.1
 
 # API Documentation
-Flask-CORS==4.0.0
+Flask-CORS==6.0.0
 Flask-Swagger==0.2.14
 flasgger==0.9.7.1
 
 # Phase 6 - Enterprise Systems
 flask-socketio==5.3.5
-python-socketio==5.9.0
+python-socketio==5.14.0
 python-engineio==4.8.0
 graphene==3.3
 graphene-sqlalchemy==3.0.0rc2
@@ -72,12 +72,12 @@ uwsgi==2.0.23
 
 # Monitoring & Logging
 python-json-logger==2.0.7
-sentry-sdk==1.38.0
+sentry-sdk==1.45.1
 
 # Data Export
 openpyxl==3.1.2
 reportlab==4.0.7
 
 # API Request Validation
-marshmallow==3.20.1
+marshmallow==3.26.2
 marshmallow-sqlalchemy==0.29.0
