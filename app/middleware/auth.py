@@ -285,17 +285,24 @@ def project_access_required(f):
 def api_auth_required(f):
     """
     Decorator for API endpoints requiring authentication.
-    Supports both session-based and token-based auth.
+    Supports both cryptographically signed Bearer tokens and session-based auth.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Check for API token in header
+        # Check for Bearer token in Authorization header
         auth_header = request.headers.get('Authorization')
         
         if auth_header and auth_header.startswith('Bearer '):
-            token = auth_header[7:]
-            # TODO: Implement JWT validation
-            # For now, fall back to session auth
+            token = auth_header[7:].strip()
+            from app.services.auth_service import AuthService
+            user = AuthService.verify_bearer_token(token)
+            if user:
+                g.current_user = user
+                session['user_id'] = user.id
+                session['role'] = user.role
+                session['username'] = user.username
+                return f(*args, **kwargs)
+            return {'error': 'Invalid or expired bearer token', 'code': 'UNAUTHORIZED'}, 401
         
         # Fall back to session-based auth
         is_valid, message = _check_session_valid()
