@@ -333,7 +333,6 @@ def init_database_pool(app_config):
 def get_db_pool() -> DatabaseConnectionPool:
     """Get global database connection pool"""
     
-    global db_pool
     if db_pool is None:
         raise RuntimeError("Database pool not initialized. Call init_database_pool first.")
     return db_pool
