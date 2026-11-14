@@ -613,11 +613,20 @@ class CalendarViewSystem {
     }
     
     createEvent() {
-        this.showToast('Create event dialog');
+        if (typeof openCreateIssueModal === 'function') {
+            openCreateIssueModal();
+        } else {
+            this.showToast('Create issue');
+        }
     }
     
     viewEvent(eventId) {
-        this.showToast('View event ' + eventId);
+        const event = this.events.find(e => String(e.id) === String(eventId));
+        if (event && event.url) {
+            window.location.href = event.url;
+        } else {
+            window.location.href = '/issue/' + eventId;
+        }
     }
     
     showToast(message) {
