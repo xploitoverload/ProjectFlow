@@ -10,6 +10,7 @@ import threading
 from typing import Dict, Set, List, Any, Optional, Callable
 from datetime import datetime
 from functools import wraps
+from flask import request
 
 logger = logging.getLogger('websocket')
 
@@ -322,7 +323,8 @@ class WebSocketNamespace:
     def broadcast(self, event_name: str, data: Dict[str, Any], **kwargs):
         """Broadcast event in this namespace."""
         if _socketio:
-            _socketio.emit(event_name, data, skip_sid=request.sid, **kwargs, namespace=self.namespace)
+            skip_sid = getattr(request, 'sid', None) if request else None
+            _socketio.emit(event_name, data, skip_sid=skip_sid, **kwargs, namespace=self.namespace)
 
 
 # Example custom namespace for project collaboration

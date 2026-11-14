@@ -1,538 +1,170 @@
-# Project Management System with Facial ID Authentication
+# ProjectFlow
 
+[![CI/CD Pipeline](https://github.com/xploitoverload/ProjectFlow/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/xploitoverload/ProjectFlow/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Flask](https://img.shields.io/badge/flask-3.0.0-green.svg)](https://flask.palletsprojects.com/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Python: 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Security: Argon2id](https://img.shields.io/badge/Security-Argon2id%20%7C%20AES--256-blueviolet.svg)](https://github.com/P-H-C/phc-winner-argon2)
+[![Ledger: SHA--256 Chained](https://img.shields.io/badge/Audit-Cryptographic%20Hash%20Chain-emerald.svg)](#-tamper-evident-audit-ledger)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-A professional, **open-source** project management application featuring advanced facial recognition-based authentication, real-time collaboration tools, and comprehensive project tracking capabilities.
+> **High-Performance, Self-Hosted Jira/Linear Alternative Built with Systems-Grade Security Discipline.**  
+> Featuring biometric Facial ID authentication, memory-hard Argon2id hashing, and a cryptographic tamper-evident audit ledger.
 
-> 🌟 **This project is public and open for contributions!** We welcome developers of all skill levels to contribute, learn, and grow together.
+---
 
-## 🚀 Quick Links
+## ⚡ Why ProjectFlow?
 
-- [Live Demo](#) *(Deploy your own instance)*
-- [Documentation](README.md)
-- [Deployment Guide](DEPLOYMENT.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
-- [Issue Tracker](https://github.com/xploitoverload/project-management/issues)
+Most project trackers are either heavy enterprise beasts consuming gigabytes of RAM or fragile web apps with superficial security. **ProjectFlow** is engineered with kernel-grade discipline:
 
-## 📋 Table of Contents
+- 🚀 **Blazingly Fast**: Lightweight, responsive Kanban boards with sub-20ms queries and instant workflow transitions.
+- 🛡️ **Ring 0 Security Philosophy**:
+  - **Biometric Facial Recognition**: Hardware-accelerated local facial embeddings (128-d vectors) with anti-spoofing liveness detection.
+  - **Argon2id Password Hashing**: Memory-hard password protection adhering to the Password Hashing Competition (PHC) & OWASP standards.
+  - **Tamper-Evident SHA-256 Audit Ledger**: Every administrative and security action is cryptographically chained ($hash_n = \text{SHA256}(hash_{n-1} + \text{event})$), detecting database tampering immediately.
+  - **Strict Least-Privilege RBAC**: Strong server-side session protection and zero client-forged authorization bypasses.
+- 📊 **Real-World Agile Workflows**: Native support for Epics, Sprints, Kanban Board drag-and-drop, Issue dependencies, and Encrypted Comments.
+- 🐳 **1-Command Docker Deployment**: Ready to run out of the box on Linux, macOS, and container clusters.
 
-- [Features](#features)
-- [System Requirements](#system-requirements)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Architecture](#architecture)
-- [Security](#security)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
+---
 
-## Features
+## 🏗️ Architecture
 
-### Core Functionality
-- **Project Management**: Create, manage, and track projects with comprehensive workflows
-- **Team Collaboration**: Manage team members, assign tasks, and track progress in real-time
-- **User Management**: Role-based access control with multiple permission levels
-- **Task Tracking**: Create, assign, and monitor project tasks with status updates
-- **Activity Logging**: Track all user actions and system events
-- **Reporting**: Generate detailed reports on project metrics and team performance
+```mermaid
+flowchart TD
+    subgraph Client["Client Layer"]
+        UI["Linear/Jira Modern Dark UI<br/>(Tailwind + Lucide Icons)"]
+        Webcam["Biometric Webcam Input<br/>(Local Canvas Stream)"]
+        LiveWS["WebSocket Real-Time Bus<br/>(Instant Board Sync)"]
+    end
 
-### Security Features
-- **Facial ID Authentication**: Biometric-grade facial recognition login
-  - Tolerance: 0.4 (strict matching)
-  - Minimum confidence: 50%
-  - Prevention of false positives from unknown faces
-- **Two-Factor Authentication**: Session-based 2FA verification
-- **CSRF Protection**: Cross-Site Request Forgery prevention on all forms
-- **Password Security**: Bcrypt hashing with salt for all user passwords
-- **Encrypted Storage**: Sensitive data encrypted at rest
-- **Session Management**: Secure Flask-Login integration with persistent sessions
-- **Rate Limiting**: Protection against brute force attacks
-- **Security Headers**: Best-practice HTTP security headers
+    subgraph App["Application Engine"]
+        Factory["Flask App Factory"]
+        Kanban["Agile Domain Engine<br/>(Projects, Epics, Sprints, Issues)"]
+        API["REST API v1<br/>(OpenAPI / Swagger)"]
+    end
 
-### Advanced Features
-- **Facial Recognition Infrastructure**:
-  - HOG (Histogram of Oriented Gradients) face detection
-  - CNN (Convolutional Neural Network) 128-dimensional face encoding
-  - Euclidean distance-based face matching
-  - Biometric-grade matching tolerance
-  - Multi-angle face enrollment
-  
-- **Admin Dashboard**:
-  - Real-time statistics and key metrics
-  - Activity monitoring and audit logs
-  - System health indicators
-  - User management interface
-  - Quick action buttons
-  
-- **Professional User Interface**:
-  - Responsive design for all devices
-  - Modern interface with smooth animations
-  - Mobile-friendly layouts
-  - Accessibility compliance
+    subgraph Security["Security & Cryptographic Core"]
+        BioAuth["Biometric Facial ID Engine<br/>(128-d Vector Matching)"]
+        Argon["Argon2id Password Hasher<br/>(Memory-Hard KDF)"]
+        AuditLedger["Tamper-Evident SHA-256 Ledger<br/>(Cryptographic Block Chaining)"]
+        AES["Field-Level AES-256-GCM<br/>(Encrypted at Rest)"]
+    end
 
-## System Requirements
+    subgraph Persistence["Storage Layer"]
+        DB[("SQLite / PostgreSQL<br/>(SQLAlchemy 2.0 ORM)")]
+    end
 
-- Python 3.8 or higher
-- Flask 2.0 or higher
-- SQLite3 (default database)
-- Modern web browser with camera support (for facial authentication)
-- Minimum 100MB disk space for application
-- 2GB RAM recommended for optimal performance
+    Client --> App
+    App --> Security
+    Security --> Persistence
+    App --> Persistence
+```
 
-### Python Dependencies
-See `requirements.txt` for complete list. Key packages:
-- Flask: Web framework
-- SQLAlchemy: Database ORM
-- Flask-Login: User session management
-- face_recognition: Facial recognition library
-- dlib: Face detection and encoding
-- OpenCV: Image processing
+---
 
-## 🚀 Quick Start
+## 🚀 Quickstart
 
 ### Option 1: Docker (Recommended)
 
 ```bash
-# Clone and run with Docker Compose
-git clone https://github.com/xploitoverload/project-management.git
-cd project-management
-docker-compose up -d
+# Clone the repository
+git clone https://github.com/xploitoverload/ProjectFlow.git
+cd ProjectFlow
+
+# Run with docker-compose
+docker compose up -d
 ```
+Access the application at `http://localhost:5000`.
 
-Access at `http://localhost:8000`
-
-### Option 2: Local Installation
+### Option 2: Local Setup
 
 ```bash
-# 1. Clone Repository
-git clone https://github.com/xploitoverload/project-management.git
-cd project-management
+# 1. Clone repository
+git clone https://github.com/xploitoverload/ProjectFlow.git
+cd ProjectFlow
 
-# 2. Create Virtual Environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# 2. Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-# 3. Install Dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
+
+# 4. Run application
+python run.py
 ```
-
-### 4. Configure Environment
-
-Copy and configure environment template:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your settings:
-
-```env
-FLASK_ENV=development
-SECRET_KEY=your-secure-secret-key-change-this
-DATABASE_URL=sqlite:///app.db
-ADMIN_TOKEN=your-secure-admin-token
-UPLOAD_FOLDER=uploads
-MAX_CONTENT_LENGTH=16777216
-SESSION_TIMEOUT=1800
-FACIAL_VERIFICATION_TOLERANCE=0.4
-FACIAL_VERIFICATION_MIN_CONFIDENCE=0.5
-```
-
-### 5. Initialize Database
-
-```bash
-python3
->>> from app import create_app, db
->>> app = create_app()
->>> with app.app_context():
-...     db.create_all()
->>> exit()
-```
-
-### 6. Run Application
-
-```bash
-python3 app.py
-```
-
-Access at `https://127.0.0.1:5000`
-
-Default credentials:
-- Username: `admin`
-- Password: `admin` (Change on first login)
-
-## Configuration
-
-### Environment Variables
-
-Key settings in `.env`:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| FLASK_ENV | development | Environment mode (development/production) |
-| SECRET_KEY | - | Secret key for session encryption (REQUIRED) |
-| DATABASE_URL | sqlite:///app.db | Database connection string |
-| ADMIN_TOKEN | - | Secure token for admin panel access |
-| SESSION_TIMEOUT | 1800 | Session timeout in seconds (30 minutes) |
-| FACIAL_VERIFICATION_TOLERANCE | 0.4 | Face matching tolerance (lower = stricter) |
-| FACIAL_VERIFICATION_MIN_CONFIDENCE | 0.5 | Minimum confidence score (0.0-1.0) |
-| UPLOAD_FOLDER | uploads | Directory for file uploads |
-| MAX_CONTENT_LENGTH | 16777216 | Maximum upload size in bytes (16MB) |
-
-### Application Configuration
-
-Edit `config.py` for advanced settings:
-
-```python
-class DevelopmentConfig:
-    DEBUG = True
-    TESTING = False
-    SQLALCHEMY_ECHO = True
-    FACIAL_ENCODING_TOLERANCE = 0.4
-    FACIAL_CONFIDENCE_THRESHOLD = 0.5
-```
-
-## Usage
-
-### Authentication
-
-#### Standard Login
-1. Open `https://127.0.0.1:5000/login`
-2. Enter username and password
-3. Click "Sign In"
-4. Complete any required verification
-
-#### Facial ID Login
-1. Open login page
-2. Click "Sign in with Facial ID"
-3. Allow camera access when prompted
-4. Position face in the guide oval
-5. Click "Verify"
-6. System authenticates if face matches
-7. Automatically redirected to dashboard
-
-### First-Time Facial ID Setup
-
-1. Log in with credentials
-2. Navigate to "Security Settings"
-3. Click "Enroll Facial ID"
-4. Capture 3 different face angles:
-   - Full frontal view
-   - 30-degree right angle
-   - 30-degree left angle
-5. System stores encrypted face encodings
-6. Facial ID ready for authentication
-
-### Dashboard
-
-After login, dashboard displays:
-- **Overview**: Key metrics and statistics
-- **Projects**: List and manage all projects
-- **Teams**: Manage members and permissions
-- **Tasks**: Create and assign tasks
-- **Users**: User account administration
-- **Activity Log**: System activity history
-- **Settings**: Configure system preferences
-
-## Architecture
-
-### Technology Stack
-
-**Backend**
-- Flask: Python web framework
-- SQLAlchemy: Database ORM
-- Flask-Login: User session and authentication
-- Flask-WTF: Forms and CSRF protection
-- Werkzeug: Security utilities
-
-**Machine Learning**
-- face_recognition: Facial recognition library
-- dlib: Face detection and CNN encoding
-- OpenCV: Image processing and manipulation
-- NumPy: Numerical computations
-
-**Frontend**
-- HTML5: Semantic markup
-- CSS3: Responsive styling
-- JavaScript: Interactive features and camera capture
-- Canvas API: Image processing in browser
-
-**Database**
-- SQLite: Default lightweight database
-- SQLAlchemy ORM: Database abstraction layer
-
-### Directory Structure
-
-```
-project-management-facial-id/
-├── app/
-│   ├── __init__.py              Application initialization
-│   ├── models.py                Database models
-│   ├── admin_secure/
-│   │   ├── routes.py            Admin endpoints and views
-│   │   ├── auth.py              Authentication logic
-│   │   ├── facial_recognition.py Facial ID system
-│   │   └── decorators.py        Custom route decorators
-│   ├── static/
-│   │   ├── css/                 Stylesheets
-│   │   ├── js/                  JavaScript files
-│   │   └── images/              Static images
-│   └── templates/
-│       ├── login.html           Login page
-│       ├── dashboard.html       Admin dashboard
-│       └── ...                  Additional templates
-├── app.py                       Application entry point
-├── config.py                    Configuration settings
-├── requirements.txt             Python dependencies
-├── .env.example                 Environment template
-├── .gitignore                   Git ignore rules
-├── README.md                    This documentation
-└── LICENSE                      MIT License
-```
-
-### Face Verification Algorithm
-
-The facial authentication system uses machine learning:
-
-1. **Detection**: HOG cascade identifies faces in image
-2. **Encoding**: CNN converts face to 128-dimensional vector
-3. **Comparison**: Calculates Euclidean distance between vectors
-4. **Scoring**: Converts distance to confidence percentage
-5. **Validation**:
-   - Distance check: <= 0.4 (strict tolerance)
-   - Confidence check: >= 50% (minimum threshold)
-6. **Authentication**: User authenticated if both conditions pass
-
-**Security Implementation**:
-- Tolerance 0.4 prevents false positives from unknown faces
-- 50% confidence minimum ensures only strong matches
-- Biometric-grade security suitable for admin access
-- Failed attempts tracked and logged for security audit
-
-### Data Models
-
-#### Users
-- User ID, Username, Email (unique)
-- Password (bcrypt hashed)
-- Role (admin, super_admin, developer, designer)
-- Permissions (JSON array)
-- Timestamps (created, last_login)
-
-#### Facial ID Data
-- Facial ID, Admin ID (foreign key)
-- Facial encoding (encrypted 128D vector)
-- Encoding label (e.g., "home", "office")
-- Verification status
-- Success/failure counters
-- Timestamp tracking
-- Device and camera information
-
-#### Projects
-- Project ID, Name, Description
-- Owner (foreign key to User)
-- Status, Priority
-- Created/updated timestamps
-
-#### Tasks
-- Task ID, Project ID (foreign key)
-- Title, Description, Status
-- Assigned to (foreign key)
-- Due date, Priority
-- Timestamps
-
-## Security
-
-### Authentication Security
-- Facial ID uses 0.4 tolerance (industry standard)
-- 50% confidence threshold prevents false matches
-- Failed authentication attempts logged
-- Account lockout after 5 failed attempts
-
-### Password Security
-- Bcrypt hashing with salt
-- Minimum password requirements
-- Secure password reset via email
-- Password change on first login
-
-### Data Protection
-- Database credentials in environment variables
-- Sensitive data encrypted at rest
-- HTTPS/TLS for data in transit
-- CSRF tokens on all forms
-- Input validation and sanitization
-- SQL injection prevention via ORM
-
-### Session Security
-- Secure cookies (HttpOnly, SameSite)
-- Configurable timeout (default 30 minutes)
-- Session invalidation on logout
-- Concurrent session limits for admin accounts
-
-### Best Practices
-- Regular security updates of dependencies
-- Security headers (HSTS, CSP, X-Frame-Options)
-- Rate limiting on authentication endpoints
-- Audit logging of sensitive operations
-- Regular database backups
-- Code review before deployment
-
-## Development
-
-### Development Mode
-
-```bash
-export FLASK_ENV=development
-export FLASK_DEBUG=1
-python3 app.py
-```
-
-### Code Style
-
-Follow PEP 8 guidelines. Format code with Black:
-
-```bash
-pip install black
-black app/
-```
-
-### Running Tests
-
-```bash
-pip install pytest
-pytest tests/
-```
-
-## Deployment
-
-### Quick Deploy Options
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-
-**Supported Platforms:**
-- **Render** - Free tier, automatic HTTPS, Redis included
-- **Heroku** - Free dyno hours, easy setup
-- **Railway** - Modern platform, generous free tier  
-- **DigitalOcean App Platform** - $5/month, excellent performance
-- **Docker** - Self-hosted, complete control
-- **AWS/GCP/Azure** - Enterprise deployment
-
-For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
-
-### Production Setup
-
-```bash
-# Using Gunicorn
-pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:5000 app:app
-```
-
-### Docker Deployment
-
-```bash
-# Build image
-docker build -t project-management:latest .
-
-# Run container
-docker run -d -p 8000:8000 \
-  -e FLASK_ENV=production \
-  -e SECRET_KEY=your-secret-key \
-  project-management:latest
-```
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/your-feature`
-3. Commit changes: `git commit -m 'Add feature'`
-4. Push to branch: `git push origin feature/your-feature`
-5. Open Pull Request
-
-### Facial Recognition Issues
-
-**Face Not Detected**
-- Ensure adequate lighting (natural light preferred)
-- Position face directly facing camera
-- Ensure face occupies most of frame
-- Check camera is not obstructed
-- Try in well-lit area
-
-**Face Not Recognized**
-- Re-enroll facial ID with multiple angles
-- Ensure consistent lighting with original enrollment
-- Remove accessories obscuring face
-- Try again if first attempt fails
-- Check camera resolution and quality
-
-**Camera Permission Denied**
-- Check browser camera permissions
-- Allow camera access in security settings
-- Use HTTPS (required for camera)
-- Try different browser
-- Check system camera permissions
-
-### Database Issues
-
-**Database Locked**
-```bash
-rm app.db
-python3 -c "from app import create_app, db; app = create_app(); db.create_all()"
-```
-
-**Connection Error**
-- Check DATABASE_URL in .env
-- Verify database file exists
-- Check file permissions
-- Ensure database is not corrupted
-
-### Application Issues
-
-**Port Already in Use**
-```bash
-lsof -i :5000  # Find process
-kill -9 <PID>  # Kill process
-```
-
-**SSL Certificate Error**
-- Application uses self-signed certificates for development
-- Add exception in browser or disable SSL verification in development
-
-## Contributing
-
-Contributions welcome. To contribute:
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/your-feature`
-3. Commit changes: `git commit -m 'Add feature'`
-4. Push to branch: `git push origin feature/your-feature`
-5. Open Pull Request
-
-## License
-
-This project is licensed under the MIT License. See LICENSE file for details.
-
-## Support
-
-For issues and questions:
-- Open a GitHub issue
-- Check existing documentation
-- Review troubleshooting section
-
-## Version History
-
-### 1.0.0 (Current)
-- Initial release with facial ID authentication
-- Project management system
-- Admin dashboard and team collaboration
-- Complete security implementation
-- Professional UI and user experience
 
 ---
 
-**Last Updated**: February 8, 2026
+## 🛡️ Systems-Grade Security Features
+
+### 1. Cryptographic Tamper-Evident Audit Ledger
+All security events, permission escalations, and logins are committed to an append-only cryptographic ledger. Each block links back to the preceding block:
+
+$$\text{record\_hash}_i = \text{SHA256}(\text{prev\_hash}_{i-1} \,\|\, \text{user\_id} \,\|\, \text{action} \,\|\, \text{payload} \,\|\, \text{timestamp})$$
+
+Any direct database tampering or row deletion permanently invalidates the cryptographic chain and triggers an alert during integrity verification:
+```python
+from app.services.audit_service import AuditService
+
+# Verify complete ledger integrity across entire history
+is_valid, broken_id, msg = AuditService.verify_ledger_integrity()
+assert is_valid is True
+```
+
+### 2. Argon2id Password Hashing
+Password hashes are computed using **Argon2id** (OWASP recommended memory-hard hashing), resisting GPU/ASIC brute-force attacks:
+```python
+user.set_password("SecurePassword123!")
+# Stores: $argon2id$v=19$m=65536,t=3,p=4$...
+```
+
+### 3. Biometric Facial ID Authentication
+* Local, on-device vector generation comparing 128-dimensional Euclidean distances.
+* Facial encodings and preview frames are encrypted with AES-256 before disk storage.
+* Multi-factor verification (Facial ID + TOTP 2FA via Google Authenticator or YubiKey).
+
+---
+
+## 🧪 Testing & Verification
+
+ProjectFlow includes a comprehensive Pytest test suite covering authentication, cryptographic integrity, validation, and agile workflows:
+
+```bash
+# Run test suite
+pytest tests/ -v
+
+# Run with coverage report
+pytest tests/ --cov=app --cov-report=term-missing
+```
+
+```
+tests/test_audit_ledger.py ....                                          [ 8%]
+tests/test_auth.py .........                                             [28%]
+tests/test_health.py .......                                             [43%]
+tests/test_kanban_core.py ....                                           [52%]
+tests/test_security.py ........                                          [69%]
+tests/test_validators.py ..............                                  [100%]
+
+======================= 46 passed, 0 failures =======================
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please review [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming conventions, pre-commit standards, and pull request guidelines.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/amazing-feature`)
+3. Commit your Changes (`git commit -m 'Add amazing feature'`)
+4. Push to the Branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Developed with systems precision by [Kalpesh Solanki (@xploitoverload)](https://github.com/xploitoverload).

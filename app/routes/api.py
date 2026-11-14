@@ -6,8 +6,11 @@ All endpoints require authentication and include IDOR prevention.
 """
 
 from flask import Blueprint, request, jsonify, session
+from flask_login import current_user
+from app.models import db, Issue, Project, User
 from app.middleware.auth import api_auth_required, rate_limit_check
 from app.services import ProjectService, IssueService, ReportService
+from app.services.notification_service import NotificationService
 from app.utils.security import sanitize_input
 from app.security.audit import log_security_event
 from app.security.validation import InputValidator, sanitize_html
