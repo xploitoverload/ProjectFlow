@@ -405,3 +405,256 @@ body[data-ui-style="flat"] .btn {
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
 }
+
+/* --------------------------------------------------------------------------
+   5. Pixel-Perfect Header & Navigation Alignment
+   -------------------------------------------------------------------------- */
+.app-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 56px !important;
+    padding: 0 24px !important;
+}
+
+.header-left, .header-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+/* Hide mobile sidebar toggle on desktop */
+@media (min-width: 1024px) {
+    #sidebarToggle,
+    button#sidebarToggle.header-icon-btn {
+        display: none !important;
+    }
+}
+
+@media (max-width: 1023px) {
+    #sidebarToggle,
+    button#sidebarToggle.header-icon-btn {
+        display: inline-flex !important;
+    }
+}
+
+.header-breadcrumb {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 13px !important;
+    line-height: 1 !important;
+}
+
+.breadcrumb-copy-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 22px !important;
+    height: 22px !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-tertiary, #64748B) !important;
+    opacity: 0.5 !important;
+    cursor: pointer !important;
+    border-radius: 4px !important;
+    transition: opacity 0.15s ease, color 0.15s ease !important;
+}
+
+.breadcrumb-copy-btn:hover {
+    opacity: 1 !important;
+    color: var(--text-primary, #F8FAFC) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.header-breadcrumb a, .header-breadcrumb-current {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.header-search {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 260px !important;
+}
+
+.header-search-icon {
+    position: absolute !important;
+    left: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 15px !important;
+    height: 15px !important;
+    color: var(--text-secondary, #94A3B8) !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+}
+
+input.header-search-input[type="text"],
+.header-search input[type="text"],
+.header-search-input {
+    width: 100% !important;
+    height: 36px !important;
+    padding: 0 12px 0 38px !important;
+    padding-left: 38px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--surface-border-color, rgba(255, 255, 255, 0.1)) !important;
+    color: var(--text-primary) !important;
+    transition: all 0.2s ease !important;
+}
+
+.header-search-input:focus {
+    outline: none !important;
+    border-color: #6366F1 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+
+.header-icon-btn {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 8px !important;
+    color: var(--text-secondary, #94A3B8) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--surface-border-color, rgba(255, 255, 255, 0.08)) !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+
+.header-icon-btn:hover {
+    color: var(--text-primary, #F8FAFC) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.header-icon-btn .notification-badge {
+    position: absolute !important;
+    top: -3px !important;
+    right: -3px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
+    border-radius: 8px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #EF4444 !important;
+    color: white !important;
+    border: 2px solid var(--header-glass, #0B0E14) !important;
+}
+
+/* Sidebar notification badge alignment */
+.sidebar-nav-item .notification-badge {
+    position: static !important;
+    margin-left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 6px !important;
+    border-radius: 9px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-secondary, #94A3B8) !important;
+}
+
+.sidebar-nav-item.active .notification-badge {
+    background: rgba(99, 102, 241, 0.3) !important;
+    color: #818CF8 !important;
+}
+
+/* Style Switcher & Action Buttons Alignment */
+.style-switcher-btn {
+    height: 34px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 0 10px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border: 1px solid var(--surface-border-color, rgba(255, 255, 255, 0.08)) !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. Kanban Board Full-Width & Viewport Scaling
+   -------------------------------------------------------------------------- */
+.kanban-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    overflow-x: auto !important;
+}
+
+.kanban-board {
+    display: flex !important;
+    gap: 16px !important;
+    width: 100% !important;
+    min-height: calc(100vh - 215px) !important;
+    align-items: stretch !important;
+}
+
+.kanban-column {
+    flex: 1 1 0 !important;
+    min-width: 280px !important;
+    max-width: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--surface-border-color) !important;
+    background: var(--card-bg) !important;
+    backdrop-filter: var(--surface-blur) !important;
+    -webkit-backdrop-filter: var(--surface-blur) !important;
+    overflow: hidden !important;
+}
+
+.column-header {
+    padding: 14px 16px !important;
+    border-bottom: 1px solid var(--surface-border-color) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-shrink: 0 !important;
+}
+
+.column-body {
+    flex: 1 1 auto !important;
+    padding: 12px !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    min-height: 250px !important;
+}
+
+.column-footer {
+    padding: 8px 12px !important;
+    border-top: 1px solid var(--surface-border-color) !important;
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+}
+
+.kanban-card {
+    margin-bottom: 0 !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease !important;
+}
+
+.kanban-card:hover {
+    transform: translateY(-2px) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+}
