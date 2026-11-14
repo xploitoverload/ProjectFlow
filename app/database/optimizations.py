@@ -162,11 +162,11 @@ class QueryOptimizer:
         """Get recent progress updates (optimized)."""
         from sqlalchemy.orm import selectinload
         
-        return ProgressUpdate.query.options(
-            selectinload(ProgressUpdate.user),
-            selectinload(ProgressUpdate.project)
+        return ProjectUpdate.query.options(
+            selectinload(ProjectUpdate.user),
+            selectinload(ProjectUpdate.project_ref)
         ).order_by(
-            ProgressUpdate.created_at.desc()
+            ProjectUpdate.date.desc()
         ).limit(limit).all()
     
     @staticmethod
@@ -176,12 +176,12 @@ class QueryOptimizer:
         
         stats = {
             'total_issues_assigned': Issue.query.filter_by(assignee_id=user_id).count(),
-            'total_issues_created': Issue.query.filter_by(created_by=user_id).count(),
-            'total_projects': Project.query.filter_by(owner_id=user_id).count(),
-            'total_updates': ProgressUpdate.query.filter_by(user_id=user_id).count(),
+            'total_issues_created': Issue.query.filter_by(reporter_id=user_id).count(),
+            'total_projects': Project.query.filter_by(created_by=user_id).count(),
+            'total_updates': ProjectUpdate.query.filter_by(user_id=user_id).count(),
             'completed_issues': Issue.query.filter_by(
                 assignee_id=user_id, 
-                status='completed'
+                status='done'
             ).count(),
         }
         return stats
