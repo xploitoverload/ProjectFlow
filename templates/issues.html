@@ -135,10 +135,13 @@
                         </span>
                     </td>
                     <td style="padding: 12px 16px;">
-                        {% set status_colors = {'open': '#3b82f6', 'To Do': '#64748b', 'In Progress': '#f59e0b', 'In Review': '#8b5cf6', 'Done': '#22c55e', 'closed': '#94a3b8'} %}
-                        {% set s_color = status_colors.get(issue.status, '#64748b') %}
-                        <span style="padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 500; background: {{ s_color }}20; color: {{ s_color }};">
-                            {{ issue.status|default('Open') }}
+                        {% set status_colors = {'open': '#3b82f6', 'todo': '#64748b', 'in_progress': '#f59e0b', 'code_review': '#8b5cf6', 'testing': '#06b6d4', 'ready_deploy': '#10b981', 'done': '#22c55e', 'closed': '#94a3b8', 'reopened': '#ef4444'} %}
+                        {% set status_labels = {'open': 'Open', 'todo': 'To Do', 'in_progress': 'In Progress', 'code_review': 'In Review', 'testing': 'Testing', 'ready_deploy': 'Ready', 'done': 'Done', 'closed': 'Closed', 'reopened': 'Reopened'} %}
+                        {% set s_key = issue.status|lower if issue.status else 'open' %}
+                        {% set s_color = status_colors.get(s_key, '#64748b') %}
+                        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 500; background: {{ s_color }}20; color: {{ s_color }};">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ s_color }};"></span>
+                            {{ status_labels.get(s_key, s_key.replace('_', ' ').title()) }}
                         </span>
                     </td>
                     <td style="padding: 12px 16px;">

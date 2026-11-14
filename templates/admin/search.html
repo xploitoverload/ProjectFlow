@@ -166,7 +166,7 @@
                             <span style="background: {{ 'rgba(35, 134, 54, 0.15)' if issue.status == 'Done' else 'rgba(210, 153, 34, 0.15)' if issue.status == 'In Progress' else 'rgba(88, 166, 255, 0.15)' }}; color: {{ '#7EE787' if issue.status == 'Done' else '#D29922' if issue.status == 'In Progress' else '#58A6FF' }}; padding: 4px 12px; border-radius: 20px; font-size: 12px;">{{ issue.status }}</span>
                         </td>
                         <td style="padding: 14px 20px; text-align: right;">
-                            <a href="{{ url_for('projects.issue_detail', project_id=issue.project_id, issue_id=issue.id) }}" class="btn btn-ghost btn-sm">View</a>
+                            <a href="{{ url_for('projects.issue_view', project_id=issue.project_id, issue_id=issue.id) }}" class="btn btn-ghost btn-sm">View</a>
                         </td>
                     </tr>
                     {% endfor %}

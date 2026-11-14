@@ -1192,7 +1192,7 @@ def project_settings(project_id):
     # Check if user has permission to edit project settings
     user = User.query.get(session['user_id'])
     
-    if user.role not in ['admin', 'super_admin'] and project.owner_id != user.id:
+    if user.role not in ['admin', 'super_admin'] and user.id not in [project.created_by, project.lead_id]:
         flash('You do not have permission to edit project settings', 'error')
         return redirect(url_for('projects.project_detail', project_id=project_id))
     

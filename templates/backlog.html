@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Backlog - {{ project.name }}{% endblock %}
+{% block title %}Backlog - {{ project.name if project else 'No Project' }}{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-6">
+    {% if project %}
     <div class="page-header mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Backlog</h1>
@@ -20,6 +21,14 @@
             </button>
         </div>
     </div>
+    {% else %}
+    <div class="page-header mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Backlog</h1>
+            <p class="text-sm text-gray-600 mt-1">Select or create a project to view its backlog</p>
+        </div>
+    </div>
+    {% endif %}
 
     {% if issues %}
     <div class="bg-white rounded-lg shadow overflow-hidden">
