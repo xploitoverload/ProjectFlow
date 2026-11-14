@@ -41,6 +41,9 @@ def create_app(config_name=None):
                 template_folder='../templates',
                 static_folder='../static')
     
+    # Ensure instance folder exists
+    os.makedirs(app.instance_path, exist_ok=True)
+    
     # Load configuration
     app.config.from_object(config[config_name])
     
@@ -124,8 +127,13 @@ def create_app(config_name=None):
     # Register request hooks for user activity tracking
     _register_request_hooks(app)
     
-    # Initialize Phase 6 Enterprise Systems
-    _init_phase6_systems(app)
+    # Initialize WebSocket system (if available)
+    try:
+        from app.websocket import init_websocket
+        socketio = init_websocket(app, None)
+        app.socketio = socketio
+    except Exception as e:
+        app.logger.debug(f'WebSocket initialization deferred: {e}')
     
     # Create database tables
     with app.app_context():
@@ -216,82 +224,35 @@ def _register_blueprints(app):
     from app.routes.admin import admin_bp
     from app.routes.api import api_bp
     from app.routes.projects import projects_bp
-    from app.routes.phase6_routes import phase6_bp
-    from app.routes.ml_routes import ml_bp
+    from app.routes.health import health_bp
     from app.routes.analytics_routes import analytics_bp
     from app.routes.automation_routes import automation_bp
-    from app.routes.pwa_routes import pwa_bp
     from app.routes.notifications_routes import notifications_bp
     from app.routes.reporting_routes import reporting_bp
     from app.routes.integrations_routes import integrations_bp
-    from app.routes.security_routes import security_bp
-    from app.routes.face_recognition_routes import face_bp
-    from app.routes.compliance_routes import compliance_bp
-    from app.routes.knowledge_base_routes import kb_bp
-    from app.routes.team_collaboration_routes import team_bp
-    from app.routes.mobile_routes import mobile_bp
-    from app.routes.tenant_routes import tenant_bp
-    from app.routes.customer_portal_routes import portal_bp
-    from app.routes.video_conferencing_routes import video_bp
-    from app.routes.resource_planning_routes import resource_bp
-    from app.routes.performance_routes import perf_bp
-    from app.routes.api_versioning_routes import api_mgmt_bp
-    from app.routes.time_tracking_routes import billing_bp
-    from app.routes.finance_routes import finance_bp
-    from app.routes.multi_channel_notifications_routes import multi_notif_bp
-    from app.routes.dr_routes import dr_bp
-    from app.routes.custom_fields_routes import fields_bp
-    from app.routes.testing_routes import testing_bp
     from app.admin_secure.routes import create_secure_admin_blueprint
     import secrets
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(projects_bp, url_prefix='/project')
     app.register_blueprint(api_bp, url_prefix='/api/v1')
-    app.register_blueprint(ml_bp)
+    app.register_blueprint(health_bp)
     app.register_blueprint(analytics_bp)
     app.register_blueprint(automation_bp)
-    app.register_blueprint(pwa_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(reporting_bp)
     app.register_blueprint(integrations_bp)
-    app.register_blueprint(security_bp)
-    app.register_blueprint(face_bp)
-    app.register_blueprint(compliance_bp)
-    app.register_blueprint(kb_bp)
-    app.register_blueprint(team_bp)
-    app.register_blueprint(mobile_bp)
-    app.register_blueprint(tenant_bp)
-    app.register_blueprint(portal_bp)
-    app.register_blueprint(video_bp)
-    app.register_blueprint(resource_bp)
-    app.register_blueprint(perf_bp)
-    app.register_blueprint(api_mgmt_bp)
-    app.register_blueprint(billing_bp)
-    app.register_blueprint(finance_bp)
-    app.register_blueprint(multi_notif_bp)
-    app.register_blueprint(dr_bp)
-    app.register_blueprint(fields_bp)
-    app.register_blueprint(testing_bp)
-    app.register_blueprint(phase6_bp)
-    app.register_blueprint(projects_bp, url_prefix='/project')
     
     # Register secure admin blueprint with persistent hidden token
-    token_file = os.path.join(os.path.dirname(__file__), '.secure_token')
-    if os.path.exists(token_file):
-        with open(token_file, 'r') as f:
-            hidden_token = f.read().strip()
-    else:
+    hidden_token = app.config.get('HIDDEN_ADMIN_TOKEN') or os.environ.get('HIDDEN_ADMIN_TOKEN')
+    if not hidden_token:
         hidden_token = secrets.token_urlsafe(32)
-        with open(token_file, 'w') as f:
-            f.write(hidden_token)
+        app.config['HIDDEN_ADMIN_TOKEN'] = hidden_token
     
     admin_secure_bp = create_secure_admin_blueprint(hidden_token)
     app.register_blueprint(admin_secure_bp, url_prefix=f'/secure-mgmt-{hidden_token}/')
-    
-    # Store hidden token in app config for access in templates
-    app.config['HIDDEN_ADMIN_TOKEN'] = hidden_token
     app.logger.info(f'Secure admin panel available at: /secure-mgmt-{hidden_token}/')
 
 
@@ -415,49 +376,3 @@ def _register_context_processors(app):
             return value.strftime(format_str)
         except (AttributeError, ValueError):
             return str(value)
-
-def _init_phase6_systems(app):
-    """Initialize Phase 6 enterprise systems."""
-    
-    # Initialize WebSocket system
-    try:
-        from app.websocket import init_websocket
-        socketio = init_websocket(app, None)  # SocketIO will be initialized separately
-        app.socketio = socketio
-        app.logger.info('✓ WebSocket system initialized')
-    except Exception as e:
-        app.logger.warning(f'WebSocket initialization deferred: {e}')
-    
-    # Initialize Batch Processor
-    try:
-        from app.operations import init_batch_processor
-        init_batch_processor()
-        app.logger.info('✓ Batch processor initialized')
-    except Exception as e:
-        app.logger.warning(f'Batch processor error: {e}')
-    
-    # Initialize Backup Manager
-    try:
-        from app.recovery import init_backup_manager
-        backup_dir = os.path.join(app.instance_path, 'backups')
-        db_path = os.path.join(app.instance_path, 'app.db')
-        init_backup_manager(backup_dir, db_path)
-        app.logger.info('✓ Backup manager initialized')
-    except Exception as e:
-        app.logger.warning(f'Backup manager error: {e}')
-    
-    # Initialize GraphQL
-    try:
-        from app.api.graphql_api import init_graphql
-        init_graphql()
-        app.logger.info('✓ GraphQL API initialized')
-    except Exception as e:
-        app.logger.warning(f'GraphQL initialization error: {e}')
-    
-    # Initialize Performance Monitor
-    try:
-        from app.monitoring.performance import init_performance_monitor
-        init_performance_monitor(history_limit=10000)
-        app.logger.info('✓ Performance monitor initialized')
-    except Exception as e:
-        app.logger.warning(f'Performance monitor error: {e}')
