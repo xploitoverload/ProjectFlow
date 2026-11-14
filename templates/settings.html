@@ -215,7 +215,7 @@
                                             <div class="avatar-color-picker">
                                                 {% for color in ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#0ea5e9', '#3b82f6'] %}
                                                 <button type="button" class="avatar-color-option {{ 'active' if user.avatar_color == color else '' }}" 
-                                                        style="--avatar-bg: {{ color }};" 
+                                                        style="background: {{ color }} !important; background-color: {{ color }} !important;" 
                                                         data-color="{{ color }}"
                                                         onclick="selectAvatarColor('{{ color }}')">
                                                 </button>
@@ -566,25 +566,79 @@
         .toggle input:checked + .toggle-slider:before {
             transform: translateX(20px);
         }
+        .header-user-menu {
+            position: relative;
+        }
+        .header-user-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent !important;
+            border: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+        }
+        .header-user-btn:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+        .header-user-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 160px;
+            background: var(--bg-card, #1E2230);
+            border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.1));
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            padding: 6px 0;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+        .header-user-dropdown.show {
+            display: flex !important;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 13px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: background 0.15s ease;
+        }
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border-primary, rgba(255, 255, 255, 0.1));
+            margin: 4px 0;
+        }
         .avatar-color-picker {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
+            align-items: center;
         }
         .avatar-color-option {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: all 0.15s;
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            border: 2px solid transparent !important;
+            cursor: pointer !important;
+            transition: transform 0.15s ease, border-color 0.15s ease !important;
+            padding: 0 !important;
         }
         .avatar-color-option:hover {
-            transform: scale(1.1);
+            transform: scale(1.15) !important;
         }
         .avatar-color-option.active {
-            border-color: var(--text-primary);
-            box-shadow: 0 0 0 2px white;
+            border-color: #FFFFFF !important;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.6) !important;
         }
         .theme-options {
             display: flex;

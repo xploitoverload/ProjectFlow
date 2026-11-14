@@ -545,12 +545,23 @@ input.header-search-input[type="text"],
     font-size: 10px !important;
     font-weight: 700 !important;
     line-height: 16px !important;
-    display: inline-flex !important;
+    display: inline-flex;
     align-items: center !important;
     justify-content: center !important;
     background: #EF4444 !important;
     color: white !important;
     border: 2px solid var(--header-glass, #0B0E14) !important;
+}
+
+/* Badges hidden when empty or zero count */
+.notification-badge:empty,
+.notification-badge[data-count="0"],
+.notification-badge[style*="display: none"],
+.header-icon-btn .notification-badge:empty,
+.header-icon-btn .notification-badge[data-count="0"],
+.sidebar-nav-item .notification-badge:empty,
+.sidebar-nav-item .notification-badge[data-count="0"] {
+    display: none !important;
 }
 
 /* Sidebar notification badge alignment */

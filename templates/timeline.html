@@ -2,31 +2,41 @@
 
 {% block title %}Timeline - ProjectFlow{% endblock %}
 
+{% block breadcrumb %}
+<div class="header-breadcrumb">
+    <a href="{{ url_for('main.dashboard') }}">Home</a>
+    <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
+    <span class="header-breadcrumb-current">Timeline</span>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="page-container" style="padding: 24px;">
-    <!-- Page Header -->
-    <div class="page-header" style="margin-bottom: 24px;">
+<div class="page-container" style="padding: 0;">
+    <!-- Page Header Card -->
+    <div class="bento-card" style="margin-bottom: 20px; padding: 20px 24px; border-radius: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-            <div>
-                <h1 style="font-size: 24px; font-weight: 600; margin: 0 0 4px;">
-                    <i data-lucide="gantt-chart" style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
-                    Timeline
-                </h1>
-                <p style="color: var(--text-secondary); margin: 0;">
-                    {% if selected_project %}{{ selected_project.name }} - {% endif %}
-                    {{ timeline_items|length }} items with due dates
-                </p>
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.25); display: flex; align-items: center; justify-content: center; color: #818CF8;">
+                    <i data-lucide="gantt-chart" style="width: 22px; height: 22px;"></i>
+                </div>
+                <div>
+                    <h1 style="font-size: 20px; font-weight: 700; margin: 0 0 2px; color: var(--text-primary);">Timeline</h1>
+                    <p style="color: var(--text-secondary); margin: 0; font-size: 13px;">
+                        {% if selected_project %}{{ selected_project.name }} &bull; {% endif %}
+                        {{ timeline_items|length }} items with scheduled due dates
+                    </p>
+                </div>
             </div>
             <div style="display: flex; gap: 12px; align-items: center;">
-                <select id="projectSelector" class="form-select" style="min-width: 200px;" onchange="changeProject(this.value)">
+                <select id="projectSelector" class="form-select" style="min-width: 220px; height: 36px;" onchange="changeProject(this.value)">
                     {% for project in projects %}
                     <option value="{{ project.id }}" {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
                         {{ project.name }}
                     </option>
                     {% endfor %}
                 </select>
-                <button class="btn btn-secondary">
-                    <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                <button class="btn btn-secondary btn-sm" style="height: 36px; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
                     Today
                 </button>
             </div>
@@ -34,7 +44,7 @@
     </div>
 
     <!-- Timeline View -->
-    <div class="timeline-container" style="background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: 8px; overflow: hidden;">
+    <div class="timeline-container bento-card" style="padding: 0; border-radius: 12px; overflow: hidden;">
         {% if timeline_items %}
         <!-- Timeline Header -->
         <div class="timeline-header" style="display: grid; grid-template-columns: 300px 1fr; border-bottom: 1px solid var(--border-primary);">
