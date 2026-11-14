@@ -78,8 +78,13 @@ class NotificationManager {
         badges.forEach(badge => {
             if (this.unreadCount > 0) {
                 badge.textContent = this.unreadCount > 99 ? '99+' : this.unreadCount;
-                badge.style.display = 'flex';
+                badge.setAttribute('data-count', this.unreadCount);
+                badge.classList.add('active');
+                badge.style.display = 'inline-flex';
             } else {
+                badge.textContent = '';
+                badge.setAttribute('data-count', '0');
+                badge.classList.remove('active');
                 badge.style.display = 'none';
             }
         });

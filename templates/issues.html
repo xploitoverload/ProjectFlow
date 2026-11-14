@@ -2,6 +2,14 @@
 
 {% block title %}Issues - ProjectFlow{% endblock %}
 
+{% block breadcrumb %}
+<div class="header-breadcrumb">
+    <a href="{{ url_for('main.dashboard') }}">Home</a>
+    <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
+    <span class="header-breadcrumb-current">Issues</span>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="page-container" style="padding: 24px;">
     <!-- Page Header -->
@@ -185,70 +193,7 @@
     </div>
 </div>
 
-<!-- Create Issue Modal -->
-<div id="createIssueModal" class="modal" style="display: none;">
-    <div class="modal-backdrop" onclick="closeCreateIssueModal()"></div>
-    <div class="modal-content" style="max-width: 600px;">
-        <div class="modal-header">
-            <h2>Create Issue</h2>
-            <button class="btn-icon" onclick="closeCreateIssueModal()">
-                <i data-lucide="x"></i>
-            </button>
-        </div>
-        <form method="POST" action="{% if projects %}{{ url_for('projects.add_issue', project_id=projects[0].id) }}{% else %}#{% endif %}" id="createIssueForm">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="modal-body">
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label class="form-label">Project *</label>
-                    <select name="project_id" id="issueProjectSelect" class="form-select" required onchange="updateFormAction(this.value)">
-                        <option value="">Select Project</option>
-                        {% for project in projects %}
-                        <option value="{{ project.id }}"{% if loop.first %} selected{% endif %}>{{ project.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label class="form-label">Issue Type *</label>
-                    <select name="issue_type" class="form-select" required>
-                        <option value="task">Task</option>
-                        <option value="bug">Bug</option>
-                        <option value="story">Story</option>
-                        <option value="epic">Epic</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label class="form-label">Summary *</label>
-                    <input type="text" name="title" class="form-input" placeholder="Enter issue summary" required>
-                </div>
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-input" rows="4" placeholder="Enter description"></textarea>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <div class="form-group">
-                        <label class="form-label">Priority</label>
-                        <select name="priority" class="form-select">
-                            <option value="medium">Medium</option>
-                            <option value="critical">Critical</option>
-                            <option value="highest">Highest</option>
-                            <option value="high">High</option>
-                            <option value="low">Low</option>
-                            <option value="lowest">Lowest</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Due Date</label>
-                        <input type="date" name="due_date" class="form-input">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeCreateIssueModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Create Issue</button>
-            </div>
-        </form>
-    </div>
-</div>
+
 
 <style>
 .issue-row {

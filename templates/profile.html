@@ -309,8 +309,9 @@
     </div>
 
     <!-- Edit Profile Modal -->
-    <div class="modal-backdrop" id="editModal">
-        <div class="modal">
+    <div class="modal" id="editModal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeEditModal()"></div>
+        <div class="modal-dialog modal-content" style="position: relative; z-index: 10;">
             <div class="modal-header">
                 <h3 class="modal-title">Edit Profile</h3>
                 <button class="modal-close" onclick="closeEditModal()">
@@ -375,11 +376,19 @@
         });
 
         function openEditModal() {
-            document.getElementById('editModal').classList.add('active');
+            const m = document.getElementById('editModal');
+            if (m) {
+                m.style.display = 'flex';
+                m.classList.add('show');
+            }
         }
 
         function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
+            const m = document.getElementById('editModal');
+            if (m) {
+                m.style.display = 'none';
+                m.classList.remove('show');
+            }
         }
 
         document.addEventListener('keydown', (e) => {

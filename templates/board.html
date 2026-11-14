@@ -155,67 +155,7 @@
     </div>
 </div>
 
-<!-- Create Issue Modal -->
-<div id="createIssueModal" class="modal" style="display: none;">
-    <div class="modal-backdrop" onclick="closeCreateIssueModal()"></div>
-    <div class="modal-content" style="max-width: 500px;">
-        <div class="modal-header">
-            <h2>Create Issue</h2>
-            <button class="btn-icon" onclick="closeCreateIssueModal()">
-                <i data-lucide="x"></i>
-            </button>
-        </div>
-        <form method=\"POST\" action=\"{% if selected_project %}{{ url_for('projects.add_issue', project_id=selected_project.id) }}{% else %}#{% endif %}\" id=\"createIssueForm\">"
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="modal-body">
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label class="form-label">Issue Type</label>
-                    <select name="issue_type" class="form-select">
-                        <option value="task">Task</option>
-                        <option value="bug">Bug</option>
-                        <option value="story">Story</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label class="form-label">Summary *</label>
-                    <input type="text" name="title" class="form-input" required>
-                </div>
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label class="form-label">Status</label>
-                    <select name="status" id="issueStatus" class="form-select">
-                        <option value="open">Open</option>
-                        <option value="todo">To Do</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="code_review">In Review</option>
-                        <option value="testing">Testing</option>
-                        <option value="ready_deploy">Ready to Deploy</option>
-                        <option value="done">Done</option>
-                        <option value="closed">Closed</option>
-                        <option value="reopened">Reopened</option>
-                    </select>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <div class="form-group">
-                        <label class="form-label">Priority</label>
-                        <select name="priority" class="form-select">
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Story Points</label>
-                        <input type="number" name="story_points" class="form-input" min="1" max="100">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeCreateIssueModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Create</button>
-            </div>
-        </form>
-    </div>
-</div>
+
 
 <style>
 
@@ -571,14 +511,34 @@ function changeProject(projectId) {
 }
 
 function openCreateIssueModal(status) {
-    document.getElementById('createIssueModal').style.display = 'flex';
-    if (status) {
-        document.getElementById('issueStatus').value = status;
+    const modal = document.getElementById('createIssueModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+        {% if selected_project %}
+        const projSelect = document.getElementById('issueProjectSelect');
+        if (projSelect) {
+            projSelect.value = '{{ selected_project.id }}';
+            if (typeof updateFormAction === 'function') {
+                updateFormAction('{{ selected_project.id }}');
+            }
+        }
+        {% endif %}
+        if (status) {
+            const statusSelect = document.getElementById('issueStatus');
+            if (statusSelect) statusSelect.value = status;
+        }
+        const firstInput = modal.querySelector('input[name="title"]');
+        if (firstInput) setTimeout(() => firstInput.focus(), 80);
     }
 }
 
 function closeCreateIssueModal() {
-    document.getElementById('createIssueModal').style.display = 'none';
+    const modal = document.getElementById('createIssueModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
 }
 
 function viewIssue(issueId, projectId) {

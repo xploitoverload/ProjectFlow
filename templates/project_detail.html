@@ -347,8 +347,9 @@
     </div>
 
     <!-- Add Update Modal -->
-    <div class="modal-backdrop" id="addUpdateModal">
-        <div class="modal">
+    <div class="modal" id="addUpdateModal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeAddUpdateModal()"></div>
+        <div class="modal-dialog modal-content" style="position: relative; z-index: 10;">
             <div class="modal-header">
                 <h3 class="modal-title">Add Project Update</h3>
                 <button class="modal-close" onclick="closeAddUpdateModal()">
@@ -384,11 +385,19 @@
 
         // Modal functions
         function openAddUpdateModal() {
-            document.getElementById('addUpdateModal').classList.add('active');
+            const m = document.getElementById('addUpdateModal');
+            if (m) {
+                m.style.display = 'flex';
+                m.classList.add('show');
+            }
         }
 
         function closeAddUpdateModal() {
-            document.getElementById('addUpdateModal').classList.remove('active');
+            const m = document.getElementById('addUpdateModal');
+            if (m) {
+                m.style.display = 'none';
+                m.classList.remove('show');
+            }
         }
 
         // Close modal on escape
