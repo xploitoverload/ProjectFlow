@@ -407,5 +407,6 @@ class TimelineView {
     }
 }
 
-// Initialize
-const timelineView = new TimelineView();
+// Expose class and global instance
+window.TimelineView = TimelineView;
+window.timelineView = new TimelineView();

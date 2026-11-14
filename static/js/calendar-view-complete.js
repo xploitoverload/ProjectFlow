@@ -630,5 +630,7 @@ class CalendarViewSystem {
     }
 }
 
-// Initialize
-const calendarViewSystem = new CalendarViewSystem();
+// Expose class and global instance
+window.CalendarViewSystem = CalendarViewSystem;
+window.CalendarViewComplete = CalendarViewSystem;
+window.calendarViewSystem = new CalendarViewSystem();

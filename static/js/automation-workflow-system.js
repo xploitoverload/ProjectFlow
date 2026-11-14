@@ -404,5 +404,6 @@ class AutomationWorkflowSystem {
     }
 }
 
-// Initialize
-const automationSystem = new AutomationWorkflowSystem();
+// Expose class and global instance
+window.AutomationWorkflowSystem = AutomationWorkflowSystem;
+window.automationSystem = new AutomationWorkflowSystem();

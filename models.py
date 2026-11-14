@@ -231,6 +231,15 @@ class Project(db.Model):
             self.description_encrypted = encrypt_field(value)
         else:
             self.description_encrypted = None
+
+    @property
+    def progress(self):
+        """Calculate completion percentage based on closed/done issues."""
+        if not self.issues:
+            return 0
+        total = len(self.issues)
+        done = sum(1 for i in self.issues if i.status in ['done', 'closed'])
+        return int((done / total) * 100) if total > 0 else 0
     
     def to_dict(self):
         """Serialize project to dictionary"""

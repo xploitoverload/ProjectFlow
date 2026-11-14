@@ -497,5 +497,6 @@ class IntegrationsAppsSystem {
     }
 }
 
-// Initialize
-const integrationsSystem = new IntegrationsAppsSystem();
+// Expose class and global instance
+window.IntegrationsAppsSystem = IntegrationsAppsSystem;
+window.integrationsSystem = new IntegrationsAppsSystem();

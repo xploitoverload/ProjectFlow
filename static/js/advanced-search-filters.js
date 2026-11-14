@@ -510,5 +510,7 @@ class AdvancedSearchFiltersSystem {
     }
 }
 
-// Initialize
-const searchFiltersSystem = new AdvancedSearchFiltersSystem();
+// Expose class and global instance
+window.AdvancedSearchFiltersSystem = AdvancedSearchFiltersSystem;
+window.AdvancedSearchFilters = AdvancedSearchFiltersSystem;
+window.searchFiltersSystem = new AdvancedSearchFiltersSystem();

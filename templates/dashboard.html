@@ -375,9 +375,12 @@
                             <div class="stat-card-icon success">
                                 <i data-lucide="check-circle" class="icon-lg"></i>
                             </div>
+                            <div class="stat-card-trend up" style="color: #22c55e;">
+                                {{ issue_stats.rate if issue_stats is defined else 0 }}%
+                            </div>
                         </div>
-                        <div class="stat-card-value">{{ projects|selectattr('status', 'equalto', 'Completed')|list|length }}</div>
-                        <div class="stat-card-label">Completed</div>
+                        <div class="stat-card-value">{{ issue_stats.completed if issue_stats is defined else 0 }}</div>
+                        <div class="stat-card-label">Completed Issues</div>
                     </div>
 
                     <div class="stat-card">
@@ -386,7 +389,7 @@
                                 <i data-lucide="clock" class="icon-lg"></i>
                             </div>
                         </div>
-                        <div class="stat-card-value">{{ projects|selectattr('status', 'equalto', 'In Progress')|list|length }}</div>
+                        <div class="stat-card-value">{{ issue_stats.in_progress if issue_stats is defined else 0 }}</div>
                         <div class="stat-card-label">In Progress</div>
                     </div>
 
@@ -396,7 +399,7 @@
                                 <i data-lucide="list-todo" class="icon-lg"></i>
                             </div>
                         </div>
-                        <div class="stat-card-value">{{ total_issues if total_issues is defined else 0 }}</div>
+                        <div class="stat-card-value">{{ issue_stats.open if issue_stats is defined else 0 }}</div>
                         <div class="stat-card-label">Open Issues</div>
                     </div>
                 </div>
