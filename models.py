@@ -142,6 +142,20 @@ class User(UserMixin, db.Model):
                 pass
         return legacy_valid
     
+    @classmethod
+    def find_by_email(cls, email):
+        """Find user by email address safely decrypting encrypted emails."""
+        if not email:
+            return None
+        clean_email = email.strip().lower()
+        for u in cls.query.all():
+            try:
+                if u.email and u.email.strip().lower() == clean_email:
+                    return u
+            except Exception:
+                continue
+        return None
+    
     def get_id(self):
         return str(self.id)
     
@@ -240,6 +254,18 @@ class Project(db.Model):
         total = len(self.issues)
         done = sum(1 for i in self.issues if i.status in ['done', 'closed'])
         return int((done / total) * 100) if total > 0 else 0
+    
+    def get_members(self):
+        """Get all active users eligible as members (from primary team and assigned teams)."""
+        from app.models import User
+        team_ids = set()
+        if self.team_id:
+            team_ids.add(self.team_id)
+        if hasattr(self, 'teams') and self.teams:
+            team_ids.update(t.id for t in self.teams)
+        if not team_ids:
+            return []
+        return User.query.filter(User.team_id.in_(team_ids), User.is_active.is_(True)).all()
     
     def to_dict(self):
         """Serialize project to dictionary"""

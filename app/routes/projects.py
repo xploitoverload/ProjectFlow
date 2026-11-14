@@ -94,9 +94,7 @@ def project_kanban(project_id):
     total_hours = sum(issue.time_estimate or 0 for issue in all_issues)
     
     # Get team members
-    team_members_list = []
-    if project.team:
-        team_members_list = User.query.filter_by(team_id=project.team_id).all()
+    team_members_list = ProjectService.get_project_members(project)
     
     # Provide canonical status keys and user-facing labels for the template
     statuses = IssueService.VALID_STATUSES
@@ -271,9 +269,7 @@ def issue_view(project_id, issue_id):
     comments = Comment.query.filter_by(issue_id=issue_id).order_by(Comment.created_at.desc()).all()
     
     # Get team members for assignment
-    team_members = []
-    if project.team:
-        team_members = User.query.filter_by(team_id=project.team_id).all()
+    team_members = ProjectService.get_project_members(project)
     
     # Get labels
     labels = Label.query.filter_by(project_id=project_id).all()
@@ -332,9 +328,7 @@ def edit_issue(project_id, issue_id):
             flash(message, 'error')
     
     # Get team members for assignment
-    team_members = []
-    if project.team:
-        team_members = User.query.filter_by(team_id=project.team_id).all()
+    team_members = ProjectService.get_project_members(project)
     
     # Get labels, sprints, epics
     labels = Label.query.filter_by(project_id=project_id).all()
