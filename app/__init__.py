@@ -238,6 +238,7 @@ def _register_blueprints(app):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(projects_bp, url_prefix='/project')
     app.register_blueprint(api_bp, url_prefix='/api/v1')
+    csrf.exempt(api_bp)
     app.register_blueprint(health_bp)
     app.register_blueprint(analytics_bp)
     app.register_blueprint(automation_bp)
