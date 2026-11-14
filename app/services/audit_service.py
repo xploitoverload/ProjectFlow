@@ -4,7 +4,7 @@ Audit Service
 Handles security auditing and activity logging.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.utils.security import get_client_ip
 
 
@@ -43,10 +43,17 @@ class AuditService:
         from flask import request
         
         try:
+            # Cryptographic chain linkage (Ring 0 tamper evidence)
+            last_entry = AuditLog.query.order_by(AuditLog.id.desc()).first()
+            prev_hash = last_entry.record_hash if (last_entry and last_entry.record_hash) else "0" * 64
+            
+            now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
             audit = AuditLog(
                 user_id=user_id,
                 action=f"{category}:{action}",
-                ip_address=get_client_ip()
+                ip_address=get_client_ip(),
+                prev_hash=prev_hash,
+                timestamp=now_utc
             )
             
             # Add details including severity and user agent
@@ -59,6 +66,7 @@ class AuditService:
             }
             
             audit.details = str(full_details)
+            audit.record_hash = audit.compute_hash(prev_hash)
             
             db.session.add(audit)
             db.session.commit()
@@ -242,3 +250,26 @@ class AuditService:
         db.session.commit()
         
         return deleted
+
+    @staticmethod
+    def verify_ledger_integrity():
+        """
+        Verify cryptographic integrity of audit ledger hash chain (Ring 0).
+        Returns:
+            (is_valid: bool, broken_at_id: Optional[int], message: str)
+        """
+        from app.models import AuditLog
+        logs = AuditLog.query.order_by(AuditLog.id.asc()).all()
+        if not logs:
+            return True, None, "Ledger is empty"
+        
+        expected_prev = "0" * 64
+        for log in logs:
+            if log.prev_hash != expected_prev:
+                return False, log.id, f"Broken chain at record {log.id}: expected prev {expected_prev}, got {log.prev_hash}"
+            computed = log.compute_hash(expected_prev)
+            if log.record_hash != computed:
+                return False, log.id, f"Hash mismatch at record {log.id}: computed {computed}, got {log.record_hash}"
+            expected_prev = log.record_hash
+            
+        return True, None, f"Audit chain verified successfully ({len(logs)} records intact)"

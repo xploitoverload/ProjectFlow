@@ -36,7 +36,7 @@ def login():
                 severity='WARNING'
             )
             flash('Too many login attempts. Please try again in 15 minutes.', 'error')
-            return redirect(url_for('auth.login'))
+            return render_template('error.html', error_code=429, error_message='Too many login attempts.'), 429
         
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
@@ -79,6 +79,40 @@ def logout():
     AuthService.destroy_session(user_id)
     flash('You have been logged out successfully.', 'success')
     return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    """Handle user registration."""
+    if 'user_id' in session:
+        return redirect(url_for('main.dashboard'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        
+        if password != confirm_password:
+            flash('Passwords do not match.', 'error')
+            return render_template('login.html', register_mode=True), 200
+        
+        from app.services.user_service import UserService
+        success, user, message = UserService.create_user(
+            username=username,
+            email=email,
+            password=password,
+            role='employee'
+        )
+        
+        if success:
+            flash('Registration successful! Please log in.', 'success')
+            return redirect(url_for('auth.login'))
+        else:
+            flash(message, 'error')
+            return render_template('login.html', register_mode=True), 200
+            
+    return render_template('login.html', register_mode=True)
 
 
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
