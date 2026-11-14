@@ -4,12 +4,23 @@ Main Routes
 Handles dashboard, landing page, and general navigation.
 """
 
-from flask import Blueprint, render_template, redirect, url_for, session, request, flash, abort
+from flask import Blueprint, render_template, redirect, url_for, session, request, flash, abort, send_from_directory, current_app
 from app.middleware import login_required
 from app.services import ProjectService, ReportService, IssueService
 from app.models import db, User, Team, Project, Issue, ProjectUpdate
 
 main_bp = Blueprint('main', __name__)
+
+
+@main_bp.route('/favicon.ico')
+def favicon():
+    """Serve application favicon."""
+    import os
+    return send_from_directory(
+        os.path.join(current_app.static_folder, 'images'),
+        'favicon.svg',
+        mimetype='image/svg+xml'
+    )
 
 
 @main_bp.route('/test-icons')
@@ -281,7 +292,9 @@ def backlog():
     
     return render_template('backlog.html', 
                           projects=projects,
+                          project=selected_project,
                           selected_project=selected_project,
+                          issues=backlog_issues,
                           backlog_issues=backlog_issues,
                           sprints=sprints)
 

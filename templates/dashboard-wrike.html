@@ -72,7 +72,7 @@
                     </div>
                     {% if projects %}
                         {% for project in projects[:5] %}
-                            <a href="{{ url_for('main.project_detail', project_id=project.id) }}" class="sidebar-nav-item">
+                            <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="sidebar-nav-item">
                                 <span class="iconify nav-icon" data-icon="solar:folder-bold-duotone"></span>
                                 <span>{{ project.name[:20] }}...</span>
                             </a>

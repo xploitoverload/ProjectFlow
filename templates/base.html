@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ProjectFlow{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="alternate icon" href="{{ url_for('main.favicon') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -62,10 +64,10 @@
         <aside class="app-sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">
-                        <span class="iconify" data-icon="solar:layers-bold-duotone" style="width: 22px; height: 22px;"></span>
+                    <div class="sidebar-logo-icon" style="display: flex; align-items: center; justify-content: center;">
+                        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ProjectFlow" style="width: 26px; height: 26px; border-radius: 6px; filter: drop-shadow(0 2px 6px rgba(124, 58, 237, 0.4));">
                     </div>
-                    <span class="sidebar-logo-text">ProjectFlow</span>
+                    <span class="sidebar-logo-text" style="letter-spacing: -0.3px; font-weight: 700;">ProjectFlow</span>
                 </a>
             </div>
 
@@ -111,11 +113,11 @@
                         <span class="iconify nav-icon" data-icon="solar:calendar-bold-duotone"></span>
                         <span>Calendar</span>
                     </a>
-                    <a href="{{ url_for('admin.admin_teams') if current_user.is_authenticated and current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
+                    <a href="{{ url_for('admin.admin_teams') if current_user.is_authenticated and current_user.role == 'admin' else url_for('main.dashboard') }}" class="sidebar-nav-item">
                         <span class="iconify nav-icon" data-icon="solar:users-group-rounded-bold-duotone"></span>
                         <span>Teams</span>
                     </a>
-                    <a href="{{ url_for('admin.admin_projects') if current_user.is_authenticated and current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
+                    <a href="{{ url_for('admin.admin_projects') if current_user.is_authenticated and current_user.role == 'admin' else url_for('main.dashboard') }}" class="sidebar-nav-item">
                         <span class="iconify nav-icon" data-icon="solar:folder-with-files-bold-duotone"></span>
                         <span>Projects</span>
                     </a>

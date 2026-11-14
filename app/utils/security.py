@@ -37,11 +37,20 @@ def generate_csrf_token():
 
 
 def validate_csrf_token(token):
-    """Constant-time CSRF token validation."""
-    stored_token = session.get('csrf_token')
-    if not stored_token or not token:
+    """Validate CSRF token using Flask-WTF validator with constant-time fallback."""
+    if not token:
         return False
-    return hmac.compare_digest(stored_token, token)
+    try:
+        from flask_wtf.csrf import validate_csrf
+        validate_csrf(token)
+        return True
+    except Exception:
+        pass
+
+    stored_token = session.get('csrf_token')
+    if stored_token and hmac.compare_digest(str(stored_token), str(token)):
+        return True
+    return False
 
 
 def hash_password(password):

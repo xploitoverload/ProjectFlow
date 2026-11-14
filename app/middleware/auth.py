@@ -262,6 +262,10 @@ def project_access_required(f):
         if user.role in ['admin', 'super_admin']:
             return f(*args, **kwargs)
         
+        # Project creators and project leads have access to their projects
+        if project.created_by == user.id or project.lead_id == user.id:
+            return f(*args, **kwargs)
+        
         # Managers can access projects they manage
         if user.role == 'manager' and project.created_by == user.id:
             return f(*args, **kwargs)

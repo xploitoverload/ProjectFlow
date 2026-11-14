@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - ProjectFlow</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="alternate icon" href="{{ url_for('main.favicon') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -421,10 +423,10 @@
             <div class="auth-card">
                 <!-- Logo -->
                 <div class="auth-logo">
-                    <div class="auth-logo-icon">
-                        <span class="iconify" data-icon="solar:layers-bold-duotone" style="width: 24px; height: 24px;"></span>
+                    <div class="auth-logo-icon" style="display: flex; align-items: center; justify-content: center; background: transparent;">
+                        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ProjectFlow" style="width: 32px; height: 32px; border-radius: 8px; filter: drop-shadow(0 4px 10px rgba(124, 58, 237, 0.45));">
                     </div>
-                    <span class="auth-logo-text">ProjectFlow</span>
+                    <span class="auth-logo-text" style="letter-spacing: -0.5px; font-weight: 700;">ProjectFlow</span>
                 </div>
 
                 <!-- Header -->
