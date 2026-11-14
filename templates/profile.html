@@ -7,8 +7,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/feature-pages-pro.css') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
@@ -117,35 +119,38 @@
                 {% endwith %}
 
                 <!-- Profile Header -->
+                {% set profile_user = user if user else current_user %}
                 <div class="card mb-6">
                     <div class="card-body">
                         <div class="flex items-center gap-6">
                             <div class="avatar avatar-xl" style="width: 96px; height: 96px; font-size: 2rem;">
-                                {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
+                                {{ profile_user.username[:2].upper() if profile_user else 'U' }}
                             </div>
                             <div class="flex-1">
-                                <h1 class="text-2xl font-bold text-primary">{{ current_user.username if current_user.is_authenticated else 'User' }}</h1>
-                                <p class="text-secondary">{{ current_user.email if current_user.email else 'No email set' }}</p>
+                                <h1 class="text-2xl font-bold text-primary">{{ profile_user.username if profile_user else 'User' }}</h1>
+                                <p class="text-secondary">{{ profile_user.email if profile_user.email else 'No email set' }}</p>
                                 <div class="flex items-center gap-4 mt-3">
-                                    <span class="badge badge-primary">{{ current_user.role.title() if current_user.role else 'User' }}</span>
-                                    {% if current_user.team %}
+                                    <span class="badge badge-primary">{{ profile_user.role.title() if profile_user.role else 'User' }}</span>
+                                    {% if profile_user.team %}
                                     <span class="badge badge-info">
                                         <i data-lucide="users" class="icon-xs"></i>
-                                        {{ current_user.team.name }}
+                                        {{ profile_user.team.name }}
                                     </span>
                                     {% endif %}
-                                    <span class="badge badge-{{ 'success' if current_user.is_active else 'gray' }}">
-                                        <span class="status-dot {{ 'active' if current_user.is_active else 'inactive' }}"></span>
-                                        {{ 'Active' if current_user.is_active else 'Inactive' }}
+                                    <span class="badge badge-{{ 'success' if profile_user.is_active else 'gray' }}">
+                                        <span class="status-dot {{ 'active' if profile_user.is_active else 'inactive' }}"></span>
+                                        {{ 'Active' if profile_user.is_active else 'Inactive' }}
                                     </span>
                                 </div>
                             </div>
+                            {% if current_user.is_authenticated and (current_user.id == profile_user.id or current_user.role == 'admin') %}
                             <div>
                                 <button class="btn btn-secondary" onclick="openEditModal()">
                                     <i data-lucide="pencil" class="icon-sm"></i>
                                     Edit Profile
                                 </button>
                             </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -161,27 +166,27 @@
                                 <div class="grid grid-cols-2 gap-6">
                                     <div>
                                         <p class="text-sm text-tertiary mb-1">Full Name</p>
-                                        <p class="font-medium text-primary">{{ current_user.full_name or current_user.username }}</p>
+                                        <p class="font-medium text-primary">{{ profile_user.full_name or profile_user.username }}</p>
                                     </div>
                                     <div>
                                         <p class="text-sm text-tertiary mb-1">Email Address</p>
-                                        <p class="font-medium text-primary">{{ current_user.email or 'Not set' }}</p>
+                                        <p class="font-medium text-primary">{{ profile_user.email or 'Not set' }}</p>
                                     </div>
                                     <div>
                                         <p class="text-sm text-tertiary mb-1">Role</p>
-                                        <p class="font-medium text-primary">{{ current_user.role.title() if current_user.role else 'User' }}</p>
+                                        <p class="font-medium text-primary">{{ profile_user.role.title() if profile_user.role else 'User' }}</p>
                                     </div>
                                     <div>
                                         <p class="text-sm text-tertiary mb-1">Team</p>
-                                        <p class="font-medium text-primary">{{ current_user.team.name if current_user.team else 'Unassigned' }}</p>
+                                        <p class="font-medium text-primary">{{ profile_user.team.name if profile_user.team else 'Unassigned' }}</p>
                                     </div>
                                     <div>
                                         <p class="text-sm text-tertiary mb-1">Member Since</p>
-                                        <p class="font-medium text-primary">{{ current_user.created_at.strftime('%B %d, %Y') if current_user.created_at else 'N/A' }}</p>
+                                        <p class="font-medium text-primary">{{ profile_user.created_at.strftime('%B %d, %Y') if profile_user.created_at else 'N/A' }}</p>
                                     </div>
                                     <div>
                                         <p class="text-sm text-tertiary mb-1">Last Login</p>
-                                        <p class="font-medium text-primary">{{ current_user.last_login.strftime('%B %d, %Y at %H:%M') if current_user.last_login else 'N/A' }}</p>
+                                        <p class="font-medium text-primary">{{ profile_user.last_login.strftime('%B %d, %Y at %H:%M') if profile_user.last_login else 'N/A' }}</p>
                                     </div>
                                 </div>
                             </div>

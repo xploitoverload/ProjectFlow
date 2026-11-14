@@ -1,112 +1,441 @@
 {% extends "base.html" %}
 
-{% block title %}Backlog - {{ project.name if project else 'No Project' }}{% endblock %}
+{% block title %}Backlog - {{ selected_project.name if selected_project else 'ProjectFlow' }}{% endblock %}
+
+{% block breadcrumb %}
+<div class="header-breadcrumb">
+    <a href="{{ url_for('main.dashboard') }}" style="color: var(--text-secondary); text-decoration: none;">Home</a>
+    <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
+    {% if selected_project %}
+    <a href="{{ url_for('projects.project_detail', project_id=selected_project.id) }}" style="color: var(--text-secondary); text-decoration: none;">{{ selected_project.name }}</a>
+    <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
+    {% endif %}
+    <span class="header-breadcrumb-current">Backlog</span>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-6">
-    {% if project %}
-    <div class="page-header mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Backlog</h1>
-            <p class="text-sm text-gray-600 mt-1">{{ project.name }} - Unscheduled issues</p>
-        </div>
-        <div class="flex gap-2">
-            <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="btn btn-secondary">
-                <i data-lucide="trello" class="w-4 h-4 mr-2"></i>
-                View Board
-            </a>
-            <button onclick="document.getElementById('createIssueModal').classList.add('show')" class="btn btn-primary">
-                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-                Create Issue
-            </button>
-        </div>
-    </div>
-    {% else %}
-    <div class="page-header mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Backlog</h1>
-            <p class="text-sm text-gray-600 mt-1">Select or create a project to view its backlog</p>
-        </div>
-    </div>
-    {% endif %}
+<div class="page-container" style="max-width: 1400px; margin: 0 auto; padding: 24px;">
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; display: flex; align-items: center; gap: 10px;">
+                    <span class="iconify" data-icon="solar:checklist-minimalistic-bold" style="color: var(--accent-blue, #3B82F6); width: 28px; height: 28px;"></span>
+                    Backlog &amp; Sprints
+                </h1>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 14px;">
+                    {% if selected_project %}{{ selected_project.name }} &bull; {% endif %}
+                    {{ backlog_issues|length }} backlog items &bull; {{ sprints|length }} sprints
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                {% if projects and projects|length > 1 %}
+                <select id="projectSelector" class="form-select" onchange="changeProject(this.value)" style="min-width: 200px; padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                    {% for p in projects %}
+                    <option value="{{ p.id }}" {% if selected_project and selected_project.id == p.id %}selected{% endif %}>
+                        {{ p.name }} ({{ p.key }})
+                    </option>
+                    {% endfor %}
+                </select>
+                {% endif %}
 
-    {% if issues %}
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignee</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                {% for issue in issues %}
-                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{{ url_for('projects.issue_view', project_id=project.id, issue_id=issue.id) }}'">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center">
-                            <i data-lucide="{{ 'bug' if issue.issue_type == 'bug' else 'bookmark' if issue.issue_type == 'story' else 'circle-dot' }}" class="w-4 h-4 mr-2 text-gray-500"></i>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900">{{ issue.title }}</div>
-                                <div class="text-xs text-gray-500">{{ issue.key }}</div>
+                {% if selected_project %}
+                <a href="{{ url_for('projects.project_kanban', project_id=selected_project.id) }}" class="btn btn-secondary">
+                    <span class="iconify" data-icon="solar:widget-2-bold" style="width: 16px; height: 16px;"></span>
+                    Kanban Board
+                </a>
+                <button type="button" class="btn btn-secondary" onclick="openSprintModal()">
+                    <span class="iconify" data-icon="solar:calendar-add-bold" style="width: 16px; height: 16px;"></span>
+                    Create Sprint
+                </button>
+                {% endif %}
+
+                <button type="button" class="btn btn-primary" onclick="openCreateIssueModal()">
+                    <span class="iconify" data-icon="solar:add-circle-bold" style="width: 16px; height: 16px;"></span>
+                    Create Issue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Backlog Grid -->
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start;">
+        <!-- Left: Sprints & Backlog Items -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- Active Sprints -->
+            {% if sprints %}
+            {% for sprint in sprints %}
+            <div class="sprint-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div class="sprint-card-header" style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-tertiary);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="iconify" data-icon="solar:bolt-bold" style="color: {% if sprint.status == 'active' %}#22C55E{% elif sprint.status == 'completed' %}#3B82F6{% else %}#F59E0B{% endif %}; width: 20px; height: 20px;"></span>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-primary);">{{ sprint.name }}</h3>
+                                {% if sprint.status == 'active' %}
+                                <span style="background: rgba(34, 197, 94, 0.15); color: #22C55E; border: 1px solid rgba(34, 197, 94, 0.3); padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600;">ACTIVE</span>
+                                {% elif sprint.status == 'completed' %}
+                                <span style="background: rgba(59, 130, 246, 0.15); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.3); padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600;">COMPLETED</span>
+                                {% else %}
+                                <span style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600;">PLANNED</span>
+                                {% endif %}
                             </div>
+                            <span style="font-size: 12px; color: var(--text-secondary);">
+                                {{ sprint.start_date.strftime('%b %d, %Y') if sprint.start_date else 'Flexible start' }}
+                                {% if sprint.end_date %} &rarr; {{ sprint.end_date.strftime('%b %d, %Y') }}{% endif %}
+                                {% if sprint.goal %} &bull; <em>{{ sprint.goal }}</em>{% endif %}
+                            </span>
                         </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {{ issue.issue_type }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                            {{ issue.status }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {% if issue.priority == 'high' %}bg-red-100 text-red-800
-                            {% elif issue.priority == 'medium' %}bg-yellow-100 text-yellow-800
-                            {% else %}bg-green-100 text-green-800{% endif %}">
-                            {{ issue.priority }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        {% if issue.assignee %}
-                        <div class="flex items-center">
-                            <div class="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-medium">
-                                {{ issue.assignee.username[:2].upper() }}
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        {% if sprint.status == 'planned' %}
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="changeSprintStatus({{ selected_project.id }}, {{ sprint.id }}, 'active')" title="Start this sprint">
+                            <span class="iconify" data-icon="solar:play-bold" style="color: #22C55E; width: 14px; height: 14px;"></span>
+                            Start Sprint
+                        </button>
+                        {% elif sprint.status == 'active' %}
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="changeSprintStatus({{ selected_project.id }}, {{ sprint.id }}, 'completed')" title="Complete this sprint">
+                            <span class="iconify" data-icon="solar:check-circle-bold" style="color: #3B82F6; width: 14px; height: 14px;"></span>
+                            Complete Sprint
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Sprint Issues -->
+                <div class="sprint-issues-container" style="padding: 10px 14px; min-height: 50px;">
+                    {% set sprint_issues = [] %}
+                    {% if selected_project %}
+                        {% for issue in selected_project.issues if issue.sprint_id == sprint.id %}
+                            {% set _ = sprint_issues.append(issue) %}
+                            <div class="issue-row-card" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; transition: all 0.15s ease;">
+                                <span class="iconify" data-icon="{{ 'solar:bug-bold' if issue.issue_type == 'bug' else 'solar:bookmark-bold' if issue.issue_type == 'story' else 'solar:fire-bold' if issue.issue_type == 'epic' else 'solar:check-square-bold' }}" style="color: {{ '#EF4444' if issue.issue_type == 'bug' else '#10B981' if issue.issue_type == 'story' else '#8B5CF6' if issue.issue_type == 'epic' else '#3B82F6' }}; width: 18px; height: 18px; flex-shrink: 0;"></span>
+                                
+                                <a href="{{ url_for('projects.issue_view', project_id=selected_project.id, issue_id=issue.id) }}" style="font-weight: 600; color: var(--accent-blue, #60A5FA); font-size: 13px; text-decoration: none; min-width: 60px;">
+                                    {{ issue.key }}
+                                </a>
+
+                                <span style="flex: 1; font-size: 13px; color: var(--text-primary); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    {{ issue.title }}
+                                </span>
+
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; background: var(--bg-tertiary); color: var(--text-secondary); text-transform: uppercase;">
+                                    {{ issue.status.replace('_', ' ') }}
+                                </span>
+
+                                {% if issue.story_points %}
+                                <span style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; background: rgba(59, 130, 246, 0.12); color: #60A5FA;">
+                                    {{ issue.story_points }} pts
+                                </span>
+                                {% endif %}
+
+                                {% if issue.assignee %}
+                                <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-blue, #3B82F6); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;" title="{{ issue.assignee.username }}">
+                                    {{ issue.assignee.username[:2].upper() }}
+                                </div>
+                                {% endif %}
+
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="moveIssueSprint({{ selected_project.id }}, {{ issue.id }}, null)" title="Send back to Backlog" style="padding: 4px 8px; font-size: 11px; color: var(--text-secondary);">
+                                    <span class="iconify" data-icon="solar:arrow-down-linear" style="width: 14px; height: 14px;"></span>
+                                    Backlog
+                                </button>
                             </div>
-                            <span class="ml-2 text-sm text-gray-900">{{ issue.assignee.username }}</span>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if sprint_issues|length == 0 %}
+                    <div style="text-align: center; padding: 24px 16px; color: var(--text-secondary); font-size: 13px;">
+                        <span class="iconify" data-icon="solar:inbox-line-linear" style="width: 28px; height: 28px; color: var(--text-muted); margin-bottom: 6px;"></span>
+                        <p style="margin: 0;">No issues in this sprint yet. Use the action below to move items from backlog.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- Backlog Section -->
+            <div class="backlog-card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div class="backlog-card-header" style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-tertiary);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="iconify" data-icon="solar:archive-down-bold" style="color: var(--text-secondary); width: 20px; height: 20px;"></span>
+                        <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-primary);">Backlog</h3>
+                        <span style="font-size: 12px; background: var(--bg-primary); padding: 2px 8px; border-radius: 9999px; color: var(--text-secondary); border: 1px solid var(--border-color); font-weight: 600;">
+                            {{ backlog_issues|length }} items
+                        </span>
+                    </div>
+
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="openCreateIssueModal()">
+                        <span class="iconify" data-icon="solar:add-circle-bold" style="width: 15px; height: 15px;"></span>
+                        Add Issue
+                    </button>
+                </div>
+
+                <div class="backlog-items-container" style="padding: 12px 14px; min-height: 120px;">
+                    {% if backlog_issues %}
+                    {% for issue in backlog_issues %}
+                    <div class="issue-row-card" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; transition: all 0.15s ease;">
+                        <span class="iconify" data-icon="{{ 'solar:bug-bold' if issue.issue_type == 'bug' else 'solar:bookmark-bold' if issue.issue_type == 'story' else 'solar:fire-bold' if issue.issue_type == 'epic' else 'solar:check-square-bold' }}" style="color: {{ '#EF4444' if issue.issue_type == 'bug' else '#10B981' if issue.issue_type == 'story' else '#8B5CF6' if issue.issue_type == 'epic' else '#3B82F6' }}; width: 18px; height: 18px; flex-shrink: 0;"></span>
+                        
+                        <a href="{{ url_for('projects.issue_view', project_id=issue.project_id, issue_id=issue.id) }}" style="font-weight: 600; color: var(--accent-blue, #60A5FA); font-size: 13px; text-decoration: none; min-width: 60px;">
+                            {{ issue.key }}
+                        </a>
+
+                        <span style="flex: 1; font-size: 13px; color: var(--text-primary); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ issue.title }}
+                        </span>
+
+                        <!-- Priority Badge -->
+                        {% set p_color = '#EF4444' if issue.priority in ['critical', 'highest', 'high'] else '#F59E0B' if issue.priority == 'medium' else '#10B981' %}
+                        <span style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: {{ p_color }}; font-weight: 500;" title="Priority: {{ issue.priority }}">
+                            <span class="iconify" data-icon="{{ 'solar:arrow-up-linear' if issue.priority in ['critical', 'highest', 'high'] else 'solar:arrow-down-linear' }}" style="width: 14px; height: 14px;"></span>
+                            {{ issue.priority|title }}
+                        </span>
+
+                        {% if issue.story_points %}
+                        <span style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; background: var(--bg-tertiary); color: var(--text-secondary);">
+                            {{ issue.story_points }} pts
+                        </span>
+                        {% endif %}
+
+                        {% if issue.assignee %}
+                        <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-blue, #3B82F6); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;" title="{{ issue.assignee.username }}">
+                            {{ issue.assignee.username[:2].upper() }}
                         </div>
                         {% else %}
-                        <span class="text-sm text-gray-500">Unassigned</span>
+                        <span style="font-size: 11px; color: var(--text-muted);">Unassigned</span>
                         {% endif %}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ issue.created_at.strftime('%Y-%m-%d') }}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+                        <!-- Move to Sprint Action -->
+                        {% if sprints %}
+                        <select onchange="if(this.value) moveIssueSprint({{ issue.project_id }}, {{ issue.id }}, this.value)" style="padding: 4px 8px; font-size: 11px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); cursor: pointer;">
+                            <option value="">Move to sprint...</option>
+                            {% for sp in sprints if sp.status != 'completed' %}
+                            <option value="{{ sp.id }}">{{ sp.name }} ({{ sp.status }})</option>
+                            {% endfor %}
+                        </select>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div style="text-align: center; padding: 48px 20px;">
+                        <span class="iconify" data-icon="solar:checklist-minimalistic-linear" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px;"></span>
+                        <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 600; color: var(--text-primary);">Backlog is all clear</h4>
+                        <p style="margin: 0 0 16px; font-size: 13px; color: var(--text-secondary);">All items are scheduled into sprints or completed.</p>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="openCreateIssueModal()">
+                            <span class="iconify" data-icon="solar:add-circle-bold" style="width: 14px; height: 14px;"></span>
+                            Create Issue
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Sprints Summary & Velocity -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <!-- Sprint Summary Card -->
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <h3 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span class="iconify" data-icon="solar:chart-square-bold" style="color: var(--accent-blue, #3B82F6); width: 18px; height: 18px;"></span>
+                        Sprint Cadence
+                    </h3>
+                    {% if selected_project %}
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="openSprintModal()" style="padding: 2px 6px; font-size: 12px;">
+                        + New
+                    </button>
+                    {% endif %}
+                </div>
+
+                {% if sprints %}
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for sp in sprints %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">{{ sp.name }}</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">
+                                {{ sp.start_date.strftime('%b %d') if sp.start_date else 'No start' }} - {{ sp.end_date.strftime('%b %d') if sp.end_date else 'No end' }}
+                            </div>
+                        </div>
+                        <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; background: {% if sp.status == 'active' %}rgba(34, 197, 94, 0.2); color: #22C55E;{% elif sp.status == 'completed' %}rgba(59, 130, 246, 0.2); color: #3B82F6;{% else %}rgba(245, 158, 11, 0.2); color: #F59E0B;{% endif %}">
+                            {{ sp.status }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="margin: 0; font-size: 12px; color: var(--text-secondary); text-align: center; padding: 16px 0;">
+                    No sprints created yet. Start your first sprint to plan cycles.
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Backlog Metrics Card -->
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <h3 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0 0 14px; display: flex; align-items: center; gap: 8px;">
+                    <span class="iconify" data-icon="solar:pie-chart-2-bold" style="color: #10B981; width: 18px; height: 18px;"></span>
+                    Quick Overview
+                </h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: var(--accent-blue, #60A5FA);">{{ backlog_issues|length }}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Backlog Items</div>
+                    </div>
+
+                    <div style="padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #22C55E;">{{ sprints|length }}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Total Sprints</div>
+                    </div>
+
+                    <div style="padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #F59E0B;">
+                            {% set total_pts = namespace(val=0) %}
+                            {% for i in backlog_issues if i.story_points %}
+                                {% set total_pts.val = total_pts.val + i.story_points %}
+                            {% endfor %}
+                            {{ total_pts.val }}
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Story Points</div>
+                    </div>
+
+                    <div style="padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #EF4444;">
+                            {{ backlog_issues|selectattr('issue_type', 'equalto', 'bug')|list|length }}
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Bugs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    {% else %}
-    <div class="text-center py-12 bg-white rounded-lg shadow">
-        <i data-lucide="inbox" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No backlog items</h3>
-        <p class="text-gray-500 mb-4">All issues are assigned to sprints</p>
-        <button onclick="document.getElementById('createIssueModal').classList.add('show')" class="btn btn-primary">
-            Create First Issue
-        </button>
-    </div>
-    {% endif %}
 </div>
 
-<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+<!-- Create Sprint Modal -->
+{% if selected_project %}
+<div id="createSprintModal" class="modal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeSprintModal()"></div>
+    <div class="modal-content" style="max-width: 520px; width: 92%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 20px 48px rgba(0,0,0,0.5); color: var(--text-primary); z-index: 10001; position: relative;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="iconify" data-icon="solar:calendar-add-bold" style="color: var(--accent-blue, #3B82F6); width: 22px; height: 22px;"></span>
+                <h2 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: var(--text-primary);">Create New Sprint</h2>
+            </div>
+            <button type="button" class="btn-icon" onclick="closeSprintModal()" style="background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; border-radius: 6px;">
+                <span class="iconify" data-icon="solar:close-circle-bold" style="width: 20px; height: 20px;"></span>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('projects.add_sprint', project_id=selected_project.id) }}" id="createSprintForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <div class="modal-body" style="padding: 20px 24px;">
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary);">Sprint Name *</label>
+                    <input type="text" name="name" class="form-input" placeholder="e.g. Sprint {{ sprints|length + 1 }} - Core Engine" required style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                </div>
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary);">Sprint Goal</label>
+                    <textarea name="goal" class="form-input" rows="2" placeholder="What is the objective of this sprint?" style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); resize: vertical;"></textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary);">Start Date</label>
+                        <input type="date" name="start_date" class="form-input" style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary);">End Date</label>
+                        <input type="date" name="end_date" class="form-input" style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-secondary" onclick="closeSprintModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Sprint</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.issue-row-card:hover {
+    border-color: var(--accent-blue, #3B82F6) !important;
+    background: var(--bg-secondary) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+</style>
+
 <script>
-    lucide.createIcons();
+function changeProject(projectId) {
+    if (projectId) {
+        window.location.href = '/backlog?project=' + projectId;
+    }
+}
+
+function openSprintModal() {
+    const modal = document.getElementById('createSprintModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+        const input = modal.querySelector('input[name="name"]');
+        if (input) setTimeout(() => input.focus(), 80);
+    }
+}
+
+function closeSprintModal() {
+    const modal = document.getElementById('createSprintModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
+}
+
+async function moveIssueSprint(projectId, issueId, sprintId) {
+    try {
+        const response = await fetch(`/api/v1/project/${projectId}/issue/${issueId}/sprint`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sprint_id: sprintId ? parseInt(sprintId) : null })
+        });
+        const data = await response.json();
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.error || 'Failed to update issue sprint');
+        }
+    } catch (err) {
+        console.error('Error updating sprint:', err);
+        window.location.reload();
+    }
+}
+
+async function changeSprintStatus(projectId, sprintId, newStatus) {
+    if (!confirm(`Are you sure you want to mark this sprint as ${newStatus}?`)) return;
+    try {
+        const response = await fetch(`/api/v1/project/${projectId}/sprint/${sprintId}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+        const data = await response.json();
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.error || 'Failed to update sprint status');
+        }
+    } catch (err) {
+        console.error('Error changing sprint status:', err);
+        window.location.reload();
+    }
+}
 </script>
 {% endblock %}

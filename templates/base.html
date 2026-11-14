@@ -56,6 +56,7 @@
     <script defer src="{{ url_for('static', filename='js/mobile-responsive-system.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/calendar-view-complete.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/change-calendar-system.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/search-autocomplete.js') }}"></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -225,9 +226,9 @@
                     </button>
                     
                     <!-- Settings -->
-                    <button class="header-icon-btn" title="Settings">
+                    <a href="{{ url_for('main.settings') }}" class="header-icon-btn" title="Settings">
                         <span class="iconify" data-icon="solar:settings-bold"></span>
-                    </button>
+                    </a>
                     
                     {% if current_user.is_authenticated %}
                     <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
@@ -342,6 +343,10 @@
 
             // Keyboard shortcuts
             document.addEventListener('keydown', function(e) {
+                // If user is typing in an input or textarea, don't trigger global shortcuts
+                const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                const isEditable = activeTag === 'input' || activeTag === 'textarea' || (document.activeElement && document.activeElement.isContentEditable);
+
                 // Ctrl/Cmd + D - Toggle theme
                 if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
                     e.preventDefault();
@@ -353,15 +358,140 @@
                 // Ctrl/Cmd + K - Focus search
                 if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                     e.preventDefault();
-                    const searchInput = document.querySelector('.header-search-input');
-                    if (searchInput) {
-                        searchInput.focus();
+                    if (window.searchAutocomplete) {
+                        window.searchAutocomplete.openSearch();
+                    } else {
+                        const searchInput = document.querySelector('.header-search-input');
+                        if (searchInput) searchInput.focus();
+                    }
+                }
+
+                // Press 'c' to open Create Issue (when not typing)
+                if (!isEditable && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'c' || e.key === 'C')) {
+                    e.preventDefault();
+                    if (typeof openCreateIssueModal === 'function') {
+                        openCreateIssueModal();
                     }
                 }
             });
 
             console.log('Base: All event listeners attached');
         });
+
+        // Global Create Issue Modal Handlers
+        function openCreateIssueModal(status) {
+            const modal = document.getElementById('createIssueModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.classList.add('show');
+                if (status) {
+                    const statusSelect = document.getElementById('issueStatus');
+                    if (statusSelect) statusSelect.value = status;
+                }
+                const firstInput = modal.querySelector('input[name="title"]');
+                if (firstInput) setTimeout(() => firstInput.focus(), 80);
+            }
+        }
+
+        function closeCreateIssueModal() {
+            const modal = document.getElementById('createIssueModal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('show');
+            }
+        }
+
+        function updateFormAction(projectId) {
+            const form = document.getElementById('createIssueForm');
+            if (form && projectId) {
+                form.action = `/project/${projectId}/issue/add`;
+            }
+        }
+    </script>
+
+    <!-- Global Universal Create Issue Modal -->
+    {% if current_user.is_authenticated %}
+    <div id="createIssueModal" class="modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeCreateIssueModal()"></div>
+        <div class="modal-content" style="max-width: 580px; width: 92%; background: var(--bg-secondary, #12151E); border: 1px solid var(--border-color, #232738); border-radius: 12px; box-shadow: 0 20px 48px rgba(0,0,0,0.45); color: var(--text-primary, #F3F4F6); z-index: 10001; position: relative;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border-color, #232738);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="iconify" data-icon="solar:add-circle-bold" style="color: var(--accent-blue, #3B82F6); width: 22px; height: 22px;"></span>
+                    <h2 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: var(--text-primary, #F3F4F6);">Create Issue</h2>
+                </div>
+                <button type="button" class="btn-icon" onclick="closeCreateIssueModal()" style="background: transparent; border: none; color: var(--text-secondary, #9CA3AF); cursor: pointer; padding: 4px; border-radius: 6px;">
+                    <span class="iconify" data-icon="solar:close-circle-bold" style="width: 20px; height: 20px;"></span>
+                </button>
+            </div>
+            <form method="POST" action="{% if current_user_projects and current_user_projects|length > 0 %}{{ url_for('projects.add_issue', project_id=current_user_projects[0].id) }}{% else %}#{% endif %}" id="createIssueForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body" style="padding: 20px 24px;">
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary, #9CA3AF);">Project *</label>
+                        <select name="project_id" id="issueProjectSelect" class="form-select" required onchange="updateFormAction(this.value)" style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary, #181B24); border: 1px solid var(--border-color, #232738); border-radius: 6px; color: var(--text-primary, #F3F4F6);">
+                            {% if current_user_projects %}
+                                {% for p in current_user_projects %}
+                                <option value="{{ p.id }}">{{ p.name }} ({{ p.key }})</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="">No projects available</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <div class="form-group">
+                            <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary, #9CA3AF);">Issue Type *</label>
+                            <select name="issue_type" class="form-select" required style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary, #181B24); border: 1px solid var(--border-color, #232738); border-radius: 6px; color: var(--text-primary, #F3F4F6);">
+                                <option value="task">Task</option>
+                                <option value="bug">Bug</option>
+                                <option value="story">Story</option>
+                                <option value="epic">Epic</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary, #9CA3AF);">Status</label>
+                            <select name="status" id="issueStatus" class="form-select" style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary, #181B24); border: 1px solid var(--border-color, #232738); border-radius: 6px; color: var(--text-primary, #F3F4F6);">
+                                <option value="open">Open</option>
+                                <option value="todo" selected>To Do</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="code_review">Code Review</option>
+                                <option value="testing">Testing</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary, #9CA3AF);">Summary / Title *</label>
+                        <input type="text" name="title" class="form-input" placeholder="What needs to be done?" required style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary, #181B24); border: 1px solid var(--border-color, #232738); border-radius: 6px; color: var(--text-primary, #F3F4F6);">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary, #9CA3AF);">Description</label>
+                        <textarea name="description" class="form-input" rows="3" placeholder="Add context, acceptance criteria..." style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary, #181B24); border: 1px solid var(--border-color, #232738); border-radius: 6px; color: var(--text-primary, #F3F4F6); resize: vertical;"></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary, #9CA3AF);">Priority</label>
+                            <select name="priority" class="form-select" style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary, #181B24); border: 1px solid var(--border-color, #232738); border-radius: 6px; color: var(--text-primary, #F3F4F6);">
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="display: block; font-size: 0.825rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary, #9CA3AF);">Story Points</label>
+                            <input type="number" name="story_points" min="1" max="100" class="form-input" placeholder="e.g. 3" style="width: 100%; padding: 8px 12px; background: var(--bg-tertiary, #181B24); border: 1px solid var(--border-color, #232738); border-radius: 6px; color: var(--text-primary, #F3F4F6);">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid var(--border-color, #232738);">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateIssueModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Issue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
     </script>
 
     {% block extra_js %}{% endblock %}

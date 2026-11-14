@@ -221,3 +221,56 @@ class TestAuditLedgerAndAnalyticsAPI:
         vel_data = vel_res.get_json()
         assert vel_data['success'] is True
         assert 'average_velocity' in vel_data['data']
+
+    def test_search_autocomplete(self, client, auth_headers, test_issue, test_project, auth_user):
+        """Test search autocomplete API for issues, projects, and users."""
+        # Query matching issue key
+        res = client.get(f'/api/v1/search/autocomplete?q={test_issue.key}', headers=auth_headers)
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data['success'] is True
+        assert any(i['id'] == test_issue.id for i in data['data']['issues'])
+
+        # Query matching user username
+        res_user = client.get(f'/api/v1/search/autocomplete?q={auth_user.username}', headers=auth_headers)
+        assert res_user.status_code == 200
+        data_user = res_user.get_json()
+        assert any(u['id'] == auth_user.id for u in data_user['data']['users'])
+
+    def test_sprint_status_and_issue_assignment(self, client, auth_headers, test_project, test_issue):
+        """Test sprint status update and issue assignment endpoints."""
+        # 1. Create sprint
+        create_res = client.post(
+            f'/api/v1/project/{test_project.id}/sprints',
+            json={'name': 'Sprint 99', 'status': 'planned'},
+            headers=auth_headers
+        )
+        assert create_res.status_code == 201
+        sprint_id = create_res.get_json()['data']['id']
+
+        # 2. Update sprint status to active
+        status_res = client.post(
+            f'/api/v1/project/{test_project.id}/sprint/{sprint_id}/status',
+            json={'status': 'active'},
+            headers=auth_headers
+        )
+        assert status_res.status_code == 200
+        assert status_res.get_json()['status'] == 'active'
+
+        # 3. Assign issue to sprint
+        assign_res = client.post(
+            f'/api/v1/project/{test_project.id}/issue/{test_issue.id}/sprint',
+            json={'sprint_id': sprint_id},
+            headers=auth_headers
+        )
+        assert assign_res.status_code == 200
+        assert assign_res.get_json()['sprint_id'] == sprint_id
+
+        # 4. Remove issue from sprint (send back to backlog)
+        unassign_res = client.post(
+            f'/api/v1/project/{test_project.id}/issue/{test_issue.id}/sprint',
+            json={'sprint_id': None},
+            headers=auth_headers
+        )
+        assert unassign_res.status_code == 200
+        assert unassign_res.get_json()['sprint_id'] is None

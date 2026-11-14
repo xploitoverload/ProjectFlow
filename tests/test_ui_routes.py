@@ -93,3 +93,40 @@ def test_board_issue_rendering(client, auth_user, test_project, test_issue):
     html = res.data.decode('utf-8')
     assert test_issue.key in html
     assert test_issue.title in html
+
+
+def test_direct_issue_routes(client, auth_user, test_project, test_issue):
+    """Verify that direct /issue/<id> and /issue/<key> redirect to issue view."""
+    with client.session_transaction() as sess:
+        sess['user_id'] = auth_user.id
+        sess['role'] = auth_user.role
+        sess['username'] = auth_user.username
+        sess['_fresh'] = True
+
+    # By ID
+    res1 = client.get(f'/issue/{test_issue.id}', follow_redirects=True)
+    assert res1.status_code == 200
+    assert test_issue.title in res1.data.decode('utf-8')
+
+    res2 = client.get(f'/issues/{test_issue.id}', follow_redirects=True)
+    assert res2.status_code == 200
+
+    # By Key (e.g. PF-1)
+    res3 = client.get(f'/issue/{test_issue.key}', follow_redirects=True)
+    assert res3.status_code == 200
+
+    res4 = client.get(f'/issues/{test_issue.key.lower()}', follow_redirects=True)
+    assert res4.status_code == 200
+
+
+def test_user_profile_route(client, auth_user, admin_user):
+    """Verify that /profile/<user_id> loads the user's profile view."""
+    with client.session_transaction() as sess:
+        sess['user_id'] = auth_user.id
+        sess['role'] = auth_user.role
+        sess['username'] = auth_user.username
+        sess['_fresh'] = True
+
+    res = client.get(f'/profile/{admin_user.id}', follow_redirects=True)
+    assert res.status_code == 200
+    assert admin_user.username in res.data.decode('utf-8')

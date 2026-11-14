@@ -656,7 +656,8 @@ def add_sprint(project_id):
         db.session.commit()
         
         flash('Sprint created successfully', 'success')
-        return redirect(url_for('projects.sprints_list', project_id=project_id))
+        next_url = request.form.get('next') or request.args.get('next') or url_for('projects.sprints_list', project_id=project_id)
+        return redirect(next_url)
     
     return render_template('sprint_form.html', project=project, sprint=None)
 
