@@ -128,7 +128,7 @@ user.set_password("SecurePassword123!")
 
 ## 🧪 Testing & Verification
 
-ProjectFlow includes a comprehensive Pytest test suite covering authentication, cryptographic integrity, validation, and agile workflows:
+ProjectFlow includes a comprehensive Pytest test suite covering REST APIs, automation workflows, cryptographic integrity, validation, and agile workflows:
 
 ```bash
 # Run test suite
@@ -139,14 +139,44 @@ pytest tests/ --cov=app --cov-report=term-missing
 ```
 
 ```
-tests/test_audit_ledger.py ....                                          [ 8%]
-tests/test_auth.py .........                                             [28%]
-tests/test_health.py .......                                             [43%]
-tests/test_kanban_core.py ....                                           [52%]
-tests/test_security.py ........                                          [69%]
+tests/test_api_v1.py .............                                      [ 18%]
+tests/test_audit_ledger.py ....                                          [ 24%]
+tests/test_auth.py .........                                             [ 37%]
+tests/test_automation_engine.py .....                                    [ 44%]
+tests/test_health.py .......                                             [ 55%]
+tests/test_kanban_core.py ....                                           [ 60%]
+tests/test_security.py ........                                          [ 72%]
+tests/test_services.py .....                                             [ 79%]
 tests/test_validators.py ..............                                  [100%]
 
-======================= 46 passed, 0 failures =======================
+======================= 69 passed, 0 failures =======================
+```
+
+---
+
+## 📡 RESTful API & Automation Engine
+
+ProjectFlow includes an enterprise-grade RESTful API authenticated via cryptographically signed Bearer tokens:
+
+```bash
+# 1. Obtain Bearer Token
+curl -X POST http://localhost:5000/api/v1/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "AdminPassword123!"}'
+
+# 2. Verify Cryptographic SHA-256 Audit Ledger Integrity (Ring 0)
+curl -X GET http://localhost:5000/api/v1/audit/ledger/verify \
+  -H "Authorization: Bearer <TOKEN>"
+
+# 3. Create Project & Issues
+curl -X POST http://localhost:5000/api/v1/projects \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Kernel Hypervisor", "key": "KHM", "workflow_type": "agile"}'
+
+# 4. Fetch Sprint Burndown & Velocity Analytics
+curl -X GET http://localhost:5000/api/v1/analytics/burndown/1 \
+  -H "Authorization: Bearer <TOKEN>"
 ```
 
 ---

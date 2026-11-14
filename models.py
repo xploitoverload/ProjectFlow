@@ -145,6 +145,21 @@ class User(UserMixin, db.Model):
     def get_id(self):
         return str(self.id)
     
+    def to_dict(self):
+        """Serialize user to dictionary (safe fields only)"""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'role': self.role,
+            'team_id': self.team_id,
+            'team': self.team.name if self.team else None,
+            'department': self.department,
+            'is_active': getattr(self, 'is_active', True),
+            'last_login': self.last_login.isoformat() if self.last_login else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+    
     def __repr__(self):
         return f'<User {self.username}>'
 
@@ -217,6 +232,25 @@ class Project(db.Model):
         else:
             self.description_encrypted = None
     
+    def to_dict(self):
+        """Serialize project to dictionary"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'key': self.key,
+            'description': self.description,
+            'status': self.status,
+            'workflow_type': self.workflow_type,
+            'lead_id': self.lead_id,
+            'lead': self.lead.username if self.lead else None,
+            'team_id': self.team_id,
+            'team': self.team.name if self.team else None,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'issues_count': len(self.issues) if self.issues else 0
+        }
+    
     def __repr__(self):
         return f'<Project {self.name}>'
 
@@ -234,6 +268,20 @@ class Sprint(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     issues = db.relationship('Issue', backref='sprint', lazy=True)
+    
+    def to_dict(self):
+        """Serialize sprint to dictionary"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'project_id': self.project_id,
+            'goal': self.goal,
+            'status': self.status,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'issues_count': len(self.issues) if self.issues else 0
+        }
     
     def __repr__(self):
         return f'<Sprint {self.name}>'
@@ -263,6 +311,21 @@ class Epic(db.Model):
         if value:
             self.description_encrypted = encrypt_field(value)
     
+    def to_dict(self):
+        """Serialize epic to dictionary"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'project_id': self.project_id,
+            'color': self.color,
+            'status': self.status,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'issues_count': len(self.issues) if self.issues else 0
+        }
+    
     def __repr__(self):
         return f'<Epic {self.name}>'
 
@@ -275,6 +338,15 @@ class Label(db.Model):
     color = db.Column(db.String(7), nullable=False)  # Hex color
     project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        """Serialize label to dictionary"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'color': self.color,
+            'project_id': self.project_id
+        }
     
     def __repr__(self):
         return f'<Label {self.name}>'
@@ -355,6 +427,32 @@ class Issue(db.Model):
     def attachment_count(self):
         return len(self.attachments)
     
+    def to_dict(self):
+        """Serialize issue to dictionary"""
+        return {
+            'id': self.id,
+            'key': self.key,
+            'title': self.title,
+            'description': self.description,
+            'issue_type': self.issue_type,
+            'status': self.status,
+            'priority': self.priority,
+            'story_points': self.story_points,
+            'project_id': self.project_id,
+            'sprint_id': self.sprint_id,
+            'epic_id': self.epic_id,
+            'assignee_id': self.assignee_id,
+            'assignee': self.assignee.username if self.assignee else None,
+            'reporter_id': self.reporter_id,
+            'reporter': self.reporter.username if self.reporter else None,
+            'labels': [label.name for label in self.labels] if self.labels else [],
+            'comment_count': self.comment_count,
+            'attachment_count': self.attachment_count,
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+    
     def __repr__(self):
         return f'<Issue {self.key}>'
 
@@ -369,8 +467,8 @@ class IssueLink(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     
-    source_issue = db.relationship('Issue', foreign_keys=[source_issue_id], backref='outgoing_links')
-    target_issue = db.relationship('Issue', foreign_keys=[target_issue_id], backref='incoming_links')
+    source_issue = db.relationship('Issue', foreign_keys=[source_issue_id], backref=db.backref('outgoing_links', cascade='all, delete-orphan'))
+    target_issue = db.relationship('Issue', foreign_keys=[target_issue_id], backref=db.backref('incoming_links', cascade='all, delete-orphan'))
     
     def __repr__(self):
         return f'<IssueLink {self.source_issue_id} -> {self.target_issue_id}>'
@@ -396,6 +494,19 @@ class Comment(db.Model):
     @text.setter
     def text(self, value):
         self.text_encrypted = encrypt_field(value)
+    
+    def to_dict(self):
+        """Serialize comment to dictionary"""
+        return {
+            'id': self.id,
+            'issue_id': self.issue_id,
+            'user_id': self.user_id,
+            'username': self.user.username if self.user else 'Unknown',
+            'text': self.text,
+            'edited': self.edited,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
     
     def __repr__(self):
         return f'<Comment {self.id} on Issue {self.issue_id}>'
@@ -532,6 +643,19 @@ class AuditLog(db.Model):
         ts_str = self.timestamp.strftime('%Y-%m-%d %H:%M:%S') if self.timestamp else ""
         raw = f"{prev_hash}:{self.user_id}:{self.action}:{self.details_encrypted or ''}:{self.ip_address or ''}:{ts_str}"
         return hashlib.sha256(raw.encode('utf-8')).hexdigest()
+    
+    def to_dict(self):
+        """Serialize audit log entry to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'action': self.action,
+            'details': self.details,
+            'ip_address': self.ip_address,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+            'prev_hash': self.prev_hash,
+            'record_hash': self.record_hash
+        }
     
     def __repr__(self):
         return f'<AuditLog id={self.id} action={self.action} hash={self.record_hash[:8] if self.record_hash else "none"}>'
