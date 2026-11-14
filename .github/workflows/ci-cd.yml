@@ -42,6 +42,7 @@ jobs:
       env:
         FLASK_ENV: testing
         SECRET_KEY: test-secret-key-1234567890abcdef
+        PYTHONPATH: .
 
   # Job 2: Security Scan
   security:
