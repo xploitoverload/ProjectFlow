@@ -9,23 +9,33 @@
 
 {% block title %}Board - ProjectFlow{% endblock %}
 
+{% block breadcrumb %}
+<div class="header-breadcrumb">
+    <a href="{{ url_for('main.dashboard') }}" style="color: inherit; text-decoration: none;">Home</a>
+    <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
+    <span class="header-breadcrumb-current">Board</span>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="page-container" style="padding: 0; height: calc(100vh - 64px); display: flex; flex-direction: column; background: var(--bg-primary, #0B0D14);">
-    <!-- Header -->
-    <div class="board-header" style="padding: 16px 24px; background: var(--bg-secondary, #12151D); border-bottom: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08)); display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 16px;">
+<div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+    <!-- Header Card -->
+    <div class="bento-card" style="padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(99, 102, 241, 0.15); display: flex; align-items: center; justify-content: center; color: #818CF8;">
+                <span class="iconify" data-icon="solar:kanban-bold" style="width: 22px; height: 22px;"></span>
+            </div>
             <div>
-                <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 4px; color: var(--text-primary, #FFFFFF);">
-                    <i data-lucide="layout-grid" style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+                <h1 style="font-size: 20px; font-weight: 700; margin: 0; color: var(--text-primary); letter-spacing: -0.3px;">
                     Board
                 </h1>
-                <p style="color: var(--text-secondary, #94A3B8); margin: 0; font-size: 13px;">
+                <p style="color: var(--text-secondary); margin: 2px 0 0; font-size: 13px;">
                     {% if selected_project %}{{ selected_project.name }}{% else %}Select a project{% endif %}
                 </p>
             </div>
         </div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <select id="projectSelector" class="form-select" style="min-width: 200px;" onchange="changeProject(this.value)">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <select id="projectSelector" class="form-select" style="min-width: 220px; background: rgba(255, 255, 255, 0.05); color: var(--text-primary); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 7px 12px; font-size: 13px;" onchange="changeProject(this.value)">
                 {% if not projects %}
                 <option value="">No projects available</option>
                 {% else %}
@@ -37,41 +47,39 @@
                 {% endif %}
             </select>
             <button class="btn btn-primary" onclick="openCreateIssueModal()">
-                <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
-                Create
+                <span class="iconify" data-icon="solar:add-circle-bold" style="width: 16px; height: 16px;"></span>
+                Create Issue
             </button>
         </div>
     </div>
 
     <!-- Kanban Board -->
-    <div class="kanban-container" style="flex: 1; padding: 24px; overflow-x: auto; background: var(--bg-primary, #0B0D14);">
+    <div class="kanban-container" style="flex: 1; padding: 0; overflow-x: auto;">
         {% if selected_project %}
-        <div class="kanban-board" style="display: flex; gap: 20px; min-height: 100%;">
+        <div class="kanban-board" style="display: flex; gap: 16px; min-height: calc(100vh - 220px); align-items: flex-start;">
             {% set statuses = ['todo', 'in_progress', 'code_review', 'done'] %}
             {% set status_labels = {'todo': 'To Do', 'in_progress': 'In Progress', 'code_review': 'In Review', 'testing': 'Testing', 'done': 'Done'} %}
             {% for status in statuses %}
             {% set status_issues = issues_by_status.get(status, []) %}
-            <div class="kanban-column" data-status="{{ status }}" style="min-width: 290px; max-width: 290px; background: var(--bg-secondary, #12151D); border: 1px solid var(--border-primary, rgba(255,255,255,0.08)); border-radius: 10px; display: flex; flex-direction: column;">
-                <div class="column-header" style="padding: 14px 16px; background: var(--bg-tertiary, #161922); border-radius: 9px 9px 0 0; border-bottom: 1px solid var(--border-primary, rgba(255,255,255,0.08));">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            {% if status == 'todo' %}
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #64748b;"></span>
-                            {% elif status == 'in_progress' %}
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
-                            {% elif status == 'code_review' %}
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #8b5cf6;"></span>
-                            {% else %}
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
-                            {% endif %}
-                            <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-primary, #F8FAFC);">{{ status_labels.get(status, status|title) }}</span>
-                        </div>
-                        <span style="background: rgba(255,255,255,0.08); color: var(--text-secondary, #94A3B8); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">{{ status_issues|length }}</span>
+            <div class="kanban-column bento-card" data-status="{{ status }}" style="min-width: 280px; flex: 1; max-width: 320px; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
+                <div class="column-header" style="padding: 14px 16px; border-bottom: 1px solid var(--surface-border-color); display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        {% if status == 'todo' %}
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #64748b;"></span>
+                        {% elif status == 'in_progress' %}
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
+                        {% elif status == 'code_review' %}
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #8b5cf6;"></span>
+                        {% else %}
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
+                        {% endif %}
+                        <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-primary, #F8FAFC);">{{ status_labels.get(status, status|title) }}</span>
                     </div>
+                    <span style="background: rgba(255,255,255,0.08); color: var(--text-secondary, #94A3B8); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">{{ status_issues|length }}</span>
                 </div>
                 <div class="column-body" style="flex: 1; padding: 12px; overflow-y: auto; min-height: 200px;">
                     {% for issue in status_issues %}
-                    <div class="kanban-card" onclick="viewIssue({{ issue.id }}, {{ issue.project_id }})" style="background: var(--bg-tertiary, #181B24); border: 1px solid var(--border-primary, rgba(255,255,255,0.08)); border-radius: 8px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;">
+                    <div class="kanban-card" onclick="viewIssue({{ issue.id }}, {{ issue.project_id }})" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;">
                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
                             {% if issue.issue_type == 'bug' %}
                             <i data-lucide="bug" style="width: 14px; height: 14px; color: #dc2626;"></i>
