@@ -161,8 +161,8 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG = True
     
-    # Test database
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///instance/test_project_management.db'
+    # Test database (in-memory SQLite for high speed and test isolation)
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     SQLALCHEMY_ECHO = False
     
     # Disable CSRF for testing

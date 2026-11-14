@@ -3,9 +3,10 @@
 Database optimization strategies including indexing, query optimization, and caching.
 """
 
-from app.models import db, User, Project, Issue, ProgressUpdate
+from app.models import db, User, Project, Issue, ProjectUpdate
 from sqlalchemy import Index, event
 import logging
+import time
 
 logger = logging.getLogger('database')
 
@@ -64,21 +65,21 @@ def create_database_indexes():
         Index('idx_issue_assignee_status', Issue.assignee_id, Issue.status)
     )
     
-    # ProgressUpdate indexes
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_user', ProgressUpdate.user_id)
+    # ProjectUpdate indexes
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_user', ProjectUpdate.user_id)
     )
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_project', ProgressUpdate.project_id)
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_project', ProjectUpdate.project_id)
     )
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_created', ProgressUpdate.created_at)
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_date', ProjectUpdate.date)
     )
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_status', ProgressUpdate.status)
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_status', ProjectUpdate.status)
     )
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_user_created', ProgressUpdate.user_id, ProgressUpdate.created_at)
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_user_date', ProjectUpdate.user_id, ProjectUpdate.date)
     )
     
     logger.info("Database indexes created successfully")
@@ -161,11 +162,11 @@ class QueryOptimizer:
         """Get recent progress updates (optimized)."""
         from sqlalchemy.orm import selectinload
         
-        return ProgressUpdate.query.options(
-            selectinload(ProgressUpdate.user),
-            selectinload(ProgressUpdate.project)
+        return ProjectUpdate.query.options(
+            selectinload(ProjectUpdate.user),
+            selectinload(ProjectUpdate.project_ref)
         ).order_by(
-            ProgressUpdate.created_at.desc()
+            ProjectUpdate.date.desc()
         ).limit(limit).all()
     
     @staticmethod
@@ -175,12 +176,12 @@ class QueryOptimizer:
         
         stats = {
             'total_issues_assigned': Issue.query.filter_by(assignee_id=user_id).count(),
-            'total_issues_created': Issue.query.filter_by(created_by=user_id).count(),
-            'total_projects': Project.query.filter_by(owner_id=user_id).count(),
-            'total_updates': ProgressUpdate.query.filter_by(user_id=user_id).count(),
+            'total_issues_created': Issue.query.filter_by(reporter_id=user_id).count(),
+            'total_projects': Project.query.filter_by(created_by=user_id).count(),
+            'total_updates': ProjectUpdate.query.filter_by(user_id=user_id).count(),
             'completed_issues': Issue.query.filter_by(
                 assignee_id=user_id, 
-                status='completed'
+                status='done'
             ).count(),
         }
         return stats
@@ -246,7 +247,6 @@ def setup_slow_query_logging(app):
     
     @event.listens_for(db.engine, "after_cursor_execute")
     def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-        import time
         total_time = time.time() - conn.info['query_start_time'].pop(-1)
         
         if total_time > 0.5:  # Log queries longer than 500ms
