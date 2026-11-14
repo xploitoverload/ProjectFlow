@@ -3,9 +3,10 @@
 Database optimization strategies including indexing, query optimization, and caching.
 """
 
-from app.models import db, User, Project, Issue, ProgressUpdate
+from app.models import db, User, Project, Issue, ProjectUpdate
 from sqlalchemy import Index, event
 import logging
+import time
 
 logger = logging.getLogger('database')
 
@@ -64,21 +65,21 @@ def create_database_indexes():
         Index('idx_issue_assignee_status', Issue.assignee_id, Issue.status)
     )
     
-    # ProgressUpdate indexes
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_user', ProgressUpdate.user_id)
+    # ProjectUpdate indexes
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_user', ProjectUpdate.user_id)
     )
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_project', ProgressUpdate.project_id)
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_project', ProjectUpdate.project_id)
     )
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_created', ProgressUpdate.created_at)
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_date', ProjectUpdate.date)
     )
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_status', ProgressUpdate.status)
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_status', ProjectUpdate.status)
     )
-    ProgressUpdate.__table__.indexes.add(
-        Index('idx_progress_user_created', ProgressUpdate.user_id, ProgressUpdate.created_at)
+    ProjectUpdate.__table__.indexes.add(
+        Index('idx_project_update_user_date', ProjectUpdate.user_id, ProjectUpdate.date)
     )
     
     logger.info("Database indexes created successfully")
@@ -246,7 +247,6 @@ def setup_slow_query_logging(app):
     
     @event.listens_for(db.engine, "after_cursor_execute")
     def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-        import time
         total_time = time.time() - conn.info['query_start_time'].pop(-1)
         
         if total_time > 0.5:  # Log queries longer than 500ms
