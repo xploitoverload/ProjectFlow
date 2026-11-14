@@ -339,7 +339,7 @@ def team_detail(team_id):
     team = Team.query.get_or_404(team_id)
     # Get all users not in this team for adding
     available_users = User.query.filter(
-        (User.team_id != team_id) | (User.team_id == None)
+        (User.team_id != team_id) | (User.team_id.is_(None))
     ).all()
     # Get team's assigned projects
     assigned_projects = team.assigned_projects.all() if team.assigned_projects else []
@@ -653,10 +653,21 @@ def security_dashboard():
 def db_management():
     """Database management dashboard."""
     from app.models import User, Team, Project, Issue, db
+    from flask import current_app
     import os
     
-    # Get database stats
-    db_path = 'instance/project_mgmt.db'
+    # Get database stats dynamically from config
+    uri = current_app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    if uri.startswith('sqlite:///'):
+        db_path = uri.replace('sqlite:///', '')
+    else:
+        db_path = os.path.join(current_app.instance_path, 'project_management.db')
+        
+    if not os.path.exists(db_path):
+        alt_path = 'instance/project_management.db'
+        if os.path.exists(alt_path):
+            db_path = alt_path
+            
     db_size = 0
     if os.path.exists(db_path):
         db_size = os.path.getsize(db_path) / (1024 * 1024)  # Convert to MB
@@ -1057,9 +1068,22 @@ def create_backup():
     backup_name = f'backup_{timestamp}.db'
     backup_path = os.path.join(backup_dir, backup_name)
     
+    # Resolve active database path from config
+    from flask import current_app
+    uri = current_app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    if uri.startswith('sqlite:///'):
+        db_path = uri.replace('sqlite:///', '')
+    else:
+        db_path = os.path.join(current_app.instance_path, 'project_management.db')
+        
+    if not os.path.exists(db_path):
+        alt_path = 'instance/project_management.db'
+        if os.path.exists(alt_path):
+            db_path = alt_path
+    
     try:
         # Copy database file
-        shutil.copy('instance/project_mgmt.db', backup_path)
+        shutil.copy(db_path, backup_path)
         
         AuditService.log_event(
             'BACKUP_CREATED',

@@ -298,3 +298,125 @@ class TestPragmaticCraftsmanship:
             assert 'ix_issue_project_status_pos' in index_names
             assert 'ix_issue_sprint_status' in index_names
             assert 'ix_issue_assignee_status' in index_names
+
+    def test_user_find_by_email_with_field_encryption(self, app):
+        """
+        Verify Design by Contract & Relational Encryption:
+        User.find_by_email reliably locates records despite non-deterministic
+        Fernet ciphertext, supporting case-insensitivity and whitespace.
+        """
+        with app.app_context():
+            user = User(
+                username='cryptouser',
+                role='employee'
+            )
+            user.email = 'Linus.Torvalds@LinuxFoundation.org'
+            user.set_password('KernelSecurity123!')
+            db.session.add(user)
+            db.session.commit()
+
+            # Exact match
+            found = User.find_by_email('Linus.Torvalds@LinuxFoundation.org')
+            assert found is not None
+            assert found.id == user.id
+
+            # Case-insensitivity & whitespace trimming
+            found_lower = User.find_by_email(
+                '  linus.torvalds@linuxfoundation.org  '
+            )
+            assert found_lower is not None
+            assert found_lower.id == user.id
+
+            # Non-existent email
+            assert User.find_by_email('missing@linuxfoundation.org') is None
+
+    def test_cryptographic_password_reset_and_replay_protection(self, app):
+        """
+        Verify Defensive Security:
+        Password reset tokens are HMAC-signed, stateful against hash changes,
+        and prevented from replay attacks once used.
+        """
+        from app.services.auth_service import AuthService
+        with app.app_context():
+            user = User(
+                username='resettester',
+                role='employee'
+            )
+            user.email = 'reset@kernel.org'
+            user.set_password('InitialSecret123!')
+            db.session.add(user)
+            db.session.commit()
+
+            # Generate token
+            ok, token, msg = AuthService.generate_password_reset_token(
+                'reset@kernel.org'
+            )
+            assert ok is True
+            assert token is not None
+
+            # Verify token
+            verified_user = AuthService.verify_password_reset_token(token)
+            assert verified_user is not None
+            assert verified_user.id == user.id
+
+            # Tampered token fails
+            assert AuthService.verify_password_reset_token(
+                token + 'tamper'
+            ) is None
+
+            # Replay protection: user changes password, token invalidates
+            user.set_password('NewUpdatedSecret456!')
+            db.session.commit()
+
+            assert AuthService.verify_password_reset_token(token) is None
+
+    def test_project_get_members_aggregates_teams(self, app):
+        """
+        Verify DRY: Project.get_members and ProjectService.get_project_members
+        aggregate active members from primary and secondary teams while
+        excluding inactive accounts.
+        """
+        with app.app_context():
+            t1 = Team(name='Core Team 1', department='software')
+            t2 = Team(name='Core Team 2', department='software')
+            db.session.add_all([t1, t2])
+            db.session.commit()
+
+            u1 = User(
+                username='u1_active', role='employee',
+                team_id=t1.id, is_active=True
+            )
+            u1.email = 'u1@kernel.org'
+            u1.set_password('Pass123!')
+
+            u2 = User(
+                username='u2_secondary', role='employee',
+                team_id=t2.id, is_active=True
+            )
+            u2.email = 'u2@kernel.org'
+            u2.set_password('Pass123!')
+
+            u3_inactive = User(
+                username='u3_inactive', role='employee',
+                team_id=t1.id, is_active=False
+            )
+            u3_inactive.email = 'u3@kernel.org'
+            u3_inactive.set_password('Pass123!')
+
+            db.session.add_all([u1, u2, u3_inactive])
+            db.session.commit()
+
+            proj = Project(
+                name='Firmware Engine', key='FW',
+                status='Active', team_id=t1.id
+            )
+            proj.teams.append(t2)
+            db.session.add(proj)
+            db.session.commit()
+
+            members = ProjectService.get_project_members(proj)
+            member_ids = [m.id for m in members]
+
+            assert u1.id in member_ids
+            assert u2.id in member_ids
+            assert u3_inactive.id not in member_ids

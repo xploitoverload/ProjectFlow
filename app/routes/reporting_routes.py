@@ -196,15 +196,29 @@ def export_report(report_id):
         if format == 'pdf':
             content = export_manager.export_to_pdf(report_data)
             mime_type = 'application/pdf'
+            filename = f"report_{report_id}.pdf"
         elif format == 'excel':
             content = export_manager.export_to_excel(report_data)
             mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            filename = f"report_{report_id}.xlsx"
         elif format == 'csv':
             content = export_manager.export_to_csv(report_data)
             mime_type = 'text/csv'
+            filename = f"report_{report_id}.csv"
         else:
             content = export_manager.export_to_json(report_data)
             mime_type = 'application/json'
+            filename = f"report_{report_id}.json"
+        
+        # Stream download if requested via ?download=true
+        if request.args.get('download', 'false').lower() in ['true', '1', 'yes']:
+            byte_stream = io.BytesIO(content if isinstance(content, bytes) else content.encode('utf-8'))
+            return send_file(
+                byte_stream,
+                mimetype=mime_type,
+                as_attachment=True,
+                download_name=result.get('filename', filename)
+            )
         
         return jsonify(result)
     except Exception as e:

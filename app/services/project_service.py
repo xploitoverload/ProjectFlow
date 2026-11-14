@@ -395,3 +395,20 @@ class ProjectService:
             db.session.add(label)
         
         db.session.commit()
+
+    @staticmethod
+    def get_project_members(project):
+        """
+        Get all active members eligible for assignment in a project.
+        Aggregates members from primary team and secondary assigned teams.
+        """
+        if not project:
+            return []
+        if hasattr(project, 'get_members'):
+            return project.get_members()
+        from app.models import User
+        if project.team_id:
+            return User.query.filter_by(
+                team_id=project.team_id, is_active=True
+            ).all()
+        return []

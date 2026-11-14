@@ -171,14 +171,14 @@ def change_password():
 
 @auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    """Handle password reset with token."""
-    from app.models import User, db
-    from app.utils.security import hash_password, validate_password_strength
+    """Handle password reset with cryptographic token."""
+    from app.models import db
+    from app.utils.security import validate_password_strength
     
-    # Find user with valid token
-    user = User.query.filter_by(reset_token=token).first()
+    # Verify cryptographic reset token
+    user = AuthService.verify_password_reset_token(token)
     
-    if not user or not user.reset_token_expiry or user.reset_token_expiry < datetime.now():
+    if not user:
         flash('Invalid or expired reset link. Please request a new one.', 'error')
         return redirect(url_for('auth.forgot_password'))
     
@@ -201,17 +201,15 @@ def reset_password(token):
             flash(message, 'error')
             return redirect(url_for('auth.reset_password', token=token))
         
-        # Update password and clear token
-        user.password = hash_password(new_password)
-        user.reset_token = None
-        user.reset_token_expiry = None
+        # Update password using Argon2id and reset failed attempts
+        user.set_password(new_password)
         user.failed_login_attempts = 0
         db.session.commit()
         
         log_security_event(
             'PASSWORD_RESET_COMPLETED',
             user_id=user.id,
-            details='Password reset via token',
+            details='Password reset via cryptographic token completed',
             severity='INFO'
         )
         

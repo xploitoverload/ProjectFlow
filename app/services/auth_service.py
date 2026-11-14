@@ -275,35 +275,88 @@ class AuthService:
     @staticmethod
     def generate_password_reset_token(email):
         """
-        Generate password reset token.
+        Generate cryptographically signed, tamper-proof password reset token.
         
         Returns:
             tuple: (success: bool, token: str or None, message: str)
         """
-        from app.models import User, db
+        from app.models import User
+        from itsdangerous import URLSafeTimedSerializer
+        from flask import current_app
         
-        user = User.query.filter_by(email_encrypted=email).first()
+        user = User.find_by_email(email)
         
         # Always return success to prevent email enumeration
         if not user:
             return True, None, 'If the email exists, a reset link will be sent'
         
-        token = generate_secure_token(32)
-        expiry = datetime.utcnow() + timedelta(hours=1)
-        
-        # Store token (implement token storage in User model or separate table)
-        # user.reset_token = token
-        # user.reset_token_expiry = expiry
-        # db.session.commit()
+        import hashlib
+        secret = current_app.config.get(
+            'SECRET_KEY', 'default-projectflow-secret'
+        )
+        serializer = URLSafeTimedSerializer(
+            secret, salt='projectflow-password-reset'
+        )
+        pw_sig = hashlib.sha256(
+            (user.password or '').encode()
+        ).hexdigest()[:16]
+        token = serializer.dumps({
+            'user_id': user.id,
+            'pw_hash': pw_sig
+        })
         
         log_security_event(
             'PASSWORD_RESET_REQUESTED',
             user_id=user.id,
-            details=f'Reset token generated',
+            details='Reset token generated',
             severity='INFO'
         )
         
         return True, token, 'If the email exists, a reset link will be sent'
+
+    @staticmethod
+    def verify_password_reset_token(token, max_age=3600):
+        """
+        Verify cryptographically signed password reset token.
+        Token is invalidated once password is changed.
+        
+        Args:
+            token: URL-safe signed token string
+            max_age: Maximum token age in seconds (default 1 hour)
+            
+        Returns:
+            User model instance if valid, None otherwise
+        """
+        import hashlib
+        from itsdangerous import (
+            URLSafeTimedSerializer, BadSignature, SignatureExpired
+        )
+        from flask import current_app
+        from app.models import User
+        
+        if not token:
+            return None
+            
+        secret = current_app.config.get(
+            'SECRET_KEY', 'default-projectflow-secret'
+        )
+        serializer = URLSafeTimedSerializer(
+            secret, salt='projectflow-password-reset'
+        )
+        try:
+            payload = serializer.loads(token, max_age=max_age)
+            user_id = payload.get('user_id')
+            if not user_id:
+                return None
+            user = User.query.get(user_id)
+            expected_sig = hashlib.sha256(
+                (user.password or '').encode()
+            ).hexdigest()[:16]
+            if user and payload.get('pw_hash') == expected_sig:
+                return user
+        except (BadSignature, SignatureExpired, Exception):
+            return None
+        return None
 
     @staticmethod
     def generate_bearer_token(user, expires_sec=86400):

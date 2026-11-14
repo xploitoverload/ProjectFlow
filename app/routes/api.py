@@ -1078,7 +1078,8 @@ def get_burndown_data(project_id):
         
     issues = Issue.query.filter_by(sprint_id=sprint.id).all()
     total_points = sum(i.story_points or 1 for i in issues)
-    completed_points = sum(i.story_points or 1 for i in issues if i.status == 'done')
+    done_statuses = {'done', 'closed', 'resolved'}
+    completed_points = sum(i.story_points or 1 for i in issues if (i.status or '').lower() in done_statuses)
     remaining_points = total_points - completed_points
     
     return jsonify({
@@ -1091,7 +1092,7 @@ def get_burndown_data(project_id):
             'completed_points': completed_points,
             'remaining_points': remaining_points,
             'total_issues': len(issues),
-            'completed_issues': len([i for i in issues if i.status == 'done']),
+            'completed_issues': len([i for i in issues if (i.status or '').lower() in done_statuses]),
             'start_date': sprint.start_date.isoformat(),
             'end_date': sprint.end_date.isoformat()
         }
@@ -1109,11 +1110,12 @@ def get_velocity_data(project_id):
         return jsonify({'success': False, 'error': 'Project not found'}), 404
         
     sprints = Sprint.query.filter_by(project_id=project_id).order_by(Sprint.start_date.asc()).limit(10).all()
+    done_statuses = {'done', 'closed', 'resolved'}
     history = []
     for s in sprints:
         issues = Issue.query.filter_by(sprint_id=s.id).all()
         committed = sum(i.story_points or 1 for i in issues)
-        completed = sum(i.story_points or 1 for i in issues if i.status == 'done')
+        completed = sum(i.story_points or 1 for i in issues if (i.status or '').lower() in done_statuses)
         history.append({
             'sprint_id': s.id,
             'sprint_name': s.name,
