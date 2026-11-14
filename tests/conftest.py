@@ -5,21 +5,14 @@ Pytest configuration and fixtures for test suite.
 
 import pytest
 import os
-import tempfile
 from app import create_app
-from app.models import db, User, Project, Issue
-from datetime import datetime
+from app.models import db, User, Project, Issue, Team, Sprint, Epic
 
 
 @pytest.fixture
 def app():
     """Create and configure a test app instance."""
-    # Create a temporary database in temp directory
-    db_dir = tempfile.gettempdir()
-    db_path = os.path.join(db_dir, 'test_pm_db.db')
-    
     app = create_app('testing')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
     
@@ -28,12 +21,7 @@ def app():
         yield app
         db.session.remove()
         db.drop_all()
-    
-    # Clean up
-    try:
-        os.unlink(db_path)
-    except:
-        pass
+        db.engine.dispose()
 
 
 @pytest.fixture
@@ -60,6 +48,8 @@ def auth_user(app):
         user.set_password('SecurePass123!')
         db.session.add(user)
         db.session.commit()
+        # Expunge or return detached object
+        db.session.refresh(user)
         return user
 
 
@@ -75,18 +65,32 @@ def admin_user(app):
         user.set_password('AdminPass123!')
         db.session.add(user)
         db.session.commit()
+        db.session.refresh(user)
         return user
 
 
 @pytest.fixture
-def auth_headers(client, auth_user):
-    """Get auth headers by logging in."""
-    response = client.post(
-        '/login',
-        data={'username': 'testuser', 'password': 'SecurePass123!'},
-        follow_redirects=True
-    )
-    return {'Authorization': f'Bearer {response.get_json().get("token")}'}
+def auth_headers(app, auth_user):
+    """Get auth headers with signed bearer token."""
+    with app.app_context():
+        from app.services.auth_service import AuthService
+        token = AuthService.generate_bearer_token(auth_user)
+        return {
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json'
+        }
+
+
+@pytest.fixture
+def admin_headers(app, admin_user):
+    """Get admin auth headers with signed bearer token."""
+    with app.app_context():
+        from app.services.auth_service import AuthService
+        token = AuthService.generate_bearer_token(admin_user)
+        return {
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json'
+        }
 
 
 @pytest.fixture
@@ -95,12 +99,15 @@ def test_project(app, auth_user):
     with app.app_context():
         project = Project(
             name='Test Project',
+            key='TST',
             description='Test Description',
-            owner_id=auth_user.id,
+            created_by=auth_user.id,
+            lead_id=auth_user.id,
             status='active'
         )
         db.session.add(project)
         db.session.commit()
+        db.session.refresh(project)
         return project
 
 
@@ -109,14 +116,16 @@ def test_issue(app, test_project, auth_user):
     """Create and return a test issue."""
     with app.app_context():
         issue = Issue(
+            key='TST-1',
             title='Test Issue',
             description='Test Issue Description',
             project_id=test_project.id,
-            status='pending',
+            status='todo',
             priority='high',
-            created_by=auth_user.id,
+            reporter_id=auth_user.id,
             assignee_id=auth_user.id
         )
         db.session.add(issue)
         db.session.commit()
+        db.session.refresh(issue)
         return issue

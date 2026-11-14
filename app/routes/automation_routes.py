@@ -14,20 +14,13 @@ from app.automation.workflow import (
     ActionType,
 )
 
+from app.middleware.auth import api_auth_required
+
 logger = logging.getLogger(__name__)
 
 automation_bp = Blueprint('automation', __name__, url_prefix='/api/v1/automation')
 
-
-def require_auth(f):
-    """Require authentication"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        token = request.headers.get('Authorization', '')
-        if not token:
-            return jsonify({'error': 'Unauthorized'}), 401
-        return f(*args, **kwargs)
-    return decorated_function
+require_auth = api_auth_required
 
 
 # ============================================================================

@@ -204,7 +204,7 @@ class IssueService:
     @staticmethod
     def delete_issue(issue_id, deleted_by=None):
         """Delete an issue."""
-        from app.models import Issue, db
+        from app.models import Issue, IssueLink, db
         
         try:
             issue = Issue.query.get(issue_id)
@@ -213,6 +213,11 @@ class IssueService:
             
             issue_key = issue.key
             project_id = issue.project_id
+            
+            # Clean up links explicitly
+            IssueLink.query.filter(
+                (IssueLink.source_issue_id == issue_id) | (IssueLink.target_issue_id == issue_id)
+            ).delete(synchronize_session=False)
             
             db.session.delete(issue)
             db.session.commit()

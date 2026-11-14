@@ -37,6 +37,10 @@ def check_project_access(project_id):
     if user.role in ['admin', 'super_admin']:
         return True, project
     
+    # Project creator or project lead can access
+    if project.created_by == user.id or project.lead_id == user.id:
+        return True, project
+    
     # Check team membership
     if project.team_id and user.team_id == project.team_id:
         return True, project
@@ -49,6 +53,42 @@ def check_project_access(project_id):
         severity='WARNING'
     )
     return False, None
+
+
+# ============= AUTHENTICATION & TOKEN APIs =============
+
+@api_bp.route('/auth/token', methods=['POST'])
+def obtain_token():
+    """
+    Obtain a cryptographically signed Bearer API token.
+    Accepts JSON: {"username": "...", "password": "..."}
+    or uses current authenticated session.
+    """
+    from app.services.auth_service import AuthService
+    
+    data = request.get_json(silent=True) or {}
+    username = data.get('username')
+    password = data.get('password')
+    
+    user = None
+    if username and password:
+        success, user, message = AuthService.authenticate(username, password)
+        if not success:
+            return jsonify({'success': False, 'error': message}), 401
+    elif session.get('user_id'):
+        user = User.query.get(session['user_id'])
+    
+    if not user:
+        return jsonify({'success': False, 'error': 'Missing credentials or active session'}), 401
+        
+    token = AuthService.generate_bearer_token(user, expires_sec=86400)
+    return jsonify({
+        'success': True,
+        'token': token,
+        'token_type': 'Bearer',
+        'expires_in': 86400,
+        'user': user.to_dict()
+    }), 200
 
 
 # ============= PROJECT APIs =============
@@ -75,6 +115,50 @@ def get_projects():
             'end_date': p.end_date.isoformat() if p.end_date else None
         } for p in projects]
     })
+
+
+@api_bp.route('/projects', methods=['POST'])
+@api_auth_required
+def create_project_api():
+    """Create a new project via API."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Request body must be JSON'}), 400
+        
+    name = data.get('name')
+    if not name:
+        return jsonify({'success': False, 'error': 'Field name is required'}), 400
+        
+    key = data.get('key')
+    description = data.get('description', '')
+    status = data.get('status', 'Not Started')
+    workflow_type = data.get('workflow_type', 'agile')
+    team_id = data.get('team_id')
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
+    user_id = session.get('user_id')
+    
+    success, project, message = ProjectService.create_project(
+        name=name,
+        key=key,
+        description=description,
+        status=status,
+        workflow_type=workflow_type,
+        team_id=team_id,
+        start_date=start_date,
+        end_date=end_date,
+        created_by=user_id,
+        lead_id=user_id
+    )
+    
+    if not success:
+        return jsonify({'success': False, 'error': message}), 400
+        
+    return jsonify({
+        'success': True,
+        'data': project.to_dict(),
+        'message': 'Project created successfully'
+    }), 201
 
 
 @api_bp.route('/project/<int:project_id>', methods=['GET'])
@@ -176,6 +260,68 @@ def get_issues(project_id):
             'due_date': i.due_date.isoformat() if i.due_date else None
         } for i in issues]
     })
+
+
+@api_bp.route('/project/<int:project_id>/issues', methods=['POST'])
+@api_auth_required
+def create_issue_api(project_id):
+    """Create a new issue in a project via API."""
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found or access denied'}), 404
+        
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Request body must be JSON'}), 400
+        
+    title = data.get('title')
+    if not title:
+        return jsonify({'success': False, 'error': 'Field title is required'}), 400
+        
+    description = data.get('description')
+    issue_type = data.get('issue_type', 'task')
+    priority = data.get('priority', 'medium')
+    status = data.get('status', 'todo')
+    assignee_id = data.get('assignee_id')
+    sprint_id = data.get('sprint_id')
+    epic_id = data.get('epic_id')
+    story_points = data.get('story_points')
+    due_date = data.get('due_date')
+    reporter_id = session.get('user_id')
+    
+    success, issue, message = IssueService.create_issue(
+        project_id=project_id,
+        title=title,
+        description=description,
+        issue_type=issue_type,
+        priority=priority,
+        status=status,
+        assignee_id=assignee_id,
+        reporter_id=reporter_id,
+        story_points=story_points,
+        due_date=due_date,
+        sprint_id=sprint_id,
+        epic_id=epic_id
+    )
+    
+    if not success:
+        return jsonify({'success': False, 'error': message}), 400
+        
+    # Trigger automation workflows if configured
+    try:
+        from app.automation.workflow import workflow_engine, TriggerType
+        workflow_engine.trigger_workflow(
+            TriggerType.ISSUE_CREATED,
+            issue.to_dict()
+        )
+    except Exception:
+        pass
+        
+    return jsonify({
+        'success': True,
+        'data': issue.to_dict(),
+        'message': 'Issue created successfully'
+    }), 201
 
 
 @api_bp.route('/project/<int:project_id>/issue/<int:issue_id>', methods=['GET'])
@@ -755,6 +901,209 @@ def delete_notification(notification_id):
     return jsonify({
         'success': True,
         'message': 'Notification deleted'
+    })
+
+
+# ============= SPRINT & EPIC APIs =============
+
+@api_bp.route('/project/<int:project_id>/sprints', methods=['GET', 'POST'])
+@api_auth_required
+def manage_sprints_api(project_id):
+    """List or create sprints for a project."""
+    from app.models import Sprint
+    from datetime import datetime
+    
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    if request.method == 'GET':
+        sprints = Sprint.query.filter_by(project_id=project_id).order_by(Sprint.created_at.desc()).all()
+        return jsonify({
+            'success': True,
+            'data': [s.to_dict() for s in sprints]
+        })
+        
+    data = request.get_json() or {}
+    name = data.get('name')
+    if not name:
+        return jsonify({'success': False, 'error': 'Field name is required'}), 400
+        
+    start_date_str = data.get('start_date')
+    end_date_str = data.get('end_date')
+    
+    now = datetime.utcnow()
+    start_date = datetime.fromisoformat(start_date_str) if start_date_str else now
+    end_date = datetime.fromisoformat(end_date_str) if end_date_str else now
+    
+    sprint = Sprint(
+        name=name,
+        project_id=project_id,
+        start_date=start_date,
+        end_date=end_date,
+        goal=data.get('goal', ''),
+        status=data.get('status', 'planned')
+    )
+    db.session.add(sprint)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'data': sprint.to_dict(),
+        'message': 'Sprint created successfully'
+    }), 201
+
+
+@api_bp.route('/project/<int:project_id>/epics', methods=['GET', 'POST'])
+@api_auth_required
+def manage_epics_api(project_id):
+    """List or create epics for a project."""
+    from app.models import Epic
+    
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    if request.method == 'GET':
+        epics = Epic.query.filter_by(project_id=project_id).order_by(Epic.created_at.desc()).all()
+        return jsonify({
+            'success': True,
+            'data': [e.to_dict() for e in epics]
+        })
+        
+    data = request.get_json() or {}
+    name = data.get('name')
+    if not name:
+        return jsonify({'success': False, 'error': 'Field name is required'}), 400
+        
+    epic = Epic(
+        name=name,
+        project_id=project_id,
+        color=data.get('color', '#0052cc'),
+        status=data.get('status', 'active')
+    )
+    if data.get('description'):
+        epic.description = data.get('description')
+        
+    db.session.add(epic)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'data': epic.to_dict(),
+        'message': 'Epic created successfully'
+    }), 201
+
+
+# ============= AUDIT LEDGER VERIFICATION API =============
+
+@api_bp.route('/audit/ledger/verify', methods=['GET'])
+@api_auth_required
+def verify_audit_ledger_api():
+    """
+    Verify the cryptographic SHA-256 tamper-evident audit ledger integrity.
+    Ring 0 Systems-grade verification endpoint.
+    """
+    import time
+    from app.services.audit_service import AuditService
+    from app.models import AuditLog
+    
+    t0 = time.perf_counter()
+    is_valid, broken_id, message = AuditService.verify_ledger_integrity()
+    latency_ms = round((time.perf_counter() - t0) * 1000, 3)
+    
+    total_records = AuditLog.query.count()
+    latest_block = AuditLog.query.order_by(AuditLog.id.desc()).first()
+    
+    return jsonify({
+        'success': True,
+        'verified': is_valid,
+        'total_records': total_records,
+        'broken_at_id': broken_id,
+        'latest_block_hash': latest_block.record_hash if latest_block else None,
+        'latency_ms': latency_ms,
+        'message': message
+    }), 200
+
+
+# ============= AGILE ANALYTICS APIs =============
+
+@api_bp.route('/analytics/burndown/<int:project_id>', methods=['GET'])
+@api_auth_required
+def get_burndown_data(project_id):
+    """Calculate Agile burndown chart metrics for active sprint."""
+    from app.models import Sprint, Issue
+    
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    sprint_id = request.args.get('sprint_id', type=int)
+    if sprint_id:
+        sprint = Sprint.query.filter_by(id=sprint_id, project_id=project_id).first()
+    else:
+        sprint = Sprint.query.filter_by(project_id=project_id, status='active').first()
+        if not sprint:
+            sprint = Sprint.query.filter_by(project_id=project_id).order_by(Sprint.created_at.desc()).first()
+        
+    if not sprint:
+        return jsonify({'success': False, 'error': 'No sprint found for project'}), 404
+        
+    issues = Issue.query.filter_by(sprint_id=sprint.id).all()
+    total_points = sum(i.story_points or 1 for i in issues)
+    completed_points = sum(i.story_points or 1 for i in issues if i.status == 'done')
+    remaining_points = total_points - completed_points
+    
+    return jsonify({
+        'success': True,
+        'data': {
+            'project_id': project_id,
+            'sprint_id': sprint.id,
+            'sprint_name': sprint.name,
+            'total_story_points': total_points,
+            'completed_points': completed_points,
+            'remaining_points': remaining_points,
+            'total_issues': len(issues),
+            'completed_issues': len([i for i in issues if i.status == 'done']),
+            'start_date': sprint.start_date.isoformat(),
+            'end_date': sprint.end_date.isoformat()
+        }
+    })
+
+
+@api_bp.route('/analytics/velocity/<int:project_id>', methods=['GET'])
+@api_auth_required
+def get_velocity_data(project_id):
+    """Calculate Agile sprint velocity across sprint history."""
+    from app.models import Sprint, Issue
+    
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    sprints = Sprint.query.filter_by(project_id=project_id).order_by(Sprint.start_date.asc()).limit(10).all()
+    history = []
+    for s in sprints:
+        issues = Issue.query.filter_by(sprint_id=s.id).all()
+        committed = sum(i.story_points or 1 for i in issues)
+        completed = sum(i.story_points or 1 for i in issues if i.status == 'done')
+        history.append({
+            'sprint_id': s.id,
+            'sprint_name': s.name,
+            'committed_points': committed,
+            'completed_points': completed,
+            'status': s.status
+        })
+        
+    avg_velocity = (sum(h['completed_points'] for h in history) / len(history)) if history else 0
+    
+    return jsonify({
+        'success': True,
+        'data': {
+            'project_id': project_id,
+            'average_velocity': round(avg_velocity, 1),
+            'sprint_history': history
+        }
     })
 
 
