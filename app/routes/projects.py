@@ -172,11 +172,16 @@ def add_issue(project_id):
 @login_required
 @project_access_required
 def delete_issue(project_id, issue_id):
-    """Delete an issue."""
+    """Delete an issue with strict cross-project verification."""
+    from app.models import Issue
     csrf_token = request.form.get('csrf_token')
     if not validate_csrf_token(csrf_token):
         flash('Security error. Please try again.', 'error')
         return redirect(url_for('projects.project_kanban', project_id=project_id))
+    
+    issue = Issue.query.get_or_404(issue_id)
+    if issue.project_id != project_id:
+        abort(404)
     
     success, message = IssueService.delete_issue(
         issue_id=issue_id,
@@ -563,22 +568,27 @@ def delete_attachment(project_id, issue_id, attachment_id):
     
     # Check authorization: owner, admin, or manager
     user_role = session.get('role', 'user')
-    is_owner = check_ownership(attachment, session.get('user_id'), 'uploaded_by')
+    user_id = session.get('user_id')
+    is_owner = (attachment.user_id == user_id) or check_ownership(attachment, user_id, 'user_id')
     is_privileged = user_role in ['admin', 'super_admin', 'manager']
     
     if not is_owner and not is_privileged:
         log_security_event(
             'UNAUTHORIZED_DELETE_ATTEMPT',
-            user_id=session.get('user_id'),
+            user_id=user_id,
             details=f"Unauthorized attempt to delete attachment {attachment_id}",
             severity='WARNING'
         )
         flash('You do not have permission to delete this attachment', 'error')
         return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
     
-    # Delete file from disk
-    if os.path.exists(attachment.filepath):
-        os.remove(attachment.filepath)
+    # Delete file from disk safely
+    target_path = attachment.file_path or getattr(attachment, 'filepath', None)
+    if target_path and os.path.exists(target_path):
+        try:
+            os.remove(target_path)
+        except OSError:
+            pass
     
     db.session.delete(attachment)
     db.session.commit()
@@ -1020,15 +1030,16 @@ def add_comment(project_id, issue_id):
         flash('Comment cannot be empty', 'error')
         return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
     
-    comment = Comment(
+    success, comment, message = IssueService.add_comment(
         issue_id=issue_id,
-        author_id=session['user_id'],
-        content=content
+        user_id=session['user_id'],
+        text=content
     )
-    db.session.add(comment)
-    db.session.commit()
     
-    flash('Comment added successfully', 'success')
+    if success:
+        flash('Comment added successfully', 'success')
+    else:
+        flash(message, 'error')
     return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
 
 
@@ -1051,13 +1062,14 @@ def delete_comment(project_id, issue_id, comment_id):
     
     # Check authorization: owner, admin, or manager
     user_role = session.get('role', 'user')
-    is_owner = check_ownership(comment, session.get('user_id'), 'author_id')
+    user_id = session.get('user_id')
+    is_owner = (comment.user_id == user_id) or check_ownership(comment, user_id, 'user_id')
     is_privileged = user_role in ['admin', 'super_admin', 'manager']
     
     if not is_owner and not is_privileged:
         log_security_event(
             'UNAUTHORIZED_DELETE_ATTEMPT',
-            user_id=session.get('user_id'),
+            user_id=user_id,
             details=f"Unauthorized attempt to delete comment {comment_id}",
             severity='WARNING'
         )

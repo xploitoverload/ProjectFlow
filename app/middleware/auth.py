@@ -244,6 +244,7 @@ def project_access_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         from app.models import User, Project
+        from app.services.project_service import ProjectService
         
         is_valid, message = _check_session_valid()
         
@@ -258,20 +259,7 @@ def project_access_required(f):
         user = User.query.get(session['user_id'])
         project = Project.query.get_or_404(project_id)
         
-        # Admins and super_admins have access to all projects
-        if user.role in ['admin', 'super_admin']:
-            return f(*args, **kwargs)
-        
-        # Project creators and project leads have access to their projects
-        if project.created_by == user.id or project.lead_id == user.id:
-            return f(*args, **kwargs)
-        
-        # Managers can access projects they manage
-        if user.role == 'manager' and project.created_by == user.id:
-            return f(*args, **kwargs)
-        
-        # Team members can access their team's projects
-        if user.team_id and project.team_id == user.team_id:
+        if ProjectService.user_has_access(user, project):
             return f(*args, **kwargs)
         
         log_security_event(

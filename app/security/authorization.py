@@ -123,28 +123,44 @@ def has_role_level(minimum_role: str) -> bool:
     return user_level >= required_level
 
 
-def check_ownership(model_class, resource_id: int, owner_field: str = 'created_by') -> bool:
+def check_ownership(resource_or_class, resource_id: int = None, owner_field: str = 'created_by') -> bool:
     """
     Verify that current user owns a specific resource.
+    Supports both model classes (querying by resource_id) and directly passed resource instances.
     
     Args:
-        model_class: SQLAlchemy model class
-        resource_id: ID of the resource to check
+        resource_or_class: SQLAlchemy model class or resource instance
+        resource_id: ID of the resource to check (if model class passed)
         owner_field: Field name containing owner user ID
         
     Returns:
-        bool: True if user owns the resource
+        bool: True if current user owns the resource
     """
     user_id = get_current_user_id()
     if not user_id:
         return False
     
-    resource = model_class.query.get(resource_id)
+    if isinstance(resource_or_class, type):
+        # Passed a Model class (e.g., Comment, Project)
+        if resource_id is None:
+            return False
+        resource = resource_or_class.query.get(resource_id)
+    else:
+        # Passed an already queried model instance
+        resource = resource_or_class
+        
     if not resource:
         return False
     
-    owner_id = getattr(resource, owner_field, None)
-    return owner_id == user_id
+    # Check specified field first, then standard alternatives
+    fields_to_check = [owner_field, 'user_id', 'created_by', 'author_id', 'uploaded_by']
+    for field in fields_to_check:
+        if hasattr(resource, field):
+            val = getattr(resource, field)
+            if val is not None and val == user_id:
+                return True
+                
+    return False
 
 
 def check_resource_access(model_class, resource_id: int, 

@@ -21,6 +21,7 @@ api_bp = Blueprint('api', __name__)
 def check_project_access(project_id):
     """
     Check if the current user has access to a project.
+    Delegates to ProjectService.user_has_access for single authoritative policy (DRY).
     Returns (has_access: bool, project: Project or None).
     """
     from app.models import User
@@ -33,19 +34,10 @@ def check_project_access(project_id):
     if not project:
         return False, None
     
-    # Admin/super_admin can access all
-    if user.role in ['admin', 'super_admin']:
+    if ProjectService.user_has_access(user, project):
         return True, project
     
-    # Project creator or project lead can access
-    if project.created_by == user.id or project.lead_id == user.id:
-        return True, project
-    
-    # Check team membership
-    if project.team_id and user.team_id == project.team_id:
-        return True, project
-    
-    # Log suspicious access
+    # Log suspicious unauthorized access
     log_security_event(
         'IDOR_ATTEMPT',
         user_id=user.id,
@@ -314,8 +306,9 @@ def create_issue_api(project_id):
             TriggerType.ISSUE_CREATED,
             issue.to_dict()
         )
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Workflow execution on issue creation encountered an error: %s", e)
         
     return jsonify({
         'success': True,

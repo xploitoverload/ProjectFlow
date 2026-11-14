@@ -43,7 +43,7 @@ def decrypt_field(data):
         return None
     try:
         return cipher.decrypt(data.encode()).decode()
-    except:
+    except (ValueError, TypeError, Exception):
         return None
 
 # Many-to-many relationship between Projects and Teams
@@ -63,7 +63,7 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False, index=True)  # Extended for more roles
     department = db.Column(db.String(50), index=True)  # Auto-derived from role: software, hardware, mechanical, etc.
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'))  # Core team assignment
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='SET NULL'), index=True)  # Core team assignment
     avatar_color = db.Column(db.String(7), default='#667eea')  # For avatar gradients
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     failed_login_attempts = db.Column(db.Integer, default=0)
@@ -269,12 +269,12 @@ class Sprint(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=False, index=True)
     start_date = db.Column(db.DateTime, nullable=False)
     end_date = db.Column(db.DateTime, nullable=False)
     goal = db.Column(db.Text)
-    status = db.Column(db.String(20), default='planned')  # planned, active, completed
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='planned', index=True)  # planned, active, completed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     
     issues = db.relationship('Issue', backref='sprint', lazy=True)
     
@@ -302,12 +302,12 @@ class Epic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description_encrypted = db.Column(db.Text)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=False, index=True)
     color = db.Column(db.String(7), default='#0052cc')
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
-    status = db.Column(db.String(20), default='active')  # active, completed
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='active', index=True)  # active, completed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     
     issues = db.relationship('Issue', backref='epic', lazy=True)
     
@@ -377,16 +377,16 @@ class Issue(db.Model):
     
     # Relationships
     project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=False, index=True)
-    epic_id = db.Column(db.Integer, db.ForeignKey('epic.id', ondelete='SET NULL'))
-    sprint_id = db.Column(db.Integer, db.ForeignKey('sprint.id', ondelete='SET NULL'))
-    assignee_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))
-    reporter_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))
-    parent_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'))  # For subtasks
+    epic_id = db.Column(db.Integer, db.ForeignKey('epic.id', ondelete='SET NULL'), index=True)
+    sprint_id = db.Column(db.Integer, db.ForeignKey('sprint.id', ondelete='SET NULL'), index=True)
+    assignee_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), index=True)
+    reporter_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), index=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), index=True)  # For subtasks
     
     # Issue details
-    issue_type = db.Column(db.String(20), default='task')  # story, task, bug, epic, subtask
+    issue_type = db.Column(db.String(20), default='task', index=True)  # story, task, bug, epic, subtask
     status = db.Column(db.String(20), default='open', index=True)  # open, todo, in_progress, code_review, testing, ready_deploy, done, closed, reopened
-    priority = db.Column(db.String(20), default='medium')  # lowest, low, medium, high, highest, critical
+    priority = db.Column(db.String(20), default='medium', index=True)  # lowest, low, medium, high, highest, critical
     
     # Agile fields
     story_points = db.Column(db.Integer)  # 1, 2, 3, 5, 8, 13, 21
@@ -408,7 +408,14 @@ class Issue(db.Model):
     end_date = db.Column(db.DateTime)    # For Gantt chart
     
     # Kanban ordering
-    position = db.Column(db.Integer, default=0)
+    position = db.Column(db.Integer, default=0, index=True)
+    
+    # Composite indexes for Kanban, Backlog, and User performance
+    __table_args__ = (
+        db.Index('ix_issue_project_status_pos', 'project_id', 'status', 'position'),
+        db.Index('ix_issue_sprint_status', 'sprint_id', 'status'),
+        db.Index('ix_issue_assignee_status', 'assignee_id', 'status'),
+    )
     
     # Relationships
     assignee = db.relationship('User', foreign_keys=[assignee_id], backref='assigned_issues')
@@ -470,14 +477,18 @@ class IssueLink(db.Model):
     __tablename__ = 'issue_link'
     
     id = db.Column(db.Integer, primary_key=True)
-    source_issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False)
-    target_issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False)
+    source_issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False, index=True)
+    target_issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False, index=True)
     link_type = db.Column(db.String(20), nullable=False)  # blocks, is_blocked_by, relates_to, duplicates, clones
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     
     source_issue = db.relationship('Issue', foreign_keys=[source_issue_id], backref=db.backref('outgoing_links', cascade='all, delete-orphan'))
     target_issue = db.relationship('Issue', foreign_keys=[target_issue_id], backref=db.backref('incoming_links', cascade='all, delete-orphan'))
+    
+    __table_args__ = (
+        db.UniqueConstraint('source_issue_id', 'target_issue_id', 'link_type', name='uq_issue_link'),
+    )
     
     def __repr__(self):
         return f'<IssueLink {self.source_issue_id} -> {self.target_issue_id}>'
@@ -487,10 +498,10 @@ class Comment(db.Model):
     __tablename__ = 'comment'
     
     id = db.Column(db.Integer, primary_key=True)
-    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
     text_encrypted = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     edited = db.Column(db.Boolean, default=False)
     
@@ -503,6 +514,22 @@ class Comment(db.Model):
     @text.setter
     def text(self, value):
         self.text_encrypted = encrypt_field(value)
+    
+    @property
+    def content(self):
+        return self.text
+    
+    @content.setter
+    def content(self, value):
+        self.text = value
+        
+    @property
+    def author_id(self):
+        return self.user_id
+        
+    @author_id.setter
+    def author_id(self, value):
+        self.user_id = value
     
     def to_dict(self):
         """Serialize comment to dictionary"""
@@ -525,15 +552,20 @@ class Attachment(db.Model):
     __tablename__ = 'attachment'
     
     id = db.Column(db.Integer, primary_key=True)
-    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
     filename = db.Column(db.String(255), nullable=False)
     file_path = db.Column(db.String(500), nullable=False)
     file_size = db.Column(db.Integer)
     mime_type = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     
     user = db.relationship('User', backref='attachments')
+    
+    @property
+    def filepath(self):
+        """Alias for file_path for backwards compatibility"""
+        return self.file_path
     
     def __repr__(self):
         return f'<Attachment {self.filename}>'
@@ -543,11 +575,15 @@ class IssueWatcher(db.Model):
     __tablename__ = 'issue_watcher'
     
     id = db.Column(db.Integer, primary_key=True)
-    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     user = db.relationship('User', backref='watched_issues')
+    
+    __table_args__ = (
+        db.UniqueConstraint('issue_id', 'user_id', name='uq_issue_watcher'),
+    )
     
     def __repr__(self):
         return f'<IssueWatcher user:{self.user_id} issue:{self.issue_id}>'
@@ -557,10 +593,10 @@ class WorkflowTransition(db.Model):
     __tablename__ = 'workflow_transition'
     
     id = db.Column(db.Integer, primary_key=True)
-    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False)
+    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False, index=True)
     from_status = db.Column(db.String(20), nullable=False)
     to_status = db.Column(db.String(20), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
     comment = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     
@@ -637,6 +673,10 @@ class AuditLog(db.Model):
     # Cryptographic hash chain (blockchain/git style tamper detection)
     prev_hash = db.Column(db.String(64), nullable=True)
     record_hash = db.Column(db.String(64), nullable=True, index=True)
+    
+    __table_args__ = (
+        db.Index('ix_audit_user_ts', 'user_id', 'timestamp'),
+    )
     
     @property
     def details(self):

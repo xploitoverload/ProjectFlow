@@ -41,10 +41,15 @@ class NotificationService:
             related_id=related_id
         )
         
-        db.session.add(notification)
-        db.session.commit()
-        
-        return notification
+        try:
+            db.session.add(notification)
+            db.session.commit()
+            return notification
+        except Exception as e:
+            db.session.rollback()
+            import logging
+            logging.getLogger(__name__).error("Failed to create notification: %s", e)
+            return None
     
     @staticmethod
     def get_notifications(user_id, limit=50, unread_only=False):
