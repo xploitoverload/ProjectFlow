@@ -54,7 +54,26 @@ def dashboard():
     else:
         teams = [user.team] if user.team else []
     
-    # Calculate statistics
+    # Calculate statistics across user's projects
+    all_issues = []
+    for p in projects:
+        if p.issues:
+            all_issues.extend(p.issues)
+
+    total_issues = len(all_issues)
+    completed_issues = sum(1 for i in all_issues if i.status in ['done', 'closed'])
+    in_progress_issues = sum(1 for i in all_issues if i.status in ['in_progress', 'code_review', 'testing'])
+    open_issues = sum(1 for i in all_issues if i.status in ['open', 'todo', 'reopened'])
+
+    issue_stats = {
+        'total': total_issues,
+        'completed': completed_issues,
+        'in_progress': in_progress_issues,
+        'open': open_issues,
+        'rate': int((completed_issues / total_issues * 100)) if total_issues > 0 else 0
+    }
+
+    # Calculate project statistics
     stats = {
         'total': len(projects),
         'not_started': len([p for p in projects if p.status == 'Not Started']),
@@ -73,6 +92,7 @@ def dashboard():
                           projects=projects,
                           teams=teams,
                           stats=stats,
+                          issue_stats=issue_stats,
                           gantt_data=gantt_data)
 
 

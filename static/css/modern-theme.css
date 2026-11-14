@@ -160,6 +160,8 @@
   --text-primary: var(--dark-text);
   --text-secondary: var(--dark-text-secondary);
   --border-color: var(--dark-border);
+  --border-primary: var(--dark-border);
+  --border-secondary: var(--dark-border-muted);
   --border-muted: var(--dark-border-muted);
 }
 
@@ -172,6 +174,8 @@ body[data-theme="light"] {
   --text-primary: var(--light-text);
   --text-secondary: var(--light-text-secondary);
   --border-color: var(--light-border);
+  --border-primary: var(--light-border);
+  --border-secondary: var(--light-border-muted);
   --border-muted: var(--light-border-muted);
 }
 

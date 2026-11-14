@@ -4,7 +4,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: #fff;
+    background: var(--bg-secondary, #12151E);
 }
 
 /* Header */
@@ -13,7 +13,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .calendar-nav {
@@ -26,7 +26,7 @@
     margin: 0;
     font-size: 20px;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .calendar-controls {
@@ -38,7 +38,7 @@
 .view-mode-buttons {
     display: flex;
     gap: 4px;
-    background: #f3f4f6;
+    background: var(--bg-tertiary, #181B24);
     padding: 4px;
     border-radius: 6px;
 }
@@ -50,12 +50,12 @@
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
     transition: all 0.2s;
 }
 
 .view-btn.active {
-    background: #fff;
+    background: var(--bg-secondary, #12151E);
     color: #0969da;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
@@ -68,12 +68,12 @@
 
 .color-by-selector label {
     font-size: 14px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
 }
 
 .color-by-selector select {
     padding: 6px 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
     border-radius: 6px;
     font-size: 14px;
 }
@@ -89,8 +89,8 @@
 .mini-calendar {
     width: 280px;
     padding: 20px;
-    border-right: 1px solid #e5e7eb;
-    background: #f9fafb;
+    border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+    background: var(--bg-primary, #0B0D14);
 }
 
 .mini-calendar-header {
@@ -102,7 +102,7 @@
 
 .mini-calendar-header span {
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .mini-calendar-grid {
@@ -115,7 +115,7 @@
     text-align: center;
     font-size: 12px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
     padding: 8px 0;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .mini-day:hover {
-    background: #e5e7eb;
+    background: var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .mini-day.today {
@@ -160,7 +160,7 @@
 }
 
 .mini-day.empty {
-    color: #d1d5db;
+    color: var(--border-color, rgba(255, 255, 255, 0.12));
 }
 
 /* Month View */
@@ -174,15 +174,15 @@
 .month-header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
+    background: var(--bg-primary, #0B0D14);
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .day-header {
     padding: 12px;
     text-align: center;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
     font-size: 14px;
 }
 
@@ -194,19 +194,19 @@
 }
 
 .day-cell {
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
     padding: 8px;
     min-height: 120px;
-    background: #fff;
+    background: var(--bg-secondary, #12151E);
     overflow: hidden;
 }
 
 .day-cell.today {
-    background: #f0f9ff;
+    background: rgba(56, 189, 248, 0.1);
 }
 
 .day-cell.empty {
-    background: #f9fafb;
+    background: var(--bg-primary, #0B0D14);
 }
 
 .day-number {
@@ -214,7 +214,7 @@
     justify-content: space-between;
     align-items: center;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
     margin-bottom: 8px;
 }
 
@@ -236,7 +236,7 @@
     font-size: 12px;
     cursor: pointer;
     background: rgba(9, 105, 218, 0.1);
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -270,20 +270,20 @@
 .week-header {
     display: grid;
     grid-template-columns: 80px repeat(7, 1fr);
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
+    background: var(--bg-primary, #0B0D14);
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .time-column-header {
     padding: 12px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
 }
 
 .week-day-header {
     padding: 12px;
     text-align: center;
-    border-left: 1px solid #e5e7eb;
+    border-left: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .week-day-header.today {
@@ -292,13 +292,13 @@
 
 .day-name {
     font-weight: 600;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
     font-size: 14px;
 }
 
 .day-number {
     font-size: 20px;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
     margin-top: 4px;
 }
 
@@ -310,7 +310,7 @@
 }
 
 .time-column {
-    border-right: 1px solid #e5e7eb;
+    border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .time-slot {
@@ -323,7 +323,7 @@
 
 .week-day {
     position: relative;
-    border-left: 1px solid #e5e7eb;
+    border-left: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .week-time-slot {
@@ -376,13 +376,13 @@
     grid-template-columns: 100px 1fr;
     gap: 16px;
     min-height: 80px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .hour-label {
     padding: 8px 0;
     font-size: 14px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
     font-weight: 500;
 }
 
@@ -454,7 +454,7 @@
 .agenda-day-number {
     font-size: 36px;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .agenda-day-name {
@@ -465,7 +465,7 @@
 
 .agenda-day-name > div:first-child {
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .agenda-month {
@@ -483,8 +483,8 @@
     display: flex;
     gap: 16px;
     padding: 16px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    background: var(--bg-secondary, #12151E);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
@@ -506,13 +506,13 @@
 
 .event-details .event-title {
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
     margin-bottom: 4px;
 }
 
 .event-details .event-time {
     font-size: 14px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
     margin-bottom: 8px;
 }
 
@@ -526,9 +526,9 @@
 .event-priority,
 .event-assignee {
     padding: 4px 8px;
-    background: #f3f4f6;
+    background: var(--bg-tertiary, #181B24);
     border-radius: 4px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
 }
 
 /* Responsive */

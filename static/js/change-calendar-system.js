@@ -587,5 +587,6 @@ class ChangeCalendarSystem {
     }
 }
 
-// Initialize
-const changeCalendarSystem = new ChangeCalendarSystem();
+// Expose class and global instance
+window.ChangeCalendarSystem = ChangeCalendarSystem;
+window.changeCalendarSystem = new ChangeCalendarSystem();

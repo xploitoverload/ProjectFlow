@@ -501,5 +501,6 @@ class ReportsAnalyticsSystem {
     }
 }
 
-// Initialize
-const reportsSystem = new ReportsAnalyticsSystem();
+// Expose class and global instance
+window.ReportsAnalyticsSystem = ReportsAnalyticsSystem;
+window.reportsSystem = new ReportsAnalyticsSystem();

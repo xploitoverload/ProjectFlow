@@ -4,7 +4,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: #fff;
+    background: var(--bg-secondary, #12151E);
 }
 
 /* Header */
@@ -13,13 +13,13 @@
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .change-header h2 {
     margin: 0;
     font-size: 24px;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .header-actions {
@@ -32,8 +32,8 @@
     display: flex;
     gap: 4px;
     padding: 16px 20px;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f9fafb;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+    background: var(--bg-primary, #0B0D14);
 }
 
 .tab {
@@ -46,16 +46,16 @@
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
     transition: all 0.2s;
 }
 
 .tab:hover {
-    background: #e5e7eb;
+    background: var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .tab.active {
-    background: #fff;
+    background: var(--bg-secondary, #12151E);
     color: #0969da;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -93,7 +93,7 @@
     gap: 24px;
     margin-bottom: 20px;
     padding: 12px;
-    background: #f9fafb;
+    background: var(--bg-primary, #0B0D14);
     border-radius: 8px;
 }
 
@@ -102,7 +102,7 @@
     align-items: center;
     gap: 8px;
     font-size: 14px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
 }
 
 .legend-dot {
@@ -131,14 +131,14 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
-    background: #e5e7eb;
-    border: 1px solid #e5e7eb;
+    background: var(--border-color, rgba(255, 255, 255, 0.08));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
     border-radius: 8px;
     overflow: hidden;
 }
 
 .change-day-cell {
-    background: #fff;
+    background: var(--bg-secondary, #12151E);
     padding: 12px;
     min-height: 100px;
     position: relative;
@@ -147,15 +147,15 @@
 }
 
 .change-day-cell:hover {
-    background: #f9fafb;
+    background: var(--bg-primary, #0B0D14);
 }
 
 .change-day-cell.today {
-    background: #f0f9ff;
+    background: rgba(56, 189, 248, 0.1);
 }
 
 .change-day-cell.frozen {
-    background: #f3f4f6;
+    background: var(--bg-tertiary, #181B24);
 }
 
 .change-day-cell.frozen::after {
@@ -176,12 +176,12 @@
 }
 
 .change-day-cell.empty {
-    background: #f9fafb;
+    background: var(--bg-primary, #0B0D14);
 }
 
 .day-number {
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
     margin-bottom: 8px;
 }
 
@@ -189,7 +189,7 @@
     position: absolute;
     top: 8px;
     right: 8px;
-    color: #57606a;
+    color: var(--text-secondary, #8B949E);
 }
 
 .freeze-indicator i {
@@ -246,7 +246,7 @@
 
 .list-filters select {
     padding: 8px 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
     border-radius: 6px;
     font-size: 14px;
 }
@@ -258,8 +258,8 @@
 }
 
 .change-card {
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    background: var(--bg-secondary, #12151E);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
     border-radius: 8px;
     padding: 20px;
     cursor: pointer;
@@ -331,7 +331,7 @@
 .change-card h3 {
     margin: 0 0 12px 0;
     font-size: 16px;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .change-meta {
@@ -339,7 +339,7 @@
     gap: 16px;
     margin-bottom: 12px;
     font-size: 14px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
 }
 
 .change-meta span {
@@ -397,8 +397,8 @@
 }
 
 .impact-indicator.impact-minor {
-    background: #f3f4f6;
-    color: #6b7280;
+    background: var(--bg-tertiary, #181B24);
+    color: var(--text-secondary, #8B949E);
 }
 
 .impact-indicator.impact-major {
@@ -419,10 +419,10 @@
 
 .system-tag {
     padding: 4px 10px;
-    background: #f3f4f6;
+    background: var(--bg-tertiary, #181B24);
     border-radius: 4px;
     font-size: 12px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
 }
 
 /* Timeline View */
@@ -445,7 +445,7 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: #e5e7eb;
+    background: var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .timeline-item {
@@ -491,12 +491,12 @@
 
 .timeline-change h4 {
     margin: 0 0 4px 0;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .timeline-change p {
     margin: 0 0 8px 0;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
     font-size: 14px;
 }
 
@@ -552,7 +552,7 @@
 
 .change-detail-section h4 {
     margin: 0 0 12px 0;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
     font-size: 16px;
 }
 
@@ -570,12 +570,12 @@
 
 .detail-item .label {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
 }
 
 .detail-item .value {
     font-weight: 500;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .risk-matrix-display {
@@ -604,7 +604,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: #f9fafb;
+    background: var(--bg-primary, #0B0D14);
     border-radius: 6px;
     margin-bottom: 8px;
 }
@@ -635,12 +635,12 @@
 
 .stage-name {
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .stage-approver {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
 }
 
 .systems-list {
@@ -666,7 +666,7 @@
 }
 
 .review-checklist label:hover {
-    background: #f9fafb;
+    background: var(--bg-primary, #0B0D14);
 }
 
 .review-checklist input[type="checkbox"] {
@@ -681,7 +681,7 @@
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: #f9fafb;
+    background: var(--bg-primary, #0B0D14);
     border-radius: 8px;
     margin-bottom: 12px;
 }
@@ -708,13 +708,13 @@
 
 .freeze-info h4 {
     margin: 0 0 4px 0;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .freeze-info p {
     margin: 0;
     font-size: 13px;
-    color: #6b7280;
+    color: var(--text-secondary, #8B949E);
 }
 
 .freeze-reason {
@@ -732,13 +732,13 @@
 .risk-matrix-table td {
     padding: 16px;
     text-align: center;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .risk-matrix-table th {
-    background: #f9fafb;
+    background: var(--bg-primary, #0B0D14);
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary, #F8FAFC);
 }
 
 .risk-cell {

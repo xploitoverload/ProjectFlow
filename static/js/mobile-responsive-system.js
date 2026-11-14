@@ -233,6 +233,7 @@ class MobileResponsiveSystem {
     
     // Pull to Refresh
     setupPullToRefresh() {
+        if (!this.isTouch || !this.isMobile) return;
         let startY = 0;
         let currentY = 0;
         let isPulling = false;
@@ -240,6 +241,7 @@ class MobileResponsiveSystem {
         
         let refreshIndicator = document.createElement('div');
         refreshIndicator.className = 'pull-refresh-indicator';
+        refreshIndicator.style.cssText = 'position:fixed;top:-60px;left:50%;transform:translateX(-50%);z-index:9999;display:none;padding:8px 16px;background:var(--bg-secondary,#161b22);border:1px solid var(--border-primary,rgba(255,255,255,0.1));border-radius:20px;color:var(--text-primary,#fff);font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.5);align-items:center;gap:8px;';
         refreshIndicator.innerHTML = '<i data-lucide="refresh-cw"></i> Pull to refresh';
         document.body.appendChild(refreshIndicator);
         
