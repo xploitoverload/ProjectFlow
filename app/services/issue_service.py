@@ -243,9 +243,15 @@ class IssueService:
     
     @staticmethod
     def get_issue_by_key(key):
-        """Get issue by key."""
-        from app.models import Issue
-        return Issue.query.filter_by(key=key).first()
+        """Get issue by key (case-insensitive with whitespace trimming)."""
+        from app.models import Issue, db
+        if not key:
+            return None
+        clean_key = str(key).strip().upper()
+        issue = Issue.query.filter_by(key=clean_key).first()
+        if not issue:
+            issue = Issue.query.filter(db.func.upper(Issue.key) == clean_key).first()
+        return issue
     
     @staticmethod
     def get_issues_by_project(project_id, filters=None):

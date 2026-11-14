@@ -1,0 +1,300 @@
+# tests/test_pragmatic_craftsmanship.py
+"""
+Pragmatic Programmer & Linus Torvalds Craftsmanship Verification Tests:
+- DRY: Single authoritative project access policy (multi-team project_teams)
+- Data Structures & Relational Integrity: Composite indexes, constraints
+- Defensive Programming & IDOR Elimination: Cross-project resource isolation
+- Dead Programs Tell No Lies: Cryptographic audit ledger tamper detection
+- Ergonomic Contracts: Case-insensitive lookups, model aliases, ownership
+"""
+
+import os
+from app.models import db, User, Team, Project, Issue, Comment, Attachment
+from app.services.project_service import ProjectService
+from app.services.issue_service import IssueService
+from app.services.audit_service import AuditService
+from app.security.authorization import check_ownership
+
+
+class TestPragmaticCraftsmanship:
+    """Certifies Linus Torvalds & Pragmatic Programmer quality standards."""
+
+    def test_multi_team_project_access_and_dry_policy(self, app):
+        """
+        Verify DRY: Multi-team project assignments via project_teams
+        are fully honored by ProjectService.user_has_access.
+        """
+        with app.app_context():
+            team_primary = Team(
+                name='Kernel Team Alpha', department='software'
+            )
+            team_secondary = Team(
+                name='Kernel Team Beta', department='software'
+            )
+            team_unrelated = Team(
+                name='External Team Gamma', department='marketing'
+            )
+            db.session.add_all(
+                [team_primary, team_secondary, team_unrelated]
+            )
+            db.session.commit()
+
+            user_primary = User(
+                username='dev_alpha', role='developer',
+                team_id=team_primary.id
+            )
+            user_primary.email = 'alpha@kernel.org'
+            user_primary.set_password('Pass123!Alpha')
+
+            user_secondary = User(
+                username='dev_beta', role='developer',
+                team_id=team_secondary.id
+            )
+            user_secondary.email = 'beta@kernel.org'
+            user_secondary.set_password('Pass123!Beta')
+
+            user_unrelated = User(
+                username='dev_gamma', role='developer',
+                team_id=team_unrelated.id
+            )
+            user_unrelated.email = 'gamma@kernel.org'
+            user_unrelated.set_password('Pass123!Gamma')
+
+            db.session.add_all([user_primary, user_secondary, user_unrelated])
+            db.session.commit()
+
+            project = Project(
+                name='Hypervisor Microkernel',
+                key='HYP',
+                status='Active',
+                team_id=team_primary.id
+            )
+            # Assign secondary team via many-to-many relationship
+            project.teams.append(team_secondary)
+            db.session.add(project)
+            db.session.commit()
+
+            # Verify single authoritative access contract
+            assert ProjectService.user_has_access(user_primary, project)
+            assert ProjectService.user_has_access(user_secondary, project)
+            assert not ProjectService.user_has_access(user_unrelated, project)
+
+            # Verify query list retrieval
+            accessible_beta = ProjectService.get_user_accessible_projects(
+                user_secondary
+            )
+            assert project in accessible_beta
+
+            accessible_gamma = ProjectService.get_user_accessible_projects(
+                user_unrelated
+            )
+            assert project not in accessible_gamma
+
+    def test_cross_project_issue_delete_idor_prevention(self, app, client):
+        """
+        Verify Defensive Programming: Attempts to delete an issue using another
+        project's URL route are rejected with 404.
+        """
+        with app.app_context():
+            lead = User(username='security_lead', role='admin')
+            lead.email = 'sec@kernel.org'
+            lead.set_password('SecAdmin123!')
+            db.session.add(lead)
+            db.session.commit()
+            lead_id = lead.id
+
+            p1 = Project(
+                name='Project One', key='PONE', status='Active',
+                created_by=lead_id
+            )
+            p2 = Project(
+                name='Project Two', key='PTWO', status='Active',
+                created_by=lead_id
+            )
+            db.session.add_all([p1, p2])
+            db.session.commit()
+            p1_id = p1.id
+
+            issue_p2 = Issue(
+                title='Classified P2 Bug', key='PTWO-1',
+                project_id=p2.id, status='open'
+            )
+            db.session.add(issue_p2)
+            db.session.commit()
+            issue_id = issue_p2.id
+
+        # Authenticate as lead
+        with client.session_transaction() as sess:
+            sess['user_id'] = lead_id
+            sess['username'] = 'security_lead'
+            sess['role'] = 'admin'
+            sess['_fresh'] = True
+
+        # Attempt to delete issue_p2 via p1's URL route
+        res = client.post(f'/projects/{p1_id}/issue/{issue_id}/delete')
+        assert res.status_code == 404
+
+        # Verify the issue still exists in database
+        with app.app_context():
+            assert Issue.query.get(issue_id) is not None
+
+    def test_comment_author_ownership_and_property_aliases(self, app):
+        """
+        Verify Design by Contract: Comment author_id/content aliases and
+        ownership resolution.
+        """
+        with app.app_context():
+            user = User(username='committer', role='developer')
+            user.email = 'com@kernel.org'
+            user.set_password('Pass123!Com')
+            db.session.add(user)
+            db.session.commit()
+
+            project = Project(
+                name='Compiler Optimizer', key='OPT', status='Active'
+            )
+            db.session.add(project)
+            db.session.commit()
+
+            issue = Issue(
+                title='LLVM IR Lowering', key='OPT-1', project_id=project.id
+            )
+            db.session.add(issue)
+            db.session.commit()
+
+            comment = Comment(issue_id=issue.id, user_id=user.id)
+            comment.content = 'Refactored SSA form to dominance frontiers'
+            db.session.add(comment)
+            db.session.commit()
+
+            # Verify property aliases work both ways
+            assert comment.text == 'Refactored SSA form to dominance frontiers'
+            assert (
+                comment.content == 'Refactored SSA form to dominance frontiers'
+            )
+            assert comment.author_id == user.id
+            assert comment.user_id == user.id
+
+            # Verify resilient check_ownership works on both instance and class
+            with app.test_request_context():
+                from flask import session
+                session['user_id'] = user.id
+                assert check_ownership(comment, owner_field='user_id') is True
+                assert check_ownership(
+                    Comment, comment.id, owner_field='user_id'
+                ) is True
+
+    def test_attachment_file_path_alias_and_safe_cleanup(self, app):
+        """
+        Verify Linus Torvalds zero-breakage ABI:
+        Attachment filepath alias works and file is safely handled.
+        """
+        test_file = '/tmp/projectflow_test_attachment.log'
+        with open(test_file, 'w') as f:
+            f.write('Antigravity Ring 0 Audit Log Payload')
+
+        with app.app_context():
+            user = User(username='uploader', role='developer')
+            user.email = 'upload@kernel.org'
+            user.set_password('Pass123!Up')
+            db.session.add(user)
+            db.session.commit()
+
+            project = Project(
+                name='Storage Engine', key='STR', status='Active'
+            )
+            db.session.add(project)
+            db.session.commit()
+
+            issue = Issue(
+                title='IO Ring Driver', key='STR-1', project_id=project.id
+            )
+            db.session.add(issue)
+            db.session.commit()
+
+            attachment = Attachment(
+                issue_id=issue.id,
+                user_id=user.id,
+                filename='test.log',
+                file_path=test_file
+            )
+            db.session.add(attachment)
+            db.session.commit()
+
+            # Verify alias
+            assert attachment.filepath == test_file
+            assert attachment.file_path == test_file
+
+        if os.path.exists(test_file):
+            os.remove(test_file)
+
+    def test_audit_ledger_merkle_tamper_detection(self, app):
+        """
+        Verify Dead Programs Tell No Lies (Pragmatic Programmer):
+        Audit ledger detects any unauthorized alteration in the hash chain.
+        """
+        with app.app_context():
+            AuditService.log_event('INIT_KERNEL', details='System initialized')
+            log2 = AuditService.log_event(
+                'CONFIG_SET', details='Argon2id enabled'
+            )
+            AuditService.log_event('USER_ENROLLED', details='Admin enrolled')
+            AuditService.log_event('LEDGER_SEALED', details='Genesis verified')
+
+            # Verify ledger is 100% valid initially
+            is_valid, broken_id, msg = AuditService.verify_ledger_integrity()
+            assert is_valid is True
+            assert broken_id is None
+            assert 'intact' in msg.lower()
+
+            # Simulate malicious direct-database tampering with log2
+            log2.details_encrypted = 'MALICIOUS_TAMPERED_DATA'
+            db.session.commit()
+
+            # Audit verification must fail and pinpoint log2
+            res_valid, res_id, res_msg = (
+                AuditService.verify_ledger_integrity()
+            )
+            assert res_valid is False
+            assert res_id == log2.id
+            assert (
+                'hash mismatch' in res_msg.lower() or
+                'broken chain' in res_msg.lower()
+            )
+
+    def test_case_insensitive_issue_key_retrieval(self, app):
+        """
+        Verify Pragmatic Ergonomics:
+        Case-insensitive issue key matching handles mixed case and whitespace.
+        """
+        with app.app_context():
+            p = Project(name='Networking Stack', key='NET', status='Active')
+            db.session.add(p)
+            db.session.commit()
+
+            issue = Issue(
+                title='TCP BBR Congestion Control', key='NET-42',
+                project_id=p.id
+            )
+            db.session.add(issue)
+            db.session.commit()
+
+            # Exact uppercase
+            assert IssueService.get_issue_by_key('NET-42').id == issue.id
+            # Lowercase
+            assert IssueService.get_issue_by_key('net-42').id == issue.id
+            # Mixed case with whitespace
+            assert IssueService.get_issue_by_key('   Net-42   ').id == issue.id
+            # Non-existent
+            assert IssueService.get_issue_by_key('NET-9999') is None
+
+    def test_database_composite_indexes_exist(self, app):
+        """
+        Verify Linus Torvalds Taste in Data Structures:
+        Composite indexes are present on the Issue table.
+        """
+        with app.app_context():
+            index_names = [idx.name for idx in Issue.__table__.indexes]
+            assert 'ix_issue_project_status_pos' in index_names
+            assert 'ix_issue_sprint_status' in index_names
+            assert 'ix_issue_assignee_status' in index_names

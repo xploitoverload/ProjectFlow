@@ -44,8 +44,8 @@ def validate_csrf_token(token):
         from flask_wtf.csrf import validate_csrf
         validate_csrf(token)
         return True
-    except Exception:
-        pass
+    except Exception as e:
+        logging.getLogger(__name__).debug("Flask-WTF CSRF validation exception, trying session token fallback: %s", e)
 
     stored_token = session.get('csrf_token')
     if stored_token and hmac.compare_digest(str(stored_token), str(token)):
@@ -81,7 +81,8 @@ def verify_password(stored_hash, password):
                 # Rehash with Argon2
                 return True, hash_password(password)
             return False, None
-        except:
+        except (ValueError, TypeError, Exception) as e:
+            logging.getLogger(__name__).debug("PBKDF2 verification exception: %s", e)
             return False, None
     
     return False, None

@@ -209,16 +209,69 @@ class ProjectService:
         return Project.query.filter_by(status=status).all()
     
     @staticmethod
-    def get_user_accessible_projects(user):
-        """Get all projects accessible to a user based on role."""
-        from app.models import Project
+    def user_has_access(user, project):
+        """
+        Check if user has permission to access a project.
+        Single authoritative representation of project access policy (DRY).
         
-        if user.role in ['admin', 'super_admin']:
-            return Project.query.all()
-        elif user.team_id:
-            return Project.query.filter_by(team_id=user.team_id).all()
-        else:
+        Args:
+            user: User instance
+            project: Project instance
+            
+        Returns:
+            bool: True if authorized, False otherwise
+        """
+        if not user or not project:
+            return False
+            
+        # Admins & super admins have universal access
+        if getattr(user, 'role', '') in ['admin', 'super_admin']:
+            return True
+            
+        # Project creators and leads
+        if project.created_by == user.id or project.lead_id == user.id:
+            return True
+            
+        # Managers can access projects they created or lead
+        if getattr(user, 'role', '') == 'manager' and (project.created_by == user.id or project.lead_id == user.id):
+            return True
+            
+        # Primary team assignment
+        user_team_id = getattr(user, 'team_id', None)
+        if user_team_id:
+            if project.team_id == user_team_id:
+                return True
+            # Secondary team assignments via project_teams
+            if hasattr(project, 'teams') and project.teams.filter_by(id=user_team_id).first():
+                return True
+                
+        return False
+
+    @staticmethod
+    def get_user_accessible_projects(user):
+        """
+        Get all projects accessible to a user based on role, ownership, and team assignments.
+        """
+        from app.models import Project, Team
+        from sqlalchemy import or_
+        
+        if not user:
             return []
+            
+        if getattr(user, 'role', '') in ['admin', 'super_admin']:
+            return Project.query.order_by(Project.created_at.desc()).all()
+            
+        filters = [
+            Project.created_by == user.id,
+            Project.lead_id == user.id
+        ]
+        
+        user_team_id = getattr(user, 'team_id', None)
+        if user_team_id:
+            filters.append(Project.team_id == user_team_id)
+            filters.append(Project.teams.any(Team.id == user_team_id))
+            
+        return Project.query.filter(or_(*filters)).order_by(Project.created_at.desc()).all()
     
     @staticmethod
     def get_project_statistics(project_id):
