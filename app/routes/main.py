@@ -173,14 +173,46 @@ def gantt_chart():
 @login_required
 def calendar():
     """Calendar view for tasks and projects."""
-    from app.models import User, Team
+    from app.models import User, Team, Project, Issue
     
     user = User.query.get(session['user_id'])
     projects = ProjectService.get_user_accessible_projects(user)
     teams = Team.query.all()
     
+    project_id = request.args.get('project', type=int)
+    selected_project = None
+    if project_id:
+        selected_project = next((p for p in projects if p.id == project_id), None)
+    if not selected_project and projects:
+        selected_project = projects[0]
+        
+    issues = []
+    if selected_project:
+        issues = Issue.query.filter_by(project_id=selected_project.id).all()
+        
+    # Serialize issues for CalendarViewSystem
+    events_data = []
+    for issue in issues:
+        event_date = issue.due_date or issue.created_at
+        if event_date:
+            date_str = event_date.strftime('%Y-%m-%dT10:00:00')
+            events_data.append({
+                'id': str(issue.id),
+                'key': issue.key,
+                'title': f"{issue.key}: {issue.title}",
+                'start': date_str,
+                'end': date_str,
+                'type': (issue.issue_type or 'task').title(),
+                'priority': (issue.priority or 'medium').title(),
+                'status': (issue.status or 'todo').replace('_', ' ').title(),
+                'assignee': issue.assignee.username if issue.assignee else 'Unassigned',
+                'url': f"/project/{issue.project_id}/issue/{issue.id}"
+            })
+            
     return render_template('calendar.html',
                           projects=projects,
+                          selected_project=selected_project,
+                          events_json=events_data,
                           teams=teams)
 
 
