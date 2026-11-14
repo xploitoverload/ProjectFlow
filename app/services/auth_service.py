@@ -304,3 +304,60 @@ class AuthService:
         )
         
         return True, token, 'If the email exists, a reset link will be sent'
+
+    @staticmethod
+    def generate_bearer_token(user, expires_sec=86400):
+        """
+        Generate a cryptographically signed, tamper-proof Bearer API token.
+        
+        Args:
+            user: User model instance
+            expires_sec: Token lifetime in seconds (default 24h)
+            
+        Returns:
+            str: URL-safe signed token
+        """
+        from itsdangerous import URLSafeTimedSerializer
+        from flask import current_app
+        
+        secret = current_app.config.get('SECRET_KEY', 'default-projectflow-secret')
+        serializer = URLSafeTimedSerializer(secret, salt='projectflow-api-bearer')
+        payload = {
+            'user_id': user.id,
+            'role': user.role,
+            'username': user.username
+        }
+        return serializer.dumps(payload)
+
+    @staticmethod
+    def verify_bearer_token(token, max_age=86400):
+        """
+        Verify a cryptographically signed Bearer API token.
+        
+        Args:
+            token: URL-safe signed token string
+            max_age: Maximum token age in seconds (default 24h)
+            
+        Returns:
+            User model instance if valid, None otherwise
+        """
+        from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+        from flask import current_app
+        from app.models import User
+        
+        if not token:
+            return None
+            
+        secret = current_app.config.get('SECRET_KEY', 'default-projectflow-secret')
+        serializer = URLSafeTimedSerializer(secret, salt='projectflow-api-bearer')
+        try:
+            payload = serializer.loads(token, max_age=max_age)
+            user_id = payload.get('user_id')
+            if not user_id:
+                return None
+            user = User.query.get(user_id)
+            if user and getattr(user, 'is_active', True):
+                return user
+        except (BadSignature, SignatureExpired, Exception):
+            return None
+        return None

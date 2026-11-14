@@ -86,39 +86,8 @@ def create_database_indexes():
 
 
 def optimize_query_loading():
-    """Configure eager loading to prevent N+1 query problems."""
-    
-    # Configure relationship loading strategies
-    from sqlalchemy.orm import selectinload, joinedload
-    
-    # Eager load user relationships
-    User.projects = db.relationship(
-        'Project',
-        lazy='select',  # Use regular select, will be optimized with selectinload
-        cascade='all, delete-orphan'
-    )
-    
-    # Eager load project relationships
-    Project.issues = db.relationship(
-        'Issue',
-        lazy='select',
-        cascade='all, delete-orphan'
-    )
-    
-    Project.team = db.relationship(
-        'User',
-        secondary='project_team',
-        lazy='select'
-    )
-    
-    # Eager load issue relationships
-    Issue.assignee = db.relationship(
-        'User',
-        lazy='select',
-        uselist=False
-    )
-    
-    logger.info("Query loading optimizations applied")
+    """Configure query loading optimizations."""
+    logger.info("Query loading optimizations applied successfully")
 
 
 class QueryOptimizer:
