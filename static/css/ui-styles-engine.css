@@ -1,0 +1,407 @@
+/* ==========================================================================
+   ProjectFlow Multi-Style Design System Engine
+   Flagship: Bento Grid + Glassmorphism + OLED Dark
+   Styles: Bento Glass (Default), Minimalism, Neo-Brutalism, Neumorphism, Flat
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Design Token Definitions per UI Style
+   -------------------------------------------------------------------------- */
+
+/* Default Flagship: Bento Grid + Frosted Glassmorphism + OLED Dark */
+:root,
+body[data-ui-style="bento-glass"],
+body:not([data-ui-style]) {
+    --ui-style-name: "Bento Glass OLED";
+    --surface-bg: rgba(18, 22, 35, 0.72);
+    --surface-bg-hover: rgba(26, 33, 52, 0.85);
+    --surface-border-width: 1px;
+    --surface-border-color: rgba(255, 255, 255, 0.08);
+    --surface-border: rgba(255, 255, 255, 0.08);
+    --surface-border-hover: rgba(99, 102, 241, 0.45);
+    --surface-blur: blur(16px);
+    --surface-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --surface-shadow-hover: 0 20px 50px -10px rgba(99, 102, 241, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    --card-radius: 14px;
+    --bento-glow: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15), transparent 70%);
+    --accent-glow: 0 0 20px rgba(99, 102, 241, 0.35);
+    --header-glass: rgba(11, 13, 20, 0.8);
+    --body-bg-gradient: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.15), transparent), #07090E;
+}
+
+/* 2. Minimalism: Focuses on pure simplicity, ample whitespace, clear typography */
+body[data-ui-style="minimalism"] {
+    --ui-style-name: "Minimalism";
+    --surface-bg: #0C0E12;
+    --surface-bg-hover: #12161D;
+    --surface-border-width: 1px;
+    --surface-border-color: #1E232E;
+    --surface-border: #1E232E;
+    --surface-border-hover: #3E4658;
+    --surface-blur: none;
+    --surface-shadow: none;
+    --surface-shadow-hover: none;
+    --card-radius: 4px;
+    --bento-glow: none;
+    --accent-glow: none;
+    --header-glass: #0C0E12;
+    --body-bg-gradient: #07080B;
+}
+
+/* 3. Neo-Brutalism: Bold borders, high contrast, hard drop shadows, visible structure */
+body[data-ui-style="neo-brutalism"] {
+    --ui-style-name: "Neo-Brutalism";
+    --surface-bg: #12141D;
+    --surface-bg-hover: #1A1D2B;
+    --surface-border-width: 2px;
+    --surface-border-color: #E2E8F0;
+    --surface-border: #E2E8F0;
+    --surface-border-hover: #A5B4FC;
+    --surface-blur: none;
+    --surface-shadow: 5px 5px 0px #000000, 5px 5px 0px #6366F1;
+    --surface-shadow-hover: 7px 7px 0px #000000, 7px 7px 0px #818CF8;
+    --card-radius: 2px;
+    --bento-glow: none;
+    --accent-glow: none;
+    --header-glass: #12141D;
+    --body-bg-gradient: #090A0F;
+}
+
+/* 4. Neumorphism: Soft UI with subtle dual pressed/raised shadows */
+body[data-ui-style="neumorphism"] {
+    --ui-style-name: "Neumorphism";
+    --surface-bg: #141722;
+    --surface-bg-hover: #181C2A;
+    --surface-border-width: 1px;
+    --surface-border-color: rgba(255, 255, 255, 0.04);
+    --surface-border: rgba(255, 255, 255, 0.04);
+    --surface-border-hover: rgba(99, 102, 241, 0.3);
+    --surface-blur: none;
+    --surface-shadow: 8px 8px 20px #0A0C12, -8px -8px 20px #1E2232;
+    --surface-shadow-hover: 10px 10px 24px #080A0F, -10px -10px 24px #222637;
+    --card-radius: 20px;
+    --bento-glow: none;
+    --accent-glow: none;
+    --header-glass: #141722;
+    --body-bg-gradient: #11131C;
+}
+
+/* 5. Flat Design: 2D elements, crisp solid accents, zero depth/shadow */
+body[data-ui-style="flat"] {
+    --ui-style-name: "Flat Design";
+    --surface-bg: #131722;
+    --surface-bg-hover: #1A2030;
+    --surface-border-width: 1px;
+    --surface-border-color: #22293C;
+    --surface-border: #22293C;
+    --surface-border-hover: #3B82F6;
+    --surface-blur: none;
+    --surface-shadow: none;
+    --surface-shadow-hover: none;
+    --card-radius: 8px;
+    --bento-glow: none;
+    --accent-glow: none;
+    --header-glass: #131722;
+    --body-bg-gradient: #0C0F17;
+}
+
+/* --------------------------------------------------------------------------
+   2. Global Body & App Shell Application
+   -------------------------------------------------------------------------- */
+body {
+    background: var(--body-bg-gradient) !important;
+    background-attachment: fixed !important;
+    color: var(--text-primary, #F3F4F6);
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.app-header {
+    background: var(--header-glass) !important;
+    backdrop-filter: var(--surface-blur) !important;
+    -webkit-backdrop-filter: var(--surface-blur) !important;
+    border-bottom: 1px solid var(--surface-border-color) !important;
+}
+
+.app-sidebar {
+    background: var(--header-glass) !important;
+    backdrop-filter: var(--surface-blur) !important;
+    -webkit-backdrop-filter: var(--surface-blur) !important;
+    border-right: 1px solid var(--surface-border-color) !important;
+}
+
+/* Container Box-Sizing & Viewport Containment */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+.app-main {
+    overflow-x: hidden !important;
+}
+
+.app-content {
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+}
+
+.page-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
+
+/* Normal inline buttons should never be forced to 100% unless .btn-block or inside auth card */
+.btn:not(.btn-block):not(.auth-card .btn):not(.auth-form .btn) {
+    width: auto !important;
+    flex: 0 0 auto !important;
+}
+
+/* Cards, Modals, Dropdowns, and Surfaces adapt to active style */
+.bento-card,
+.card,
+.stat-card,
+.sprint-card,
+.backlog-card,
+.issue-row-card {
+    background: var(--surface-bg) !important;
+    backdrop-filter: var(--surface-blur);
+    -webkit-backdrop-filter: var(--surface-blur);
+    border: var(--surface-border-width, 1px) solid var(--surface-border-color) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--surface-shadow) !important;
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-card:hover,
+.card-hover:hover,
+.stat-card:hover {
+    border-color: var(--surface-border-hover) !important;
+    box-shadow: var(--surface-shadow-hover) !important;
+    transform: translateY(-2px);
+}
+
+/* Style-specific button adaptations */
+body[data-ui-style="neo-brutalism"] .btn {
+    border: 2px solid #FFFFFF !important;
+    box-shadow: 3px 3px 0px #000000 !important;
+    border-radius: 2px !important;
+    font-weight: 700 !important;
+}
+
+body[data-ui-style="neo-brutalism"] .btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px #000000, 4px 4px 0px #6366F1 !important;
+}
+
+body[data-ui-style="minimalism"] .btn {
+    border-radius: 4px !important;
+    box-shadow: none !important;
+}
+
+body[data-ui-style="neumorphism"] .btn {
+    border-radius: 12px !important;
+    box-shadow: 4px 4px 10px #0A0C12, -4px -4px 10px #1E2232 !important;
+}
+
+body[data-ui-style="flat"] .btn {
+    border-radius: 6px !important;
+    box-shadow: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. Bento Grid Framework
+   -------------------------------------------------------------------------- */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 20px;
+    width: 100%;
+}
+
+.bento-col-12 { grid-column: span 12; }
+.bento-col-8  { grid-column: span 8; }
+.bento-col-7  { grid-column: span 7; }
+.bento-col-6  { grid-column: span 6; }
+.bento-col-5  { grid-column: span 5; }
+.bento-col-4  { grid-column: span 4; }
+.bento-col-3  { grid-column: span 3; }
+
+@media (max-width: 1200px) {
+    .bento-col-8, .bento-col-7 { grid-column: span 12; }
+    .bento-col-6, .bento-col-5 { grid-column: span 12; }
+    .bento-col-4 { grid-column: span 6; }
+    .bento-col-3 { grid-column: span 6; }
+}
+
+@media (max-width: 768px) {
+    .bento-col-4, .bento-col-3 { grid-column: span 12; }
+}
+
+/* Ambient Bento Radial Glow Header */
+.bento-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: var(--bento-glow);
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* --------------------------------------------------------------------------
+   4. Circular SVG Progress Ring Component
+   -------------------------------------------------------------------------- */
+.progress-ring-circle {
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+/* --------------------------------------------------------------------------
+   5. UI Style Switcher Dropdown
+   -------------------------------------------------------------------------- */
+.style-switcher-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.style-switcher-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--surface-border-color);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.style-switcher-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+.style-switcher-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 250px;
+    background: #0F121C;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    padding: 8px;
+    z-index: 1050;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.style-switcher-menu.show {
+    display: block;
+    animation: switcherFadeIn 0.15s ease-out;
+}
+
+@keyframes switcherFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.style-option-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.style-option-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.style-option-item.active {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+}
+
+.style-option-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #F3F4F6;
+    margin-bottom: 2px;
+}
+
+.style-option-desc {
+    font-size: 11px;
+    color: #9CA3AF;
+}
+
+.style-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.style-badge-flagship {
+    background: linear-gradient(135deg, #6366F1, #8B5CF6);
+    color: #FFFFFF;
+}
+
+.style-badge-clean {
+    background: rgba(255, 255, 255, 0.1);
+    color: #E5E7EB;
+}
+
+.style-badge-bold {
+    background: #EF4444;
+    color: #FFFFFF;
+}
+
+.style-badge-soft {
+    background: #F59E0B;
+    color: #111827;
+}
+
+.style-badge-2d {
+    background: #10B981;
+    color: #064E3B;
+}
+
+/* Pulsing Live Bus Indicator */
+.pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10B981;
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+    animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}

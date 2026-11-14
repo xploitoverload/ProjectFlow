@@ -1,883 +1,425 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - ProjectFlow</title>
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
-    <link rel="alternate icon" href="{{ url_for('main.favicon') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/webify-theme.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/global-navigation.css') }}">
-    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-    <script defer src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/bulk-actions.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/advanced-search.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/search-autocomplete.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/starred-items.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/user-menu.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/sidebar-resize.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/notifications-manager.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/breadcrumb-manager.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/global-navigation.js') }}"></script>
-</head>
-<body>
-    <div class="app-shell">
-        <!-- Sidebar -->
-        <aside class="app-sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
-                    <div class="sidebar-logo-icon" style="display: flex; align-items: center; justify-content: center;">
-                        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ProjectFlow" style="width: 26px; height: 26px; border-radius: 6px; filter: drop-shadow(0 2px 6px rgba(124, 58, 237, 0.4));">
-                    </div>
-                    <span class="sidebar-logo-text" style="letter-spacing: -0.3px; font-weight: 700;">ProjectFlow</span>
-                </a>
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ProjectFlow{% endblock %}
+
+{% block breadcrumb %}
+<div class="header-breadcrumb">
+    <span>Home</span>
+    <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
+    <span class="header-breadcrumb-current">Dashboard</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1440px; margin: 0 auto; padding: 24px;">
+    <!-- Welcome & Hero Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 28px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <h1 style="font-size: 26px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.5px;">
+                    Welcome back, {{ current_user.username if current_user.is_authenticated else 'Developer' }}
+                </h1>
+                <span class="pulse-dot" title="Real-time WebSocket Bus Active"></span>
             </div>
-
-            <nav class="sidebar-nav">
-                <!-- For You Section (Like Atlassian) -->
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">For you</div>
-                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item active">
-                        <span class="iconify nav-icon" data-icon="solar:home-2-bold-duotone"></span>
-                        <span>Home</span>
-                    </a>
-                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:clock-circle-bold-duotone"></span>
-                        <span>Recent</span>
-                    </a>
-                    <a href="javascript:void(0)" id="sidebarNotifications" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:bell-bold-duotone"></span>
-                        <span>Notifications</span>
-                        <span class="notification-badge ml-auto">0</span>
-                    </a>
-                </div>
-
-                <!-- Work Section (Plane & Jira Style) -->
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">Work</div>
-                    <a href="{{ url_for('main.issues') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:checklist-minimalistic-bold-duotone"></span>
-                        <span>Issues</span>
-                    </a>
-                    <a href="{{ url_for('main.board') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:widget-5-bold-duotone"></span>
-                        <span>Board</span>
-                    </a>
-                    <a href="{{ url_for('main.backlog') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:list-bold-duotone"></span>
-                        <span>Backlog</span>
-                    </a>
-                    <a href="{{ url_for('main.timeline') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:chart-2-bold-duotone"></span>
-                        <span>Timeline</span>
-                    </a>
-                    <a href="{{ url_for('main.calendar') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:calendar-bold-duotone"></span>
-                        <span>Calendar</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_teams') if current_user.is_authenticated and current_user.role == 'admin' else url_for('main.dashboard') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:users-group-rounded-bold-duotone"></span>
-                        <span>Teams</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_projects') if current_user.is_authenticated and current_user.role == 'admin' else url_for('main.dashboard') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:folder-with-files-bold-duotone"></span>
-                        <span>Projects</span>
-                    </a>
-                </div>
-
-                <!-- Tools & Insights Section -->
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">Insights</div>
-                    <a href="{{ url_for('main.analytics') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:chart-bold-duotone"></span>
-                        <span>Analytics & Velocity</span>
-                    </a>
-                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:document-text-bold-duotone"></span>
-                        <span>Reports</span>
-                    </a>
-                    <a href="{{ url_for('main.service_desk') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:headphones-round-bold-duotone"></span>
-                        <span>Service Desk</span>
-                    </a>
-                    <a href="{{ url_for('main.automation') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:bolt-bold-duotone"></span>
-                        <span>Automation</span>
-                    </a>
-                </div>
-
-                <!-- Your Projects -->
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">Your projects</div>
-                    {% for project in projects[:5] %}
-                    <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="sidebar-nav-item">
-                        <span class="avatar avatar-xs" style="--avatar-bg: {{ project.color }}; color: white; font-size: 10px;">
-                            {{ project.name[:2].upper() }}
-                        </span>
-                        <span class="truncate">{{ project.name }}</span>
-                    </a>
-                    {% endfor %}
-                    {% if projects|length > 5 %}
-                    <a href="{{ url_for('admin.admin_projects') if current_user.is_authenticated and current_user.role == 'admin' else url_for('main.dashboard') }}" class="sidebar-nav-item" style="color: var(--webify-accent-secondary); font-size: 13px;">
-                        <span class="iconify nav-icon" data-icon="solar:add-circle-bold-duotone"></span>
-                        <span>View all projects</span>
-                    </a>
-                    {% endif %}
-                </div>
-
-                {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                <!-- Administration -->
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">Administration</div>
-                    <a href="{{ url_for('admin.admin_tools') }}" class="sidebar-nav-item active" style="background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), transparent);">
-                        <span class="iconify nav-icon" data-icon="solar:settings-minimalistic-bold-duotone" style="color: var(--webify-accent-secondary);"></span>
-                        <span style="font-weight: 600;">Admin Tools</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:graph-new-bold-duotone"></span>
-                        <span>Admin Dashboard</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:users-group-two-rounded-bold-duotone"></span>
-                        <span>Users</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_teams') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:users-group-rounded-bold-duotone"></span>
-                        <span>Teams</span>
-                    </a>
-                    <a href="{{ url_for('admin.security_dashboard') }}" class="sidebar-nav-item">
-                        <span class="iconify nav-icon" data-icon="solar:shield-check-bold-duotone"></span>
-                        <span>Security</span>
-                    </a>
-                </div>
-                {% endif %}
-            </nav>
-
-            <div class="sidebar-footer">
-                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
-                    <div class="sidebar-user-avatar" style="--avatar-bg: {{ current_user.avatar_color if current_user.is_authenticated else 'var(--webify-gradient-primary)' }};">
-                        {{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}
-                    </div>
-                    <div class="sidebar-user-info">
-                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
-                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.is_authenticated and current_user.role else 'Guest' }}</div>
-                    </div>
-                    <span class="iconify" data-icon="solar:alt-arrow-right-linear" style="width: 16px; height: 16px; color: var(--webify-text-tertiary);"></span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="app-main">
-            <!-- Header -->
-            <header class="app-header">
-                <div class="header-left">
-                    <!-- Product Switcher -->
-                    <div style="position: relative;">
-                        <button class="header-icon-btn" id="productSwitcherBtn" title="Product Switcher">
-                            <span class="iconify" data-icon="solar:widget-2-bold"></span>
-                        </button>
-                    </div>
-                    
-                    <button class="header-icon-btn" id="sidebarToggle" style="display: none;">
-                        <span class="iconify" data-icon="solar:hamburger-menu-bold"></span>
-                    </button>
-                    <div class="header-breadcrumb">
-                        <span>Home</span>
-                        <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
-                        <span class="header-breadcrumb-current">Dashboard</span>
-                    </div>
-                </div>
-                <div class="header-right">
-                    <!-- Global Search with CMD+K -->
-                    <div class="header-search" style="position: relative; cursor: pointer;" onclick="window.globalNavigation?.openCommandPalette()">
-                        <span class="iconify header-search-icon" data-icon="solar:magnifer-linear"></span>
-                        <input type="text" class="header-search-input" placeholder="Search or jump to..." readonly style="cursor: pointer;">
-                        <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--webify-text-tertiary); background: var(--webify-bg-tertiary); border: 1px solid var(--webify-border-primary); border-radius: 4px; padding: 2px 6px; pointer-events: none;">
-                            <kbd>⌘K</kbd>
-                        </div>
-                    </div>
-                    
-                    <!-- Create Button with Dropdown -->
-                    <div class="create-btn-wrapper">
-                        <div class="create-btn-split">
-                            <button class="btn btn-primary btn-sm btn-create-main">
-                                <i data-lucide="plus" class="icon-sm"></i>
-                                Create
-                            </button>
-                            <button class="btn btn-primary btn-sm btn-create-dropdown">
-                                <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
-                            </button>
-                        </div>
-                        
-                        <!-- Create Dropdown Menu -->
-                        <div id="createDropdown">
-                            <div class="create-dropdown-section">
-                                <div class="create-dropdown-label">Issues</div>
-                                <a href="#" class="create-dropdown-item" data-action="issue">
-                                    <div class="create-dropdown-icon" data-type="issue">
-                                        <i data-lucide="circle" style="width: 14px; height: 14px;"></i>
-                                    </div>
-                                    <div class="create-dropdown-text">
-                                        <div class="create-dropdown-title">Issue</div>
-                                        <div class="create-dropdown-desc">Track work and bugs</div>
-                                    </div>
-                                    <kbd class="create-dropdown-shortcut">C</kbd>
-                                </a>
-                                <a href="#" class="create-dropdown-item" data-action="task">
-                                    <div class="create-dropdown-icon" data-type="task">
-                                        <i data-lucide="check-square" style="width: 14px; height: 14px;"></i>
-                                    </div>
-                                    <div class="create-dropdown-text">
-                                        <div class="create-dropdown-title">Task</div>
-                                        <div class="create-dropdown-desc">Work that needs to be done</div>
-                                    </div>
-                                </a>
-                                <a href="#" class="create-dropdown-item" data-action="story">
-                                    <div class="create-dropdown-icon" data-type="story">
-                                        <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
-                                    </div>
-                                    <div class="create-dropdown-text">
-                                        <div class="create-dropdown-title">Story</div>
-                                        <div class="create-dropdown-desc">User story or feature</div>
-                                    </div>
-                                </a>
-                                <a href="#" class="create-dropdown-item" data-action="bug">
-                                    <div class="create-dropdown-icon" data-type="bug">
-                                        <i data-lucide="bug" style="width: 14px; height: 14px;"></i>
-                                    </div>
-                                    <div class="create-dropdown-text">
-                                        <div class="create-dropdown-title">Bug</div>
-                                        <div class="create-dropdown-desc">Something isn't working</div>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="create-dropdown-section">
-                                <div class="create-dropdown-label">Project Items</div>
-                                <a href="#" class="create-dropdown-item" data-action="epic">
-                                    <div class="create-dropdown-icon" data-type="epic">
-                                        <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
-                                    </div>
-                                    <div class="create-dropdown-text">
-                                        <div class="create-dropdown-title">Epic</div>
-                                        <div class="create-dropdown-desc">Large body of work</div>
-                                    </div>
-                                </a>
-                                <a href="#" class="create-dropdown-item" data-action="sprint">
-                                    <div class="create-dropdown-icon" data-type="sprint">
-                                        <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
-                                    </div>
-                                    <div class="create-dropdown-text">
-                                        <div class="create-dropdown-title">Sprint</div>
-                                        <div class="create-dropdown-desc">Time-boxed iteration</div>
-                                    </div>
-                                </a>
-                                <a href="#" class="create-dropdown-item" data-action="project">
-                                    <div class="create-dropdown-icon" data-type="project">
-                                        <i data-lucide="folder" style="width: 14px; height: 14px;"></i>
-                                    </div>
-                                    <div class="create-dropdown-text">
-                                        <div class="create-dropdown-title">Project</div>
-                                        <div class="create-dropdown-desc">New project workspace</div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Notifications Button -->
-                    <button class="header-icon-btn" id="notificationBtn" style="position: relative;" title="Notifications">
-                        <i data-lucide="bell"></i>
-                        <span class="notification-badge">0</span>
-                    </button>
-                    
-                    <!-- Help Menu -->
-                    <div style="position: relative;">
-                        <button class="header-icon-btn" id="helpMenuBtn" title="Help">
-                            <i data-lucide="help-circle"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Theme Toggle -->
-                    <button class="header-icon-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
-                        <i data-lucide="moon"></i>
-                    </button>
-                    
-                    <!-- Settings -->
-                    <a href="{{ url_for('main.settings') }}" class="header-icon-btn" title="Settings">
-                        <i data-lucide="settings"></i>
-                    </a>
-                    
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
-                        <i data-lucide="log-out" class="icon-sm"></i>
-                        Sign out
-                    </a>
-                </div>
-            </header>
-
-            <!-- Content -->
-            <div class="app-content">
-                <!-- Flash Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
-                                <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
-                                <div class="alert-content">{{ message }}</div>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                <!-- Page Header -->
-                <div class="page-header">
-                    <div class="page-header-top">
-                        <div>
-                            <h1 class="page-title">Welcome back, {{ current_user.username if current_user.is_authenticated else 'User' }}</h1>
-                            <p class="page-subtitle">Here's what's happening with your projects today</p>
-                        </div>
-                        <div class="page-header-actions">
-                            {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                            <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-primary">
-                                <i data-lucide="plus" class="icon-sm"></i>
-                                New Project
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-4 mb-8">
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon primary">
-                                <i data-lucide="folder" class="icon-lg"></i>
-                            </div>
-                            <div class="stat-card-trend up">
-                                <i data-lucide="trending-up" class="icon-xs"></i>
-                                12%
-                            </div>
-                        </div>
-                        <div class="stat-card-value">{{ projects|length }}</div>
-                        <div class="stat-card-label">Total Projects</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon success">
-                                <i data-lucide="check-circle" class="icon-lg"></i>
-                            </div>
-                            <div class="stat-card-trend up" style="color: #22c55e;">
-                                {{ issue_stats.rate if issue_stats is defined else 0 }}%
-                            </div>
-                        </div>
-                        <div class="stat-card-value">{{ issue_stats.completed if issue_stats is defined else 0 }}</div>
-                        <div class="stat-card-label">Completed Issues</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon warning">
-                                <i data-lucide="clock" class="icon-lg"></i>
-                            </div>
-                        </div>
-                        <div class="stat-card-value">{{ issue_stats.in_progress if issue_stats is defined else 0 }}</div>
-                        <div class="stat-card-label">In Progress</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon info">
-                                <i data-lucide="list-todo" class="icon-lg"></i>
-                            </div>
-                        </div>
-                        <div class="stat-card-value">{{ issue_stats.open if issue_stats is defined else 0 }}</div>
-                        <div class="stat-card-label">Open Issues</div>
-                    </div>
-                </div>
-
-                <!-- Main Grid -->
-                <div class="grid" style="grid-template-columns: 2fr 1fr; gap: var(--space-6);">
-                    <!-- Projects Section -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <h2 class="card-title">Active Projects</h2>
-                                <p class="card-subtitle">Your current project workload</p>
-                            </div>
-                            <a href="{{ url_for('main.reports') }}" class="btn btn-ghost btn-sm">
-                                View all
-                                <i data-lucide="arrow-right" class="icon-sm"></i>
-                            </a>
-                        </div>
-                        <div class="card-body" style="padding: 0;">
-                            {% if projects %}
-                            <div class="table-container" style="border: none; border-radius: 0;">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Project</th>
-                                            <th>Status</th>
-                                            <th>Progress</th>
-                                            <th>Team</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for project in projects[:8] %}
-                                        <tr>
-                                            <td>
-                                                <div class="flex items-center gap-3">
-                                                    <div class="avatar avatar-sm" style="--avatar-bg: {{ project.color }};">
-                                                        {{ project.name[:2].upper() }}
-                                                    </div>
-                                                    <div>
-                                                        <div class="font-medium">{{ project.name }}</div>
-                                                        <div class="text-xs text-tertiary">{{ project.description[:40] if project.description else 'No description' }}...</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                {% if project.status == 'Completed' %}
-                                                <span class="badge badge-success">
-                                                    <span class="status-dot active"></span>
-                                                    Completed
-                                                </span>
-                                                {% elif project.status == 'In Progress' %}
-                                                <span class="badge badge-warning">
-                                                    <span class="status-dot pending"></span>
-                                                    In Progress
-                                                </span>
-                                                {% elif project.status == 'On Hold' %}
-                                                <span class="badge badge-gray">
-                                                    <span class="status-dot inactive"></span>
-                                                    On Hold
-                                                </span>
-                                                {% else %}
-                                                <span class="badge badge-info">
-                                                    <span class="status-dot"></span>
-                                                    {{ project.status }}
-                                                </span>
-                                                {% endif %}
-                                            </td>
-                                            <td style="min-width: 120px;">
-                                                {% set progress = project.progress if project.progress is defined else 0 %}
-                                                <div class="flex items-center gap-2">
-                                                    <div class="progress" style="width: 80px;">
-                                                        <div class="progress-bar {% if progress >= 100 %}success{% elif progress >= 50 %}{% else %}warning{% endif %}" style="--progress: {{ progress }}%;"></div>
-                                                    </div>
-                                                    <span class="text-xs text-tertiary">{{ progress }}%</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="avatar-group">
-                                                    {% if project.team %}
-                                                    <div class="avatar avatar-xs">{{ project.team.name[:2].upper() if project.team.name else 'TM' }}</div>
-                                                    {% else %}
-                                                    <span class="text-xs text-tertiary">No team</span>
-                                                    {% endif %}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="flex items-center gap-1">
-                                                    <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="btn btn-ghost btn-sm btn-icon" title="Kanban Board">
-                                                        <i data-lucide="kanban" class="icon-sm"></i>
-                                                    </a>
-                                                    <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="btn btn-ghost btn-sm btn-icon" title="View Details">
-                                                        <i data-lucide="eye" class="icon-sm"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="empty-state">
-                                <i data-lucide="folder-open" class="empty-state-icon"></i>
-                                <h3 class="empty-state-title">No projects yet</h3>
-                                <p class="empty-state-text">Get started by creating your first project</p>
-                                {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                                <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-primary">
-                                    <i data-lucide="plus" class="icon-sm"></i>
-                                    Create Project
-                                </a>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Right Column -->
-                    <div class="flex flex-col gap-6">
-                        <!-- Quick Actions -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title">Quick Actions</h2>
-                            </div>
-                            <div class="card-body">
-                                <div class="flex flex-col gap-2">
-                                    <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item">
-                                        <i data-lucide="gantt-chart" class="nav-icon"></i>
-                                        <span>View Gantt Chart</span>
-                                    </a>
-                                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
-                                        <i data-lucide="file-text" class="nav-icon"></i>
-                                        <span>Generate Report</span>
-                                    </a>
-                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
-                                    <a href="{{ url_for('admin.admin_users') }}" class="sidebar-nav-item">
-                                        <i data-lucide="user-plus" class="nav-icon"></i>
-                                        <span>Add Team Member</span>
-                                    </a>
-                                    <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-nav-item">
-                                        <i data-lucide="scroll-text" class="nav-icon"></i>
-                                        <span>View Audit Logs</span>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Recent Activity -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title">Recent Activity</h2>
-                            </div>
-                            <div class="card-body" style="padding: var(--space-4);">
-                                {% if recent_updates is defined and recent_updates %}
-                                <div class="activity-feed">
-                                    {% for update in recent_updates[:5] %}
-                                    <div class="activity-item">
-                                        <div class="avatar avatar-sm activity-avatar">
-                                            {{ update.author[:2].upper() if update.author else 'SY' }}
-                                        </div>
-                                        <div class="activity-content">
-                                            <div class="activity-header">
-                                                <span class="activity-user">{{ update.author or 'System' }}</span>
-                                                <span class="activity-time">{{ update.created_at.strftime('%b %d') if update.created_at else 'Recently' }}</span>
-                                            </div>
-                                            <p class="activity-text line-clamp-2">{{ update.content[:80] if update.content else update.title }}...</p>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <div class="text-center py-6">
-                                    <i data-lucide="activity" style="width: 32px; height: 32px; color: var(--gray-300); margin: 0 auto;"></i>
-                                    <p class="text-sm text-tertiary mt-2">No recent activity</p>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Command Palette (CMD+K) -->
-        <div id="commandOverlay"></div>
-        <div id="commandPalette">
-            <div class="command-header">
-                <i data-lucide="search" class="command-search-icon"></i>
-                <input type="text" class="command-input" placeholder="Type a command or search..." autocomplete="off">
-                <div class="command-shortcut">
-                    <kbd>Esc</kbd>
-                </div>
-            </div>
-            <div class="command-results"></div>
-            <div class="command-footer">
-                <div class="command-footer-shortcuts">
-                    <div class="command-footer-shortcut">
-                        <kbd>↑</kbd><kbd>↓</kbd> Navigate
-                    </div>
-                    <div class="command-footer-shortcut">
-                        <kbd>Enter</kbd> Select
-                    </div>
-                    <div class="command-footer-shortcut">
-                        <kbd>Esc</kbd> Close
-                    </div>
-                </div>
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--text-secondary);">
+                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="iconify" data-icon="solar:shield-check-bold" style="color: #10B981; width: 16px; height: 16px;"></span>
+                    Cryptographic Ledger Verified
+                </span>
+                <span>&bull;</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="iconify" data-icon="solar:lock-keyhole-bold" style="color: #6366F1; width: 16px; height: 16px;"></span>
+                    Argon2id Hardened
+                </span>
+                <span>&bull;</span>
+                <span style="color: var(--text-muted);">
+                    {{ projects|length }} active workspace{% if projects|length != 1 %}s{% endif %}
+                </span>
             </div>
         </div>
 
-        <!-- Product Switcher -->
-        <div id="productSwitcher">
-            <div class="product-switcher-header">
-                <div class="product-switcher-title">Atlassian Products</div>
-            </div>
-            <div class="product-switcher-grid">
-                <a href="/dashboard" class="product-switcher-item">
-                    <div class="product-switcher-icon" style="background: #0052CC; color: white;">
-                        <i data-lucide="layers"></i>
-                    </div>
-                    <div class="product-switcher-name">Jira</div>
-                </a>
-                <a href="#" class="product-switcher-item">
-                    <div class="product-switcher-icon" style="background: #0052CC; color: white;">
-                        <i data-lucide="book-open"></i>
-                    </div>
-                    <div class="product-switcher-name">Confluence</div>
-                </a>
-                <a href="#" class="product-switcher-item">
-                    <div class="product-switcher-icon" style="background: #0052CC; color: white;">
-                        <i data-lucide="git-branch"></i>
-                    </div>
-                    <div class="product-switcher-name">Bitbucket</div>
-                </a>
-                <a href="#" class="product-switcher-item">
-                    <div class="product-switcher-icon" style="background: #00C7E6; color: white;">
-                        <i data-lucide="zap"></i>
-                    </div>
-                    <div class="product-switcher-name">Trello</div>
-                </a>
-                <a href="#" class="product-switcher-item">
-                    <div class="product-switcher-icon" style="background: #6554C0; color: white;">
-                        <i data-lucide="users"></i>
-                    </div>
-                    <div class="product-switcher-name">Opsgenie</div>
-                </a>
-                <a href="#" class="product-switcher-item">
-                    <div class="product-switcher-icon" style="background: #00875A; color: white;">
-                        <i data-lucide="compass"></i>
-                    </div>
-                    <div class="product-switcher-name">Compass</div>
-                </a>
-            </div>
-            <div class="product-switcher-footer">
-                <a href="#" class="product-switcher-link">
-                    <i data-lucide="grid"></i>
-                    <span>View all products</span>
-                </a>
-            </div>
-        </div>
+        <div class="dashboard-hero-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap;">
+            <button type="button" class="btn btn-secondary" onclick="if(window.searchAutocomplete) window.searchAutocomplete.openSearch()" title="Spotlight Search (⌘K)">
+                <span class="iconify" data-icon="solar:magnifer-linear" style="width: 16px; height: 16px;"></span>
+                <span>Search</span>
+                <kbd style="padding: 2px 6px; font-size: 10px; background: rgba(255,255,255,0.08); border-radius: 4px; border: 1px solid rgba(255,255,255,0.12);">⌘K</kbd>
+            </button>
 
-        <!-- Help Menu -->
-        <div id="helpMenu">
-            <div class="help-menu-section">
-                <a href="#" class="help-menu-item">
-                    <i data-lucide="book-open" class="help-menu-icon"></i>
-                    <div class="help-menu-content">
-                        <div class="help-menu-title">Documentation</div>
-                        <div class="help-menu-description">Learn about ProjectFlow</div>
-                    </div>
-                    <i data-lucide="external-link" class="help-menu-external"></i>
-                </a>
-                <a href="#" class="help-menu-item">
-                    <i data-lucide="message-circle" class="help-menu-icon"></i>
-                    <div class="help-menu-content">
-                        <div class="help-menu-title">Contact Support</div>
-                        <div class="help-menu-description">Get help from our team</div>
-                    </div>
-                </a>
-                <a href="#" class="help-menu-item">
-                    <i data-lucide="life-buoy" class="help-menu-icon"></i>
-                    <div class="help-menu-content">
-                        <div class="help-menu-title">Help Center</div>
-                        <div class="help-menu-description">Browse articles and FAQs</div>
-                    </div>
-                    <i data-lucide="external-link" class="help-menu-external"></i>
-                </a>
-            </div>
-            <div class="help-menu-section">
-                <a href="#" class="help-menu-item">
-                    <i data-lucide="keyboard" class="help-menu-icon"></i>
-                    <div class="help-menu-content">
-                        <div class="help-menu-title">Keyboard Shortcuts</div>
-                        <div class="help-menu-description">Press Ctrl+/</div>
-                    </div>
-                </a>
-                <a href="#" class="help-menu-item">
-                    <i data-lucide="sparkles" class="help-menu-icon"></i>
-                    <div class="help-menu-content">
-                        <div class="help-menu-title">What's New</div>
-                        <div class="help-menu-description">Latest features & updates</div>
-                    </div>
-                </a>
-            </div>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-secondary">
+                <span class="iconify" data-icon="solar:folder-add-bold" style="width: 16px; height: 16px;"></span>
+                New Project
+            </a>
+            {% endif %}
+
+            <button type="button" class="btn btn-primary" onclick="openCreateIssueModal()">
+                <span class="iconify" data-icon="solar:add-circle-bold" style="width: 16px; height: 16px;"></span>
+                Create Issue
+                <kbd style="padding: 2px 6px; font-size: 10px; background: rgba(255,255,255,0.2); border-radius: 4px; margin-left: 4px;">C</kbd>
+            </button>
         </div>
     </div>
 
-    <script>
-        // Wait for DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard: DOM Content Loaded');
-            
-            // Initialize Lucide icons
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-                console.log('Dashboard: Lucide icons initialized');
-            } else {
-                console.error('Dashboard: Lucide library not loaded!');
-            }
-            
-            // Check if managers are loaded
-            if (typeof window.themeManager === 'undefined') {
-                console.error('Dashboard: Theme manager not loaded!');
-            } else {
-                console.log('Dashboard: Theme manager ready');
-            }
-            
-            if (typeof window.notificationManager === 'undefined') {
-                console.error('Dashboard: Notification manager not loaded!');
-            } else {
-                console.log('Dashboard: Notification manager ready');
-            }
-
-            // Mobile sidebar toggle
-            const sidebar = document.getElementById('sidebar');
-            const sidebarToggle = document.getElementById('sidebarToggle');
+    <!-- BENTO GRID -->
+    <div class="bento-grid">
         
-        if (window.innerWidth <= 1024) {
-            sidebarToggle.style.display = 'flex';
-        }
+        <!-- TILE 1 (Col 4): Circular Progress Ring & Delivery Velocity -->
+        <div class="bento-card bento-col-4" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="iconify" data-icon="solar:pie-chart-2-bold" style="color: var(--accent-blue, #3B82F6); width: 20px; height: 20px;"></span>
+                        <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-primary);">Delivery Velocity</h3>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        ON TRACK
+                    </span>
+                </div>
 
-        window.addEventListener('resize', () => {
-            sidebarToggle.style.display = window.innerWidth <= 1024 ? 'flex' : 'none';
-        });
-
-        sidebarToggle?.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
-
-        // Search functionality
-        const searchInput = document.querySelector('.header-search-input');
-        searchInput?.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            document.querySelectorAll('tbody tr').forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
-            });
-        });
-        
-        // Initialize theme toggle
-        const themeToggleBtn = document.getElementById('themeToggle');
-        if (themeToggleBtn) {
-            themeToggleBtn.addEventListener('click', () => {
-                window.themeManager.toggleTheme();
-                window.notificationManager.addNotification({
-                    title: 'Theme Changed',
-                    message: `Switched to ${window.themeManager.getTheme()} mode`,
-                    type: 'success'
-                });
-            });
-        } else {
-            console.error('Theme toggle button not found!');
-        }
-        
-        // Initialize notification panel
-        const notificationBtn = document.getElementById('notificationBtn');
-        const notificationPanel = document.createElement('div');
-        notificationPanel.className = 'notification-panel';
-        notificationPanel.innerHTML = `
-            <div class="notification-panel-header">
-                <div class="notification-panel-title">Notifications</div>
-                <div class="notification-actions">
-                    <button class="notification-action-btn" id="markAllRead">Mark all as read</button>
-                    <button class="notification-action-btn" id="clearNotifications">Clear all</button>
+                <!-- Radial Progress Ring -->
+                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 0;">
+                    <div style="position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="140" height="140" viewBox="0 0 140 140">
+                            <!-- Background Track -->
+                            <circle cx="70" cy="70" r="56" fill="transparent" stroke="rgba(255,255,255,0.06)" stroke-width="12"></circle>
+                            <!-- Progress Stroke -->
+                            {% set pct = issue_stats.rate if issue_stats is defined else 0 %}
+                            {% set circ = 351.85 %}
+                            {% set dashoffset = circ - (circ * pct / 100) %}
+                            <circle cx="70" cy="70" r="56" fill="transparent" stroke="url(#progressGrad)" stroke-width="12"
+                                    stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ dashoffset }}"
+                                    stroke-linecap="round" class="progress-ring-circle"></circle>
+                            <defs>
+                                <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#3B82F6"></stop>
+                                    <stop offset="100%" stop-color="#10B981"></stop>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div style="position: absolute; text-align: center;">
+                            <div style="font-size: 32px; font-weight: 800; color: var(--text-primary); letter-spacing: -1px; line-height: 1;">
+                                {{ issue_stats.rate if issue_stats is defined else 0 }}%
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; margin-top: 4px;">
+                                Completed
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="notification-panel-content" id="notificationList"></div>
-        `;
-        document.body.appendChild(notificationPanel);
-        
-        notificationBtn.addEventListener('click', () => {
-            notificationPanel.classList.toggle('show');
-            updateNotificationList();
-        });
-        
-        function updateNotificationList() {
-            const list = document.getElementById('notificationList');
-            const notifications = window.notificationManager.getNotifications();
-            
-            if (notifications.length === 0) {
-                list.innerHTML = `
-                    <div class="notification-empty">
-                        <i data-lucide="bell-off" class="notification-empty-icon"></i>
-                        <div class="notification-empty-text">No notifications</div>
+
+            <!-- Stats Sub-Grid -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; border-top: 1px solid var(--surface-border); padding-top: 16px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 18px; font-weight: 700; color: #10B981;">{{ issue_stats.completed if issue_stats is defined else 0 }}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Done</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 18px; font-weight: 700; color: #F59E0B;">{{ issue_stats.in_progress if issue_stats is defined else 0 }}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">In Progress</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);">{{ issue_stats.open if issue_stats is defined else 0 }}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Open</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TILE 2 (Col 5): Active Sprint & Cadence -->
+        <div class="bento-card bento-col-5" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="iconify" data-icon="solar:bolt-bold" style="color: #22C55E; width: 20px; height: 20px;"></span>
+                        <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-primary);">Active Sprint</h3>
                     </div>
-                `;
-            } else {
-                list.innerHTML = notifications.map(n => `
-                    <div class="notification-item ${n.type} ${n.read ? '' : 'unread'}" data-id="${n.id}">
-                        <div class="notification-item-icon">
-                            <i data-lucide="${window.notificationManager.getIconForType(n.type)}"></i>
+                    {% if active_sprint %}
+                    <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; background: rgba(34, 197, 94, 0.15); color: #22C55E; border: 1px solid rgba(34, 197, 94, 0.3);">
+                        ACTIVE
+                    </span>
+                    {% else %}
+                    <span style="font-size: 11px; color: var(--text-muted);">No Active Sprint</span>
+                    {% endif %}
+                </div>
+
+                {% if active_sprint %}
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: 10px; padding: 16px; margin-bottom: 14px;">
+                    <div style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
+                        {{ active_sprint.name }}
+                    </div>
+                    {% if active_sprint.goal %}
+                    <p style="margin: 0 0 10px; font-size: 13px; color: var(--text-secondary); font-style: italic; line-height: 1.4;">
+                        "{{ active_sprint.goal }}"
+                    </p>
+                    {% endif %}
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                        <span>Timeline</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">
+                            {{ active_sprint.start_date.strftime('%b %d') if active_sprint.start_date else 'Now' }} &rarr; {{ active_sprint.end_date.strftime('%b %d, %Y') if active_sprint.end_date else 'Ongoing' }}
+                        </span>
+                    </div>
+
+                    <!-- Visual Progress Bar -->
+                    <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.08); border-radius: 9999px; overflow: hidden;">
+                        <div style="height: 100%; width: 57%; background: linear-gradient(90deg, #3B82F6, #10B981); border-radius: 9999px;"></div>
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 30px 10px; color: var(--text-secondary);">
+                    <span class="iconify" data-icon="solar:calendar-linear" style="width: 32px; height: 32px; color: var(--text-muted); margin-bottom: 8px;"></span>
+                    <p style="margin: 0 0 12px; font-size: 13px;">No sprint is currently in progress.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--surface-border-color); padding-top: 14px; gap: 10px;">
+                <a href="{{ url_for('main.backlog') }}" class="btn btn-ghost btn-sm" style="color: var(--accent-blue, #60A5FA); font-weight: 600; padding: 4px 8px; text-decoration: none;">
+                    Backlog &amp; Sprint Planning &rarr;
+                </a>
+                <a href="{{ url_for('main.board') }}" class="btn btn-secondary btn-sm" style="white-space: nowrap;">
+                    View Board
+                </a>
+            </div>
+        </div>
+
+        <!-- TILE 3 (Col 3): Quick Actions & Shortcuts Bento -->
+        <div class="bento-card bento-col-3" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                    <span class="iconify" data-icon="solar:command-bold" style="color: #A855F7; width: 20px; height: 20px;"></span>
+                    <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-primary);">Navigation</h3>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="{{ url_for('main.board') }}" class="btn btn-secondary" style="justify-content: space-between; padding: 8px 12px; text-decoration: none;">
+                        <span style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                            <span class="iconify" data-icon="solar:widget-5-bold" style="color: #3B82F6;"></span>
+                            Kanban Board
+                        </span>
+                        <kbd style="padding: 1px 5px; font-size: 10px; background: rgba(255,255,255,0.08); border-radius: 4px;">B</kbd>
+                    </a>
+
+                    <a href="{{ url_for('main.backlog') }}" class="btn btn-secondary" style="justify-content: space-between; padding: 8px 12px; text-decoration: none;">
+                        <span style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                            <span class="iconify" data-icon="solar:checklist-minimalistic-bold" style="color: #10B981;"></span>
+                            Backlog &amp; Cycles
+                        </span>
+                        <kbd style="padding: 1px 5px; font-size: 10px; background: rgba(255,255,255,0.08); border-radius: 4px;">S</kbd>
+                    </a>
+
+                    <a href="{{ url_for('main.analytics') }}" class="btn btn-secondary" style="justify-content: space-between; padding: 8px 12px; text-decoration: none;">
+                        <span style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                            <span class="iconify" data-icon="solar:chart-square-bold" style="color: #F59E0B;"></span>
+                            Velocity Analytics
+                        </span>
+                        <kbd style="padding: 1px 5px; font-size: 10px; background: rgba(255,255,255,0.08); border-radius: 4px;">A</kbd>
+                    </a>
+
+                    <a href="{{ url_for('main.settings') }}" class="btn btn-secondary" style="justify-content: space-between; padding: 8px 12px; text-decoration: none;">
+                        <span style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                            <span class="iconify" data-icon="solar:settings-bold" style="color: #64748B;"></span>
+                            Preferences
+                        </span>
+                        <kbd style="padding: 1px 5px; font-size: 10px; background: rgba(255,255,255,0.08); border-radius: 4px;">P</kbd>
+                    </a>
+                </div>
+            </div>
+
+            <div style="font-size: 11px; color: var(--text-muted); text-align: center; border-top: 1px solid var(--surface-border); padding-top: 12px;">
+                Press <kbd style="padding: 1px 4px; background: rgba(255,255,255,0.08); border-radius: 3px;">⌘K</kbd> anytime for Spotlight
+            </div>
+        </div>
+
+        <!-- TILE 4 (Col 8): Active Projects Showcase -->
+        <div class="bento-card bento-col-8" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="iconify" data-icon="solar:folder-with-files-bold" style="color: #38BDF8; width: 22px; height: 22px;"></span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">Active Projects &amp; Workspaces</h3>
+                        <span style="font-size: 12px; color: var(--text-secondary);">Enterprise workload and delivery progress</span>
+                    </div>
+                </div>
+
+                {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-ghost btn-sm" style="color: var(--accent-blue, #60A5FA);">
+                    Manage Projects &rarr;
+                </a>
+                {% endif %}
+            </div>
+
+            {% if projects %}
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                {% for project in projects %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: rgba(255,255,255,0.02); border: 1px solid var(--surface-border); border-radius: 10px; gap: 16px; transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; gap: 14px; min-width: 220px;">
+                        <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #6366F1, #3B82F6); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0;">
+                            {{ project.key or project.name[:2].upper() }}
                         </div>
-                        <div class="notification-item-content">
-                            <div class="notification-item-title">${n.title}</div>
-                            <div class="notification-item-message">${n.message}</div>
-                            <div class="notification-item-time">${new Date(n.timestamp).toLocaleString()}</div>
+                        <div>
+                            <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" style="font-weight: 600; font-size: 14px; color: var(--text-primary); text-decoration: none;">
+                                {{ project.name }}
+                            </a>
+                            <div style="font-size: 11px; color: var(--text-secondary);">
+                                Key: <span style="font-weight: 600; color: var(--accent-blue, #60A5FA);">{{ project.key }}</span>
+                                {% if project.team %} &bull; {{ project.team.name }}{% endif %}
+                            </div>
                         </div>
                     </div>
-                `).join('');
-            }
-            
-            lucide.createIcons();
-            
-            document.querySelectorAll('.notification-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const id = parseInt(item.dataset.id);
-                    window.notificationManager.markAsRead(id);
-                    updateNotificationList();
-                });
-            });
-        }
-        
-        document.getElementById('markAllRead').addEventListener('click', () => {
-            window.notificationManager.markAllAsRead();
-            updateNotificationList();
-        });
-        
-        document.getElementById('clearNotifications').addEventListener('click', () => {
-            if (confirm('Clear all notifications?')) {
-                window.notificationManager.clearAll();
-                updateNotificationList();
-            }
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!notificationPanel.contains(e.target) && e.target !== notificationBtn && !notificationBtn.contains(e.target)) {
-                notificationPanel.classList.remove('show');
-            }
-        });
-        
-        // Welcome notification
-        setTimeout(() => {
-            window.notificationManager.addNotification({
-                title: 'Welcome Back!',
-                message: 'Check out your projects and recent activity. Use Ctrl+D to toggle theme.',
-                type: 'info'
-            });
-        }, 1000);
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-                e.preventDefault();
-                window.themeManager.toggleTheme();
-            }
-            
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                searchInput.focus();
-            }
-        });
-        
-        // Sidebar notifications click handler
-        document.getElementById('sidebarNotifications')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('notificationBtn').click();
-        });
-        });
-    </script>
-</body>
-</html>
+
+                    <!-- Progress Bar & Status -->
+                    <div style="flex: 1; max-width: 280px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                            <span style="color: var(--text-secondary);">Progress</span>
+                            <span style="font-weight: 600; color: #10B981;">57%</span>
+                        </div>
+                        <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.06); border-radius: 9999px; overflow: hidden;">
+                            <div style="height: 100%; width: 57%; background: linear-gradient(90deg, #3B82F6, #10B981); border-radius: 9999px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="btn btn-secondary btn-sm" title="Open Board">
+                            <span class="iconify" data-icon="solar:widget-2-bold" style="width: 14px; height: 14px;"></span>
+                            Board
+                        </a>
+                        <a href="{{ url_for('projects.project_backlog', project_id=project.id) }}" class="btn btn-ghost btn-sm" title="Open Backlog">
+                            <span class="iconify" data-icon="solar:list-bold" style="width: 14px; height: 14px;"></span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                <p>No projects configured yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- TILE 5 (Col 4): In-Flight Issues (Work In Progress) -->
+        <div class="bento-card bento-col-4" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="iconify" data-icon="solar:clock-circle-bold" style="color: #F59E0B; width: 20px; height: 20px;"></span>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">In Flight</h3>
+                </div>
+                <a href="{{ url_for('main.issues') }}" class="btn btn-ghost btn-sm" style="color: var(--accent-blue, #60A5FA); font-size: 12px;">
+                    View All &rarr;
+                </a>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                {% if recent_issues %}
+                {% for issue in recent_issues[:4] %}
+                <a href="{{ url_for('projects.issue_view', project_id=issue.project_id, issue_id=issue.id) }}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--surface-border); border-radius: 8px; text-decoration: none; transition: all 0.15s ease;">
+                    <span class="iconify" data-icon="{{ 'solar:bug-bold' if issue.issue_type == 'bug' else 'solar:bookmark-bold' if issue.issue_type == 'story' else 'solar:check-square-bold' }}" style="color: {{ '#EF4444' if issue.issue_type == 'bug' else '#10B981' if issue.issue_type == 'story' else '#3B82F6' }}; width: 16px; height: 16px; flex-shrink: 0;"></span>
+                    
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ issue.key }}: {{ issue.title }}
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">
+                            {{ issue.status.replace('_', ' ') }}
+                        </div>
+                    </div>
+
+                    {% if issue.assignee %}
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #3B82F6; color: white; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700;" title="{{ issue.assignee.username }}">
+                        {{ issue.assignee.username[:2].upper() }}
+                    </div>
+                    {% endif %}
+                </a>
+                {% endfor %}
+                {% else %}
+                <p style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">No in-flight items.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- TILE 6 (Col 6): Immutable Audit Ledger Stream -->
+        <div class="bento-card bento-col-6" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="iconify" data-icon="solar:shield-check-bold" style="color: #10B981; width: 20px; height: 20px;"></span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-primary);">SHA-256 Audit Stream</h3>
+                        <span style="font-size: 11px; color: var(--text-secondary);">Cryptographically chained integrity ledger</span>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('admin.audit_logs') if current_user.is_authenticated and current_user.role == 'admin' else '#' }}" class="btn btn-ghost btn-sm" style="font-size: 11px; color: var(--accent-blue, #60A5FA);">
+                    Verify Ledger
+                </a>
+            </div>
+
+            {% if recent_audit_logs %}
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                {% for log in recent_audit_logs %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--surface-border); border-radius: 6px; font-size: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="iconify" data-icon="solar:check-circle-bold" style="color: #10B981; width: 14px; height: 14px;"></span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ log.action }}</span>
+                        <span style="color: var(--text-secondary);">by {{ log.username or 'system' }}</span>
+                    </div>
+                    <span style="font-size: 11px; color: var(--text-muted); font-family: monospace;">
+                        {{ log.timestamp.strftime('%H:%M:%S') if log.timestamp else 'now' }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">No recent audit events.</p>
+            {% endif %}
+        </div>
+
+        <!-- TILE 7 (Col 6): Security & Platform Architecture -->
+        <div class="bento-card bento-col-6" style="padding: 24px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                <span class="iconify" data-icon="solar:cpu-bolt-bold" style="color: #6366F1; width: 20px; height: 20px;"></span>
+                <div>
+                    <h3 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-primary);">Kernel &amp; Architecture Matrix</h3>
+                    <span style="font-size: 11px; color: var(--text-secondary);">Enterprise hardened security foundation</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <div style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--surface-border); border-radius: 8px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Credential Hashing</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #10B981; display: flex; align-items: center; gap: 6px;">
+                        <span class="iconify" data-icon="solar:check-circle-bold"></span>
+                        Argon2id (Memory-Hard)
+                    </div>
+                </div>
+
+                <div style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--surface-border); border-radius: 8px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Facial Recognition</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #3B82F6; display: flex; align-items: center; gap: 6px;">
+                        <span class="iconify" data-icon="solar:user-rounded-bold"></span>
+                        128-d Embedding Engine
+                    </div>
+                </div>
+
+                <div style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--surface-border); border-radius: 8px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Data Protection</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #A855F7; display: flex; align-items: center; gap: 6px;">
+                        <span class="iconify" data-icon="solar:lock-bold"></span>
+                        AES-256 Symmetric Field
+                    </div>
+                </div>
+
+                <div style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--surface-border); border-radius: 8px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Tamper Resistance</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #F59E0B; display: flex; align-items: center; gap: 6px;">
+                        <span class="iconify" data-icon="solar:shield-bold"></span>
+                        SHA-256 Merkle Chain
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

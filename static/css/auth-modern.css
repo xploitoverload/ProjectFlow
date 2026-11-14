@@ -151,8 +151,12 @@ input::placeholder {
   font-family: inherit;
 }
 
-.btn-primary {
+.auth-container .btn-primary,
+.auth-card .btn-primary {
   width: 100%;
+}
+
+.btn-primary {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: white;
   box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
@@ -163,8 +167,12 @@ input::placeholder {
   box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
 }
 
-.btn-secondary {
+.auth-container .btn-secondary,
+.auth-card .btn-secondary {
   width: 100%;
+}
+
+.btn-secondary {
   background: var(--secondary);
   color: white;
 }

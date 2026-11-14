@@ -32,10 +32,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/feature-pages.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/feature-pages-pro.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/master-fix.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui-styles-engine.css') }}">
     
     <!-- Iconify Icons -->
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     
+    <script defer src="{{ url_for('static', filename='js/ui-styles-engine.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/core-ui.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
@@ -220,6 +222,55 @@
                         <span class="notification-badge">0</span>
                     </button>
                     
+                    <!-- UI Style Switcher -->
+                    <div style="position: relative;">
+                        <button type="button" class="style-switcher-btn" id="styleSwitcherBtn" title="Switch UI Style">
+                            <span class="iconify" data-icon="solar:magic-stick-3-bold" style="color: var(--accent-blue, #818CF8); width: 16px; height: 16px;"></span>
+                            <span id="currentStyleLabel" style="font-size: 12px; font-weight: 600;">Bento Glass OLED</span>
+                            <span class="iconify" data-icon="solar:alt-arrow-down-linear" style="width: 12px; height: 12px; opacity: 0.7;"></span>
+                        </button>
+                        <div class="style-switcher-menu" id="styleSwitcherMenu">
+                            <div style="padding: 4px 8px 8px; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+                                UI Design Style
+                            </div>
+                            <div class="style-option-item active" data-style="bento-glass">
+                                <div>
+                                    <div style="font-weight: 600;">Bento Glass OLED</div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">Frosted glass &amp; Bento cards</div>
+                                </div>
+                                <span class="style-option-badge" style="background: rgba(99, 102, 241, 0.2); color: #818CF8;">Flagship</span>
+                            </div>
+                            <div class="style-option-item" data-style="minimalism">
+                                <div>
+                                    <div style="font-weight: 600;">Minimalism</div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">Ample whitespace, hairline 1px</div>
+                                </div>
+                                <span class="style-option-badge" style="background: rgba(255, 255, 255, 0.1); color: #E2E8F0;">Clean</span>
+                            </div>
+                            <div class="style-option-item" data-style="neo-brutalism">
+                                <div>
+                                    <div style="font-weight: 600;">Neo-Brutalism</div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">Bold 2px borders, hard shadows</div>
+                                </div>
+                                <span class="style-option-badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Bold</span>
+                            </div>
+                            <div class="style-option-item" data-style="neumorphism">
+                                <div>
+                                    <div style="font-weight: 600;">Neumorphism</div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">Soft UI dual tactile shadows</div>
+                                </div>
+                                <span class="style-option-badge" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24;">Soft UI</span>
+                            </div>
+                            <div class="style-option-item" data-style="flat">
+                                <div>
+                                    <div style="font-weight: 600;">Flat Design</div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">Solid 2D surfaces &amp; zero depth</div>
+                                </div>
+                                <span class="style-option-badge" style="background: rgba(16, 185, 129, 0.2); color: #34D399;">2D</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Theme Toggle -->
                     <button class="header-icon-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
                         <span class="iconify" data-icon="solar:moon-bold"></span>

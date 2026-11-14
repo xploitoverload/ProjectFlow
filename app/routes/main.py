@@ -87,13 +87,22 @@ def dashboard():
     if user.role in ['admin', 'super_admin']:
         gantt_data = ProjectService.get_gantt_data(projects)
     
+    from app.models import Sprint, AuditLog
+    from datetime import datetime
+    active_sprint = Sprint.query.filter_by(status='active').first()
+    recent_issues = sorted(all_issues, key=lambda x: x.created_at or datetime.min, reverse=True)[:6]
+    recent_audit_logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(5).all()
+    
     return render_template('dashboard.html',
                           user=user,
                           projects=projects,
                           teams=teams,
                           stats=stats,
                           issue_stats=issue_stats,
-                          gantt_data=gantt_data)
+                          gantt_data=gantt_data,
+                          active_sprint=active_sprint,
+                          recent_issues=recent_issues,
+                          recent_audit_logs=recent_audit_logs)
 
 
 @main_bp.route('/reports')
