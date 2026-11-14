@@ -22,11 +22,13 @@ def get_encryption_key():
     if os.path.exists(key_file):
         try:
             with open(key_file, 'rb') as f:
-                return f.read().strip()
+                key = f.read().strip()
+                if len(key) == 44:
+                    return key
         except Exception:
             pass
-    # Deterministic fallback key for development / testing
-    return b'7i_1o9mXfF5Kx2s9R7yU2pA8bC4dE6fG8hJ0kL2mN4='
+    # Deterministic fallback key for development / testing (valid 32-byte url-safe base64, 44 chars)
+    return b'SSPcxXLWjHXEAw4EvOOkBQ9bxocTd8m1O-0VaHe8bRc='
 
 ENCRYPTION_KEY = get_encryption_key()
 cipher = Fernet(ENCRYPTION_KEY)
