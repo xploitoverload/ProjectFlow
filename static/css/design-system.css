@@ -182,7 +182,9 @@
 /* ============================================
    DARK MODE THEME
    ============================================ */
-body[data-theme="dark"] {
+body[data-theme="dark"],
+[data-theme="dark"],
+:root[data-theme="dark"] {
   /* Dark mode color overrides */
   --bg-primary: #1d2125;
   --bg-secondary: #161a1d;
@@ -196,6 +198,19 @@ body[data-theme="dark"] {
   
   --border-primary: #2c333a;
   --border-secondary: #22272b;
+
+  /* Grayscale token inversion for dark mode */
+  --gray-50: #1d2125;
+  --gray-100: #22272b;
+  --gray-200: #2c333a;
+  --gray-300: #484f58;
+  --gray-400: #6e7681;
+  --gray-500: #8c9bab;
+  --gray-600: #b6c2cf;
+  --gray-700: #c9d1d9;
+  --gray-800: #e6edf3;
+  --gray-900: #f0f6fc;
+  --gray-950: #ffffff;
   
   /* JIRA-style dark colors */
   --jira-dark-bg: #1d2125;
@@ -1199,30 +1214,43 @@ button, input, select, textarea {
 /* ============================================
    MODALS
    ============================================ */
-.modal-backdrop {
+.modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  z-index: var(--z-modal-backdrop);
+  width: 100vw;
+  height: 100vh;
+  z-index: var(--z-modal, 10050);
   display: none;
   align-items: center;
   justify-content: center;
   padding: var(--space-4);
+  background: transparent;
 }
 
-.modal-backdrop.active {
-  display: flex;
+.modal.show,
+.modal[style*="display: flex"] {
+  display: flex !important;
 }
 
-.modal {
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1;
+}
+
+.modal-content,
+.modal-dialog {
+  position: relative;
+  z-index: 2;
   background: var(--bg-primary);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-2xl);
   width: 100%;
-  max-width: 500px;
+  max-width: 580px;
   max-height: 90vh;
-  overflow: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   animation: modalSlideIn var(--transition-base);

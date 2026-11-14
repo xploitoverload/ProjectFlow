@@ -730,13 +730,11 @@ def search_autocomplete():
         )
     ).limit(5).all()
     
-    # Search users for @mentions
-    users = []
-    if query.startswith('@'):
-        username_query = query[1:]  # Remove @ symbol
-        users = User.query.filter(
-            User.username.ilike(f'%{username_query}%')
-        ).limit(5).all()
+    # Search users for @mentions or direct username match
+    clean_query = query[1:] if query.startswith('@') else query
+    users = User.query.filter(
+        User.username.ilike(f'%{clean_query}%')
+    ).limit(5).all()
     
     return jsonify({
         'success': True,
@@ -952,6 +950,42 @@ def manage_sprints_api(project_id):
         'data': sprint.to_dict(),
         'message': 'Sprint created successfully'
     }), 201
+
+
+@api_bp.route('/project/<int:project_id>/sprint/<int:sprint_id>/status', methods=['POST'])
+@api_auth_required
+def update_sprint_status(project_id, sprint_id):
+    """Update sprint status (planned, active, completed)."""
+    from app.models import Sprint
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    sprint = Sprint.query.filter_by(id=sprint_id, project_id=project_id).first_or_404()
+    data = request.get_json() or {}
+    new_status = data.get('status')
+    if new_status in ['planned', 'active', 'completed']:
+        sprint.status = new_status
+        db.session.commit()
+        return jsonify({'success': True, 'status': sprint.status, 'message': f'Sprint is now {new_status}'})
+    return jsonify({'success': False, 'error': 'Invalid status'}), 400
+
+
+@api_bp.route('/project/<int:project_id>/issue/<int:issue_id>/sprint', methods=['POST'])
+@api_auth_required
+def assign_issue_sprint(project_id, issue_id):
+    """Assign or remove an issue from a sprint."""
+    from app.models import Issue
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    issue = Issue.query.filter_by(id=issue_id, project_id=project_id).first_or_404()
+    data = request.get_json() or {}
+    sprint_id = data.get('sprint_id')
+    issue.sprint_id = int(sprint_id) if sprint_id else None
+    db.session.commit()
+    return jsonify({'success': True, 'sprint_id': issue.sprint_id, 'message': 'Issue sprint updated'})
 
 
 @api_bp.route('/project/<int:project_id>/epics', methods=['GET', 'POST'])

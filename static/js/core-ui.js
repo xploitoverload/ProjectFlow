@@ -1,1 +1,318 @@
-/**\n * Core UI Interactions - Essential JavaScript for dropdown, modal, and form functionality\n * This file provides the basic interactivity that makes the UI functional.\n */\n\n// Global UI Controller\nclass UIController {\n    constructor() {\n        this.init();\n    }\n    \n    init() {\n        this.setupDropdowns();\n        this.setupModals();\n        this.setupFormValidation();\n        this.setupKeyboardShortcuts();\n        this.setupLoadingStates();\n        \n        console.log('✅ UI Controller initialized');\n    }\n    \n    // ========== DROPDOWN FUNCTIONALITY ==========\n    setupDropdowns() {\n        // Handle all select elements\n        document.querySelectorAll('select').forEach(select => {\n            // Ensure change events work\n            select.addEventListener('change', (e) => {\n                // Trigger any onchange attributes\n                if (e.target.onchange) {\n                    e.target.onchange();\n                }\n            });\n        });\n        \n        // Custom dropdown handling\n        document.addEventListener('click', (e) => {\n            // Close all dropdowns when clicking outside\n            if (!e.target.closest('.dropdown')) {\n                this.closeAllDropdowns();\n            }\n        });\n    }\n    \n    closeAllDropdowns() {\n        document.querySelectorAll('.dropdown.open').forEach(dropdown => {\n            dropdown.classList.remove('open');\n        });\n    }\n    \n    // ========== MODAL FUNCTIONALITY ==========\n    setupModals() {\n        // Auto-setup modal close buttons\n        document.querySelectorAll('.modal .btn-icon, .modal .modal-backdrop').forEach(btn => {\n            btn.addEventListener('click', (e) => {\n                if (e.target.classList.contains('modal-backdrop') || e.target.closest('.btn-icon')) {\n                    this.closeModal(e.target.closest('.modal'));\n                }\n            });\n        });\n        \n        // ESC key closes modals\n        document.addEventListener('keydown', (e) => {\n            if (e.key === 'Escape') {\n                this.closeAllModals();\n            }\n        });\n    }\n    \n    openModal(modalId) {\n        const modal = document.getElementById(modalId);\n        if (modal) {\n            modal.style.display = 'flex';\n            modal.classList.add('show');\n            \n            // Focus first input\n            const firstInput = modal.querySelector('input, select, textarea');\n            if (firstInput) {\n                setTimeout(() => firstInput.focus(), 100);\n            }\n            \n            console.log(`Opened modal: ${modalId}`);\n        }\n    }\n    \n    closeModal(modal) {\n        if (typeof modal === 'string') {\n            modal = document.getElementById(modal);\n        }\n        \n        if (modal) {\n            modal.style.display = 'none';\n            modal.classList.remove('show');\n            \n            // Reset form if present\n            const form = modal.querySelector('form');\n            if (form) {\n                form.reset();\n                this.clearFormErrors(form);\n            }\n        }\n    }\n    \n    closeAllModals() {\n        document.querySelectorAll('.modal').forEach(modal => {\n            this.closeModal(modal);\n        });\n    }\n    \n    // ========== FORM VALIDATION ==========\n    setupFormValidation() {\n        document.querySelectorAll('form').forEach(form => {\n            form.addEventListener('submit', (e) => {\n                if (!this.validateForm(form)) {\n                    e.preventDefault();\n                    return false;\n                }\n                \n                // Show loading state for submit buttons\n                const submitBtn = form.querySelector('button[type=\"submit\"]');\n                if (submitBtn) {\n                    this.showLoadingState(submitBtn);\n                }\n            });\n        });\n    }\n    \n    validateForm(form) {\n        let isValid = true;\n        this.clearFormErrors(form);\n        \n        // Check required fields\n        form.querySelectorAll('[required]').forEach(field => {\n            if (!field.value.trim()) {\n                this.showFieldError(field, 'This field is required');\n                isValid = false;\n            }\n        });\n        \n        // Custom validations\n        const customValidations = {\n            email: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/,\n            url: /^https?:\\/\\/.+/,\n            number: /^\\d+$/\n        };\n        \n        form.querySelectorAll('[data-validate]').forEach(field => {\n            const validateType = field.dataset.validate;\n            if (customValidations[validateType] && field.value) {\n                if (!customValidations[validateType].test(field.value)) {\n                    this.showFieldError(field, `Please enter a valid ${validateType}`);\n                    isValid = false;\n                }\n            }\n        });\n        \n        return isValid;\n    }\n    \n    showFieldError(field, message) {\n        field.classList.add('error');\n        \n        // Remove existing error message\n        const existingError = field.parentNode.querySelector('.field-error');\n        if (existingError) {\n            existingError.remove();\n        }\n        \n        // Add new error message\n        const errorDiv = document.createElement('div');\n        errorDiv.className = 'field-error';\n        errorDiv.textContent = message;\n        errorDiv.style.cssText = 'color: #dc3545; font-size: 12px; margin-top: 4px;';\n        field.parentNode.appendChild(errorDiv);\n        \n        // Focus first error field\n        if (!field.parentNode.querySelector('.error')) {\n            field.focus();\n        }\n    }\n    \n    clearFormErrors(form) {\n        form.querySelectorAll('.error').forEach(field => {\n            field.classList.remove('error');\n        });\n        form.querySelectorAll('.field-error').forEach(error => {\n            error.remove();\n        });\n    }\n    \n    // ========== LOADING STATES ==========\n    setupLoadingStates() {\n        // Auto-handle loading states for buttons with data-loading-text\n        document.querySelectorAll('[data-loading-text]').forEach(btn => {\n            btn.addEventListener('click', () => {\n                this.showLoadingState(btn);\n            });\n        });\n    }\n    \n    showLoadingState(button) {\n        if (button.dataset.originalText) return; // Already loading\n        \n        button.dataset.originalText = button.textContent;\n        button.textContent = button.dataset.loadingText || 'Loading...';\n        button.disabled = true;\n        \n        // Auto-reset after 10 seconds (failsafe)\n        setTimeout(() => {\n            this.hideLoadingState(button);\n        }, 10000);\n    }\n    \n    hideLoadingState(button) {\n        if (button.dataset.originalText) {\n            button.textContent = button.dataset.originalText;\n            delete button.dataset.originalText;\n            button.disabled = false;\n        }\n    }\n    \n    // ========== KEYBOARD SHORTCUTS ==========\n    setupKeyboardShortcuts() {\n        document.addEventListener('keydown', (e) => {\n            // Ctrl+Enter to submit forms\n            if (e.ctrlKey && e.key === 'Enter') {\n                const activeForm = document.activeElement.closest('form');\n                if (activeForm) {\n                    e.preventDefault();\n                    const submitBtn = activeForm.querySelector('button[type=\"submit\"]');\n                    if (submitBtn) submitBtn.click();\n                }\n            }\n        });\n    }\n    \n    // ========== UTILITY METHODS ==========\n    showNotification(message, type = 'info', duration = 3000) {\n        const notification = document.createElement('div');\n        notification.className = `notification notification-${type}`;\n        notification.textContent = message;\n        notification.style.cssText = `\n            position: fixed;\n            top: 20px;\n            right: 20px;\n            padding: 12px 20px;\n            border-radius: 6px;\n            color: white;\n            font-weight: 500;\n            z-index: 10000;\n            opacity: 0;\n            transform: translateX(100%);\n            transition: all 0.3s ease;\n            max-width: 400px;\n        `;\n        \n        // Set colors based on type\n        const colors = {\n            success: '#10b981',\n            error: '#ef4444',\n            warning: '#f59e0b',\n            info: '#3b82f6'\n        };\n        notification.style.backgroundColor = colors[type] || colors.info;\n        \n        document.body.appendChild(notification);\n        \n        // Animate in\n        setTimeout(() => {\n            notification.style.opacity = '1';\n            notification.style.transform = 'translateX(0)';\n        }, 100);\n        \n        // Auto-remove\n        setTimeout(() => {\n            notification.style.opacity = '0';\n            notification.style.transform = 'translateX(100%)';\n            setTimeout(() => notification.remove(), 300);\n        }, duration);\n    }\n}\n\n// Global functions for template compatibility\nfunction openCreateIssueModal() {\n    window.uiController.openModal('createIssueModal');\n}\n\nfunction closeCreateIssueModal() {\n    window.uiController.closeModal('createIssueModal');\n}\n\nfunction updateFormAction(projectId) {\n    const form = document.getElementById('createIssueForm');\n    if (form && projectId) {\n        form.action = `/project/${projectId}/issue/add`;\n        console.log(`Form action updated to: ${form.action}`);\n    }\n}\n\nfunction showNotification(message, type = 'info') {\n    if (window.uiController) {\n        window.uiController.showNotification(message, type);\n    } else {\n        alert(message); // Fallback\n    }\n}\n\n// Initialize when DOM is ready\ndocument.addEventListener('DOMContentLoaded', function() {\n    window.uiController = new UIController();\n    \n    // Initialize Lucide icons if available\n    if (typeof lucide !== 'undefined') {\n        lucide.createIcons();\n        console.log('✅ Lucide icons initialized');\n    }\n    \n    console.log('✅ Core UI initialized - Forms, modals, dropdowns are now functional');\n});
+/**
+ * Core UI Interactions - Essential JavaScript for dropdown, modal, and form functionality
+ * This file provides the basic interactivity that makes the UI functional.
+ */
+
+// Global UI Controller
+class UIController {
+    constructor() {
+        this.init();
+    }
+    
+    init() {
+        this.setupDropdowns();
+        this.setupModals();
+        this.setupFormValidation();
+        this.setupKeyboardShortcuts();
+        this.setupLoadingStates();
+        
+        console.log('✅ UI Controller initialized');
+    }
+    
+    // ========== DROPDOWN FUNCTIONALITY ==========
+    setupDropdowns() {
+        // Handle all select elements
+        document.querySelectorAll('select').forEach(select => {
+            // Ensure change events work
+            select.addEventListener('change', (e) => {
+                // Trigger any onchange attributes
+                if (e.target.onchange) {
+                    e.target.onchange();
+                }
+            });
+        });
+        
+        // Custom dropdown handling
+        document.addEventListener('click', (e) => {
+            // Close all dropdowns when clicking outside
+            if (!e.target.closest('.dropdown')) {
+                this.closeAllDropdowns();
+            }
+        });
+    }
+    
+    closeAllDropdowns() {
+        document.querySelectorAll('.dropdown.open').forEach(dropdown => {
+            dropdown.classList.remove('open');
+        });
+    }
+    
+    // ========== MODAL FUNCTIONALITY ==========
+    setupModals() {
+        // Auto-setup modal close buttons
+        document.querySelectorAll('.modal .btn-icon, .modal .modal-backdrop').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-backdrop') || e.target.closest('.btn-icon')) {
+                    this.closeModal(e.target.closest('.modal'));
+                }
+            });
+        });
+        
+        // ESC key closes modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeAllModals();
+            }
+        });
+    }
+    
+    openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+            
+            // Focus first input
+            const firstInput = modal.querySelector('input, select, textarea');
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
+            
+            console.log(`Opened modal: ${modalId}`);
+        }
+    }
+    
+    closeModal(modal) {
+        if (typeof modal === 'string') {
+            modal = document.getElementById(modal);
+        }
+        
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            
+            // Reset form if present
+            const form = modal.querySelector('form');
+            if (form) {
+                form.reset();
+                this.clearFormErrors(form);
+            }
+        }
+    }
+    
+    closeAllModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            this.closeModal(modal);
+        });
+    }
+    
+    // ========== FORM VALIDATION ==========
+    setupFormValidation() {
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                if (!this.validateForm(form)) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Show loading state for submit buttons
+                const submitBtn = form.querySelector('button[type=\"submit\"]');
+                if (submitBtn) {
+                    this.showLoadingState(submitBtn);
+                }
+            });
+        });
+    }
+    
+    validateForm(form) {
+        let isValid = true;
+        this.clearFormErrors(form);
+        
+        // Check required fields
+        form.querySelectorAll('[required]').forEach(field => {
+            if (!field.value.trim()) {
+                this.showFieldError(field, 'This field is required');
+                isValid = false;
+            }
+        });
+        
+        // Custom validations
+        const customValidations = {
+            email: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/,
+            url: /^https?:\\/\\/.+/,
+            number: /^\\d+$/
+        };
+        
+        form.querySelectorAll('[data-validate]').forEach(field => {
+            const validateType = field.dataset.validate;
+            if (customValidations[validateType] && field.value) {
+                if (!customValidations[validateType].test(field.value)) {
+                    this.showFieldError(field, `Please enter a valid ${validateType}`);
+                    isValid = false;
+                }
+            }
+        });
+        
+        return isValid;
+    }
+    
+    showFieldError(field, message) {
+        field.classList.add('error');
+        
+        // Remove existing error message
+        const existingError = field.parentNode.querySelector('.field-error');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add new error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = message;
+        errorDiv.style.cssText = 'color: #dc3545; font-size: 12px; margin-top: 4px;';
+        field.parentNode.appendChild(errorDiv);
+        
+        // Focus first error field
+        if (!field.parentNode.querySelector('.error')) {
+            field.focus();
+        }
+    }
+    
+    clearFormErrors(form) {
+        form.querySelectorAll('.error').forEach(field => {
+            field.classList.remove('error');
+        });
+        form.querySelectorAll('.field-error').forEach(error => {
+            error.remove();
+        });
+    }
+    
+    // ========== LOADING STATES ==========
+    setupLoadingStates() {
+        // Auto-handle loading states for buttons with data-loading-text
+        document.querySelectorAll('[data-loading-text]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.showLoadingState(btn);
+            });
+        });
+    }
+    
+    showLoadingState(button) {
+        if (button.dataset.originalText) return; // Already loading
+        
+        button.dataset.originalText = button.textContent;
+        button.textContent = button.dataset.loadingText || 'Loading...';
+        button.disabled = true;
+        
+        // Auto-reset after 10 seconds (failsafe)
+        setTimeout(() => {
+            this.hideLoadingState(button);
+        }, 10000);
+    }
+    
+    hideLoadingState(button) {
+        if (button.dataset.originalText) {
+            button.textContent = button.dataset.originalText;
+            delete button.dataset.originalText;
+            button.disabled = false;
+        }
+    }
+    
+    // ========== KEYBOARD SHORTCUTS ==========
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Enter to submit forms
+            if (e.ctrlKey && e.key === 'Enter') {
+                const activeForm = document.activeElement.closest('form');
+                if (activeForm) {
+                    e.preventDefault();
+                    const submitBtn = activeForm.querySelector('button[type=\"submit\"]');
+                    if (submitBtn) submitBtn.click();
+                }
+            }
+        });
+    }
+    
+    // ========== UTILITY METHODS ==========
+    showNotification(message, type = 'info', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            max-width: 400px;
+        `;
+        
+        // Set colors based on type
+        const colors = {
+            success: '#10b981',
+            error: '#ef4444',
+            warning: '#f59e0b',
+            info: '#3b82f6'
+        };
+        notification.style.backgroundColor = colors[type] || colors.info;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Auto-remove
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => notification.remove(), 300);
+        }, duration);
+    }
+}
+
+// Global functions for template compatibility
+function openCreateIssueModal() {
+    window.uiController.openModal('createIssueModal');
+}
+
+function closeCreateIssueModal() {
+    window.uiController.closeModal('createIssueModal');
+}
+
+function updateFormAction(projectId) {
+    const form = document.getElementById('createIssueForm');
+    if (form && projectId) {
+        form.action = `/project/${projectId}/issue/add`;
+        console.log(`Form action updated to: ${form.action}`);
+    }
+}
+
+function showNotification(message, type = 'info') {
+    if (window.uiController) {
+        window.uiController.showNotification(message, type);
+    } else {
+        alert(message); // Fallback
+    }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    window.uiController = new UIController();
+    
+    // Initialize Lucide icons if available
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+        console.log('✅ Lucide icons initialized');
+    }
+    
+    console.log('✅ Core UI initialized - Forms, modals, dropdowns are now functional');
+});

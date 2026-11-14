@@ -313,10 +313,19 @@ def _register_context_processors(app):
     
     @app.context_processor
     def inject_globals():
+        from flask_login import current_user
+        user_projects = []
+        if current_user and current_user.is_authenticated:
+            try:
+                from app.services.project_service import ProjectService
+                user_projects = ProjectService.get_user_accessible_projects(current_user)
+            except Exception:
+                user_projects = []
         return {
             'now': datetime.utcnow(),
             'app_name': app.config.get('APP_NAME', 'Project Management'),
-            'app_version': app.config.get('APP_VERSION', '2.0.0')
+            'app_version': app.config.get('APP_VERSION', '2.0.0'),
+            'current_user_projects': user_projects
         }
     
     # Note: CSRF token is provided by Flask-WTF's CSRFProtect extension

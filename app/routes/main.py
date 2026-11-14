@@ -191,6 +191,20 @@ def profile():
     return render_template('profile.html', user=user, mfa_enabled=mfa_enabled)
 
 
+@main_bp.route('/profile/<int:user_id>')
+@login_required
+def user_profile(user_id):
+    """View another user's profile."""
+    from app.models import User
+    from app.admin_secure.auth import AdminSecurityModel
+    
+    target_user = User.query.get_or_404(user_id)
+    admin_sec = AdminSecurityModel.query.filter_by(user_id=target_user.id).first()
+    mfa_enabled = admin_sec.mfa_enabled if admin_sec else False
+    
+    return render_template('profile.html', user=target_user, mfa_enabled=mfa_enabled)
+
+
 @main_bp.route('/settings')
 @login_required
 def settings():
@@ -245,6 +259,24 @@ def issues():
                           priority_filter=priority_filter,
                           type_filter=type_filter,
                           project_filter=project_filter)
+
+
+@main_bp.route('/issue/<int:issue_id>')
+@main_bp.route('/issues/<int:issue_id>')
+@login_required
+def direct_issue_view(issue_id):
+    """Direct route to an issue by ID, redirecting to its project issue view."""
+    issue = Issue.query.get_or_404(issue_id)
+    return redirect(url_for('projects.issue_view', project_id=issue.project_id, issue_id=issue.id))
+
+
+@main_bp.route('/issue/<string:issue_key>')
+@main_bp.route('/issues/<string:issue_key>')
+@login_required
+def direct_issue_by_key_view(issue_key):
+    """Direct route to an issue by key (e.g. PF-1), redirecting to its project issue view."""
+    issue = Issue.query.filter(db.func.upper(Issue.key) == issue_key.strip().upper()).first_or_404()
+    return redirect(url_for('projects.issue_view', project_id=issue.project_id, issue_id=issue.id))
 
 
 @main_bp.route('/board')
