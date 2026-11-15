@@ -23,12 +23,6 @@ def favicon():
     )
 
 
-@main_bp.route('/test-icons')
-def test_icons():
-    """Test page for Lucide icons."""
-    return render_template('test_icons.html')
-
-
 @main_bp.route('/')
 def index():
     """Landing page or redirect to dashboard."""
