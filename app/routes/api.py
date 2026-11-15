@@ -665,7 +665,8 @@ def get_project_gantt_data(project_id):
             'name': project.name
         },
         'issues': issue_list,
-        'dependencies': dep_list
+        'dependencies': dep_list,
+        'milestones': [m.to_dict() for m in project.milestones.all()]
     })
 
 
@@ -1449,6 +1450,116 @@ def commit_project_auto_schedule(project_id):
         
     ok, msg, count = SchedulingService.commit_auto_schedule(project_id, updated_by=session.get('user_id'))
     return jsonify({'success': ok, 'message': msg, 'applied_count': count}), (200 if ok else 400)
+
+
+# ============= MILESTONE & WORKING CALENDAR ENDPOINTS =============
+
+@api_bp.route('/project/<int:project_id>/milestones', methods=['GET'])
+@api_auth_required
+def get_project_milestones(project_id):
+    """Get all milestones for a project."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    milestones = SchedulingService.get_project_milestones(project_id)
+    return jsonify({
+        'success': True,
+        'milestones': [m.to_dict() for m in milestones]
+    })
+
+
+@api_bp.route('/project/<int:project_id>/milestones', methods=['POST'])
+@api_auth_required
+def create_project_milestone(project_id):
+    """Create a milestone for a project."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    data = request.get_json() or {}
+    name = data.get('name')
+    target_date = data.get('target_date')
+    description = data.get('description')
+    owner_id = data.get('owner_id')
+    
+    ok, milestone, msg = SchedulingService.create_milestone(
+        project_id=project_id,
+        name=name,
+        target_date=target_date,
+        description=description,
+        owner_id=owner_id,
+        created_by=session.get('user_id')
+    )
+    if ok:
+        return jsonify({'success': True, 'milestone': milestone.to_dict(), 'message': msg}), 201
+    return jsonify({'success': False, 'error': msg}), 400
+
+
+@api_bp.route('/project/<int:project_id>/milestones/<int:milestone_id>', methods=['PUT'])
+@api_auth_required
+def update_project_milestone(project_id, milestone_id):
+    """Update a milestone."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    data = request.get_json() or {}
+    ok, milestone, msg = SchedulingService.update_milestone(
+        milestone_id=milestone_id,
+        data=data,
+        updated_by=session.get('user_id')
+    )
+    if ok:
+        return jsonify({'success': True, 'milestone': milestone.to_dict(), 'message': msg})
+    return jsonify({'success': False, 'error': msg}), 400
+
+
+@api_bp.route('/project/<int:project_id>/milestones/<int:milestone_id>', methods=['DELETE'])
+@api_auth_required
+def delete_project_milestone(project_id, milestone_id):
+    """Delete a milestone."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    ok, msg = SchedulingService.delete_milestone(milestone_id, deleted_by=session.get('user_id'))
+    if ok:
+        return jsonify({'success': True, 'message': msg})
+    return jsonify({'success': False, 'error': msg}), 400
+
+
+@api_bp.route('/project/<int:project_id>/calendar', methods=['GET'])
+@api_auth_required
+def get_project_calendar(project_id):
+    """Get working calendar configuration for a project."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    cal = SchedulingService.get_or_create_calendar(project_id)
+    return jsonify({'success': True, 'calendar': cal.to_dict()})
+
+
+@api_bp.route('/project/<int:project_id>/calendar', methods=['POST'])
+@api_auth_required
+def update_project_calendar(project_id):
+    """Update working calendar configuration."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    data = request.get_json() or {}
+    ok, cal, msg = SchedulingService.update_calendar(project_id, data, updated_by=session.get('user_id'))
+    if ok:
+        return jsonify({'success': True, 'calendar': cal.to_dict(), 'message': msg})
+    return jsonify({'success': False, 'error': msg}), 400
 
 
 # ============= ERROR HANDLERS =============

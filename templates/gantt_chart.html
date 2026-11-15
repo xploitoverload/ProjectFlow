@@ -205,6 +205,50 @@
     background: rgba(0, 0, 0, 0.08);
 }
 
+/* Milestones Track */
+.gantt-milestones-track {
+    position: relative;
+    height: 32px;
+    border-bottom: 1px solid var(--surface-border-color);
+    background: rgba(255, 255, 255, 0.015);
+}
+
+.gantt-milestone-marker {
+    position: absolute;
+    top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 5;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.gantt-milestone-marker .diamond-icon {
+    font-size: 16px;
+    line-height: 1;
+    color: #818CF8;
+    filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.4));
+}
+
+.gantt-milestone-marker.completed .diamond-icon {
+    color: #10B981;
+}
+
+.gantt-milestone-marker.overdue .diamond-icon {
+    color: #EF4444;
+}
+
+.gantt-milestone-marker .milestone-label {
+    white-space: nowrap;
+    background: rgba(18, 21, 30, 0.9);
+    border: 1px solid var(--surface-border-color);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--text-primary);
+}
+
 /* Today vertical indicator line */
 .gantt-today-line {
     position: absolute;
@@ -575,6 +619,9 @@
                 <!-- Header with Dynamic Dates -->
                 <div class="gantt-timeline-header" id="timelineHeader"></div>
 
+                <!-- Milestones Timeline Track -->
+                <div class="gantt-milestones-track" id="milestonesTrack" style="display: none;"></div>
+
                 <!-- Today Indicator Line & Badge -->
                 <div class="gantt-today-line" id="todayLine"></div>
                 <div class="gantt-today-badge" id="todayBadge">Today</div>
@@ -719,6 +766,7 @@ let projectDependencies = {{ dependencies_json|tojson if dependencies_json else 
 let criticalPathIds = new Set();
 let cpmMetrics = {};
 let highlightCriticalPathActive = false;
+let projectMilestones = [];
 
 // Drag state
 let isDraggingBar = false;
@@ -785,6 +833,7 @@ async function loadGanttData() {
         if (ganttRes.success) {
             projectIssues = ganttRes.issues;
             projectDependencies = ganttRes.dependencies;
+            projectMilestones = ganttRes.milestones || [];
             
             if (cpmRes && cpmRes.success) {
                 criticalPathIds = new Set(cpmRes.critical_path_issue_ids || []);
@@ -872,6 +921,35 @@ function renderTimeline() {
             }
         }
         header.appendChild(col);
+    }
+
+    // Render Milestones on Timeline
+    const milestonesTrack = document.getElementById('milestonesTrack');
+    if (milestonesTrack) {
+        milestonesTrack.innerHTML = '';
+        milestonesTrack.style.width = totalWidth + 'px';
+        if (projectMilestones && projectMilestones.length > 0) {
+            milestonesTrack.style.display = 'block';
+            projectMilestones.forEach(m => {
+                if (!m.target_date) return;
+                const mDate = new Date(m.target_date);
+                const mOffset = Math.floor((mDate - startDateTimeline) / (1000 * 60 * 60 * 24));
+                if (mOffset >= 0 && mOffset < totalDays) {
+                    const mLeft = mOffset * dayWidth + (dayWidth / 2) - 8;
+                    const marker = document.createElement('div');
+                    marker.className = `gantt-milestone-marker ${m.status} ${m.is_overdue ? 'overdue' : ''}`;
+                    marker.style.left = mLeft + 'px';
+                    marker.title = `Milestone: ${m.name}\nTarget: ${m.target_date}\nStatus: ${m.status}${m.is_overdue ? ' (OVERDUE)' : ''}`;
+                    marker.innerHTML = `
+                        <div class="diamond-icon">◆</div>
+                        <div class="milestone-label">${m.name}</div>
+                    `;
+                    milestonesTrack.appendChild(marker);
+                }
+            });
+        } else {
+            milestonesTrack.style.display = 'none';
+        }
     }
 
     // Render Rows & Bars

@@ -24,6 +24,8 @@ from models import (
     Notification,
     StarredItem,
     FacialIDData,
+    Milestone,
+    WorkingCalendar,
     encrypt_field,
     decrypt_field
 )
@@ -48,6 +50,8 @@ __all__ = [
     'Notification',
     'StarredItem',
     'FacialIDData',
+    'Milestone',
+    'WorkingCalendar',
     'encrypt_field',
     'decrypt_field'
 ]
