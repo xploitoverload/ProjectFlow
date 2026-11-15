@@ -2,8 +2,6 @@
 
 {% block head %}
 {{ super() }}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/webify-theme.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
 <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
 {% endblock %}
 
@@ -18,7 +16,7 @@
 {% endblock %}
 
 {% block content %}
-<div style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+<div class="page-container" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
     <!-- Header Card -->
     <div class="bento-card" style="padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">

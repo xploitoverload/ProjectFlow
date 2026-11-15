@@ -132,18 +132,22 @@ body[data-theme="light"][data-ui-style="neo-brutalism"] {
     --surface-shadow-hover: 4px 4px 0px #6366F1 !important;
 }
 
-/* 4. Neumorphism: Restrained, elegant soft beveling (no toxic diffuse halos) */
-body[data-ui-style="neumorphism"] {
+/* 4. Neumorphism: Restrained, elegant soft elevation (zero toxic diffuse halos) */
+body[data-ui-style="neumorphism"],
+html[data-ui-style="neumorphism"],
+[data-ui-style="neumorphism"] {
     --ui-style-name: "Neumorphism";
     --card-radius: 14px;
-    --surface-shadow: 4px 4px 12px rgba(0, 0, 0, 0.45), -2px -2px 6px rgba(255, 255, 255, 0.02) !important;
-    --surface-shadow-hover: 6px 6px 16px rgba(0, 0, 0, 0.55), -3px -3px 8px rgba(255, 255, 255, 0.03) !important;
+    --surface-shadow: 4px 6px 16px rgba(0, 0, 0, 0.45) !important;
+    --surface-shadow-hover: 6px 8px 20px rgba(0, 0, 0, 0.55) !important;
     --bento-glow: none !important;
 }
 
-body[data-theme="light"][data-ui-style="neumorphism"] {
-    --surface-shadow: 4px 4px 12px rgba(0, 0, 0, 0.06), -3px -3px 8px rgba(255, 255, 255, 0.9) !important;
-    --surface-shadow-hover: 6px 6px 16px rgba(0, 0, 0, 0.09), -4px -4px 10px rgba(255, 255, 255, 1) !important;
+body[data-theme="light"][data-ui-style="neumorphism"],
+html[data-theme="light"][data-ui-style="neumorphism"],
+[data-theme="light"][data-ui-style="neumorphism"] {
+    --surface-shadow: 4px 6px 14px rgba(0, 0, 0, 0.05), -2px -2px 6px rgba(255, 255, 255, 0.9) !important;
+    --surface-shadow-hover: 6px 8px 18px rgba(0, 0, 0, 0.08), -3px -3px 8px rgba(255, 255, 255, 1) !important;
 }
 
 /* 5. Flat Design: Pure 2D modern clean accents, zero depth */
@@ -159,18 +163,23 @@ body[data-ui-style="flat"] {
    2. Global Body & App Shell Application
    -------------------------------------------------------------------------- */
 body {
+    display: block !important;
+    width: 100% !important;
+    min-height: 100vh !important;
     background: var(--bg-app) !important;
     color: var(--text-primary) !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     transition: background-color 0.2s ease, color 0.2s ease;
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .app-shell {
-    display: flex;
-    min-height: 100vh;
+    display: flex !important;
+    width: 100% !important;
+    min-height: 100vh !important;
     background: var(--bg-app) !important;
+    overflow-x: hidden !important;
 }
 
 .app-header {
@@ -262,15 +271,29 @@ body {
 .bento-col-4  { grid-column: span 4; }
 .bento-col-3  { grid-column: span 3; }
 
-@media (max-width: 1200px) {
-    .bento-col-8, .bento-col-7 { grid-column: span 12; }
-    .bento-col-6, .bento-col-5 { grid-column: span 12; }
-    .bento-col-4 { grid-column: span 6; }
-    .bento-col-3 { grid-column: span 6; }
+/* Laptop Breakpoint (1366px / 1280px) */
+@media (max-width: 1366px) {
+    .bento-col-8, .bento-col-7 { grid-column: span 12 !important; }
+    .bento-col-6, .bento-col-5 { grid-column: span 12 !important; }
+    .bento-col-4 { grid-column: span 6 !important; }
+    .bento-col-4:last-of-type { grid-column: span 12 !important; }
+    .bento-col-3 { grid-column: span 6 !important; }
 }
 
-@media (max-width: 768px) {
-    .bento-col-4, .bento-col-3 { grid-column: span 12; }
+/* Tablet & Mobile Breakpoint (<= 1024px) */
+@media (max-width: 1024px) {
+    .bento-grid {
+        gap: 16px;
+    }
+    .bento-col-12,
+    .bento-col-8,
+    .bento-col-7,
+    .bento-col-6,
+    .bento-col-5,
+    .bento-col-4,
+    .bento-col-3 {
+        grid-column: span 12 !important;
+    }
 }
 
 /* Ambient Bento Radial Header */
@@ -450,7 +473,7 @@ body {
     align-items: center !important;
     justify-content: space-between !important;
     height: 56px !important;
-    padding: 0 24px !important;
+    padding: 0 32px !important;
 }
 
 .header-left, .header-right {
@@ -459,15 +482,18 @@ body {
     gap: 10px !important;
 }
 
-/* Hide mobile sidebar toggle on desktop */
-@media (min-width: 1024px) {
+/* Responsive sidebar toggle */
+@media (min-width: 1025px) {
     #sidebarToggle,
     button#sidebarToggle.header-icon-btn {
         display: none !important;
     }
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1024px) {
+    .app-header {
+        padding: 0 16px !important;
+    }
     #sidebarToggle,
     button#sidebarToggle.header-icon-btn {
         display: inline-flex !important;
