@@ -255,6 +255,17 @@ class Project(db.Model):
         total = len(self.issues)
         done = sum(1 for i in self.issues if i.status in ['done', 'closed'])
         return int((done / total) * 100) if total > 0 else 0
+
+    @property
+    def latest_update(self):
+        """Get most recent project health update."""
+        return ProjectUpdate.query.filter_by(project_id=self.id).order_by(ProjectUpdate.date.desc()).first()
+
+    @property
+    def health_status(self):
+        """Get latest health status: on_track, at_risk, blocked."""
+        latest = self.latest_update
+        return latest.status if latest else 'on_track'
     
     def get_members(self):
         """Get all active users eligible as members (from primary team and assigned teams)."""
