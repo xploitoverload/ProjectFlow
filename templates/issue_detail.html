@@ -143,6 +143,78 @@
                             </div>
                         </div>
 
+                        <!-- Linked Issues & Dependencies Section -->
+                        <div class="card mt-6">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="link-2" class="icon-sm" style="color: var(--primary-500, #6366F1);"></i>
+                                    Relationships & Dependencies
+                                </h2>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="openLinkModal()" style="display: inline-flex; align-items: center; gap: 4px;">
+                                    <i data-lucide="plus" class="icon-xs"></i>
+                                    Link Issue
+                                </button>
+                            </div>
+                            <div class="card-body" style="padding: 12px 16px;">
+                                {% set total_links = (issue.outgoing_links|length) + (issue.incoming_links|length) %}
+                                {% if total_links > 0 %}
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                        {% for link in issue.outgoing_links %}
+                                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color, #232738); border-radius: 6px;">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--primary-400, #818CF8); background: rgba(99, 102, 241, 0.1); padding: 2px 8px; border-radius: 4px;">
+                                                    {{ link.label }}
+                                                </span>
+                                                <a href="{{ url_for('projects.issue_view', project_id=project.id, issue_id=link.target_issue.id) }}" style="font-size: 13px; font-weight: 500; color: var(--text-primary); text-decoration: none;">
+                                                    <strong>{{ link.target_issue.key }}</strong>: {{ link.target_issue.title }}
+                                                </a>
+                                                {% if link.lag_days %}
+                                                <span style="font-size: 11px; color: var(--text-tertiary);">(+{{ link.lag_days }}d lag)</span>
+                                                {% endif %}
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span class="badge badge-{{ 'success' if link.target_issue.status == 'done' else 'primary' if link.target_issue.status == 'in_progress' else 'gray' }}" style="font-size: 10px;">
+                                                    {{ link.target_issue.status.replace('_', ' ').title() }}
+                                                </span>
+                                                <button type="button" onclick="unlinkIssue({{ link.id }})" style="background: none; border: none; color: var(--text-tertiary); cursor: pointer; padding: 4px;" title="Remove link">
+                                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+
+                                        {% for link in issue.incoming_links %}
+                                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color, #232738); border-radius: 6px;">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 2px 8px; border-radius: 4px;">
+                                                    {{ link.inverse_type }}
+                                                </span>
+                                                <a href="{{ url_for('projects.issue_view', project_id=project.id, issue_id=link.source_issue.id) }}" style="font-size: 13px; font-weight: 500; color: var(--text-primary); text-decoration: none;">
+                                                    <strong>{{ link.source_issue.key }}</strong>: {{ link.source_issue.title }}
+                                                </a>
+                                                {% if link.lag_days %}
+                                                <span style="font-size: 11px; color: var(--text-tertiary);">(+{{ link.lag_days }}d lag)</span>
+                                                {% endif %}
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span class="badge badge-{{ 'success' if link.source_issue.status == 'done' else 'primary' if link.source_issue.status == 'in_progress' else 'gray' }}" style="font-size: 10px;">
+                                                    {{ link.source_issue.status.replace('_', ' ').title() }}
+                                                </span>
+                                                <button type="button" onclick="unlinkIssue({{ link.id }})" style="background: none; border: none; color: var(--text-tertiary); cursor: pointer; padding: 4px;" title="Remove link">
+                                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p style="color: var(--text-tertiary); font-size: 13px; margin: 0; text-align: center; padding: 16px 0;">
+                                        No relationships or dependencies established for this issue.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <!-- Activity -->
                         <div class="card mt-6">
                             <div class="card-header">
@@ -275,6 +347,12 @@
                                     <span class="detail-label">Updated</span>
                                     <span class="detail-value text-sm">{{ issue.updated_at.strftime('%b %d, %Y') if issue.updated_at else 'N/A' }}</span>
                                 </div>
+                                {% if issue.start_date %}
+                                <div class="detail-row">
+                                    <span class="detail-label">Start Date</span>
+                                    <span class="detail-value text-sm">{{ issue.start_date.strftime('%b %d, %Y') }}</span>
+                                </div>
+                                {% endif %}
                                 {% if issue.due_date %}
                                 <div class="detail-row">
                                     <span class="detail-label">Due Date</span>
@@ -612,6 +690,57 @@
         }
     </style>
 
+    <!-- Modal for Linking Issue -->
+    <div id="linkIssueModal" class="modal" style="display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-backdrop" onclick="closeLinkModal()" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px);"></div>
+        <div class="modal-content" style="position: relative; background: var(--bg-primary, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: 12px; width: 100%; max-width: 480px; padding: 24px; z-index: 1001; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="link-2" style="width: 18px; height: 18px; color: var(--primary-500, #6366F1);"></i>
+                    Link Issue
+                </h3>
+                <button type="button" onclick="closeLinkModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px; line-height: 1;">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px;">Relationship Type</label>
+                    <select id="modalLinkType" style="width: 100%; padding: 8px 12px; background: var(--bg-secondary, #0f172a); border: 1px solid var(--border-color, #334155); border-radius: 6px; color: var(--text-primary); font-size: 13px;">
+                        <optgroup label="Scheduling Dependencies">
+                            <option value="finish_to_start">Finish-to-Start (this issue blocks target)</option>
+                            <option value="start_to_start">Start-to-Start (target starts together)</option>
+                            <option value="finish_to_finish">Finish-to-Finish (target finishes together)</option>
+                        </optgroup>
+                        <optgroup label="Relationships">
+                            <option value="blocks">Blocks (this issue blocks target)</option>
+                            <option value="is_blocked_by">Is Blocked By</option>
+                            <option value="relates_to">Relates To</option>
+                            <option value="duplicates">Duplicates</option>
+                            <option value="clones">Clones</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px;">Target Issue</label>
+                    <select id="modalTargetIssue" style="width: 100%; padding: 8px 12px; background: var(--bg-secondary, #0f172a); border: 1px solid var(--border-color, #334155); border-radius: 6px; color: var(--text-primary); font-size: 13px;">
+                        {% for other in project.issues %}
+                        {% if other.id != issue.id %}
+                        <option value="{{ other.id }}">{{ other.key }} - {{ other.title }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px;">Lag Days (optional)</label>
+                    <input type="number" id="modalLagDays" value="0" min="0" max="60" style="width: 100%; padding: 8px 12px; background: var(--bg-secondary, #0f172a); border: 1px solid var(--border-color, #334155); border-radius: 6px; color: var(--text-primary); font-size: 13px;">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeLinkModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="submitLinkIssue()">Create Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
 
@@ -626,7 +755,6 @@
         });
 
         function openEditModal() {
-            // Would open edit modal
             alert('Edit modal would open here');
         }
 
@@ -636,6 +764,76 @@
                 tab.classList.add('active');
             });
         });
+
+        function openLinkModal() {
+            const modal = document.getElementById('linkIssueModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeLinkModal() {
+            const modal = document.getElementById('linkIssueModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function submitLinkIssue() {
+            const linkType = document.getElementById('modalLinkType').value;
+            const targetId = document.getElementById('modalTargetIssue').value;
+            const lagDays = parseInt(document.getElementById('modalLagDays').value, 10) || 0;
+            
+            let sourceId = {{ issue.id }};
+            let finalTargetId = targetId;
+            let finalType = linkType;
+            if (linkType === 'is_blocked_by') {
+                sourceId = targetId;
+                finalTargetId = {{ issue.id }};
+                finalType = 'blocks';
+            }
+
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name="csrf_token"]')?.value || '';
+            try {
+                const resp = await fetch(`/api/v1/project/{{ project.id }}/issue/${sourceId}/link`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrf
+                    },
+                    body: JSON.stringify({
+                        target_issue_id: finalTargetId,
+                        link_type: finalType,
+                        lag_days: lagDays
+                    })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Failed to link issues');
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function unlinkIssue(linkId) {
+            if (!confirm('Are you sure you want to remove this relationship?')) return;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name="csrf_token"]')?.value || '';
+            try {
+                const resp = await fetch(`/api/v1/project/{{ project.id }}/issue/{{ issue.id }}/link/${linkId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrf
+                    }
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Failed to remove link');
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
     </script>
 </body>
 </html>

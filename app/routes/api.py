@@ -368,9 +368,9 @@ def get_issue(project_id, issue_id):
 
 @api_bp.route('/project/<int:project_id>/issue/<int:issue_id>/update_status', methods=['POST'])
 @api_auth_required
-@rate_limit_check(max_requests=30, window_seconds=60)
+@rate_limit_check(max_requests=60, window_seconds=60)
 def update_issue_status(project_id, issue_id):
-    """Update issue status (for drag-and-drop)."""
+    """Update issue status and ordering for Kanban drag-and-drop."""
     has_access, project = check_project_access(project_id)
     
     if not has_access:
@@ -381,30 +381,353 @@ def update_issue_status(project_id, issue_id):
     if not issue or issue.project_id != project_id:
         return jsonify({'success': False, 'error': 'Issue not found'}), 404
     
-    data = request.get_json()
+    data = request.get_json() or {}
     new_status = data.get('status')
+    position = data.get('position')
     
     if not new_status:
         return jsonify({'success': False, 'error': 'Status required'}), 400
     
     # Validate status value
-    valid_statuses = ['backlog', 'todo', 'in_progress', 'in_review', 'testing', 'blocked', 'done', 'closed']
+    valid_statuses = ['backlog', 'todo', 'in_progress', 'code_review', 'testing', 'blocked', 'done', 'closed']
     if new_status not in valid_statuses:
         return jsonify({'success': False, 'error': 'Invalid status value'}), 400
     
-    success, updated_issue, message = IssueService.update_status(
+    if position is not None:
+        try:
+            position = int(position)
+            success, updated_issue, message = IssueService.reorder_kanban(
+                issue_id=issue_id,
+                new_status=new_status,
+                new_position=position,
+                updated_by=session.get('user_id')
+            )
+        except (ValueError, TypeError):
+            success, updated_issue, message = IssueService.update_status(
+                issue_id=issue_id,
+                new_status=new_status,
+                updated_by=session.get('user_id')
+            )
+    else:
+        success, updated_issue, message = IssueService.update_status(
+            issue_id=issue_id,
+            new_status=new_status,
+            updated_by=session.get('user_id')
+        )
+    
+    if success:
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': updated_issue.id,
+                'key': updated_issue.key,
+                'new_status': updated_issue.status,
+                'position': updated_issue.position
+            }
+        })
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+
+@api_bp.route('/project/<int:project_id>/issue/<int:issue_id>/dates', methods=['POST'])
+@api_auth_required
+def update_issue_dates(project_id, issue_id):
+    """Update issue start and due dates for interactive Gantt bar movement and resize."""
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    issue = IssueService.get_issue_by_id(issue_id)
+    if not issue or issue.project_id != project_id:
+        return jsonify({'success': False, 'error': 'Issue not found'}), 404
+        
+    data = request.get_json() or {}
+    start_date = data.get('start_date')
+    due_date = data.get('due_date')
+    cascade = data.get('cascade', False)
+    
+    success, updated_issue, message, conflicts = IssueService.update_dates(
         issue_id=issue_id,
-        new_status=new_status,
-        updated_by=session['user_id']
+        start_date=start_date,
+        due_date=due_date,
+        cascade=cascade,
+        updated_by=session.get('user_id')
     )
     
     if success:
         return jsonify({
             'success': True,
-            'data': {'new_status': updated_issue.status}
+            'message': message,
+            'conflicts': conflicts,
+            'data': {
+                'id': updated_issue.id,
+                'key': updated_issue.key,
+                'start_date': updated_issue.start_date.isoformat() if updated_issue.start_date else None,
+                'due_date': updated_issue.due_date.isoformat() if updated_issue.due_date else None
+            }
         })
     else:
         return jsonify({'success': False, 'error': message}), 400
+
+
+@api_bp.route('/project/<int:project_id>/issue/<int:issue_id>/auto_schedule', methods=['POST'])
+@api_auth_required
+def auto_schedule_issue(project_id, issue_id):
+    """Automatically resolve scheduling conflicts by cascading date shifts downstream."""
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    issue = IssueService.get_issue_by_id(issue_id)
+    if not issue or issue.project_id != project_id:
+        return jsonify({'success': False, 'error': 'Issue not found'}), 404
+        
+    success, shifted, conflicts = IssueService.propagate_schedule(issue_id, updated_by=session.get('user_id'))
+    if success:
+        return jsonify({
+            'success': True,
+            'message': f'Auto-scheduled {len(shifted)} downstream issues',
+            'shifted_count': len(shifted),
+            'remaining_conflicts': conflicts
+        })
+    else:
+        return jsonify({'success': False, 'error': 'Failed to auto-schedule', 'conflicts': conflicts}), 400
+
+
+@api_bp.route('/project/<int:project_id>/issue/<int:issue_id>/link', methods=['POST'])
+@api_auth_required
+def link_issues(project_id, issue_id):
+    """Link two issues with relation or scheduling dependency, enforcing cross-project security."""
+    has_access, project = check_project_access(project_id)
+    
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+    
+    issue = IssueService.get_issue_by_id(issue_id)
+    if not issue or issue.project_id != project_id:
+        return jsonify({'success': False, 'error': 'Issue not found'}), 404
+    
+    data = request.get_json() or {}
+    target_issue_id = data.get('target_issue_id')
+    link_type = data.get('link_type', 'relates_to')
+    lag_days = data.get('lag_days', 0)
+    
+    if not target_issue_id:
+        return jsonify({'success': False, 'error': 'Target issue required'}), 400
+    
+    try:
+        target_issue_id = int(target_issue_id)
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'error': 'Invalid target issue ID'}), 400
+        
+    target_issue = IssueService.get_issue_by_id(target_issue_id)
+    if not target_issue:
+        return jsonify({'success': False, 'error': 'Target issue not found'}), 404
+        
+    # Check permissions for target issue project (prevent IDOR cross-project access)
+    if target_issue.project_id != project_id:
+        target_has_access, _ = check_project_access(target_issue.project_id)
+        if not target_has_access:
+            return jsonify({'success': False, 'error': 'Access denied to target issue project'}), 403
+    
+    from app.models import IssueLink
+    valid_link_types = IssueLink.RELATION_TYPES + IssueLink.DEPENDENCY_TYPES
+    if link_type not in valid_link_types:
+        return jsonify({'success': False, 'error': f'Invalid link type. Must be one of: {", ".join(valid_link_types)}'}), 400
+    
+    success, link, message = IssueService.link_issues(
+        source_id=issue_id,
+        target_id=target_issue_id,
+        link_type=link_type,
+        lag_days=lag_days,
+        created_by=session.get('user_id')
+    )
+    
+    if success:
+        return jsonify({
+            'success': True,
+            'message': message,
+            'data': link.to_dict()
+        }), 201
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+
+@api_bp.route('/project/<int:project_id>/issue/<int:issue_id>/link/<int:link_id>', methods=['DELETE', 'POST'])
+@api_auth_required
+def unlink_issue(project_id, issue_id, link_id):
+    """Remove an issue relationship or dependency with ownership verification."""
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    success, message = IssueService.unlink_issues(link_id, deleted_by=session.get('user_id'), current_issue_id=issue_id)
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+
+@api_bp.route('/project/<int:project_id>/issue/<int:issue_id>/links', methods=['GET'])
+@api_auth_required
+def get_issue_links(project_id, issue_id):
+    """Get all relationships, hierarchy, and dependencies for an issue."""
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    links_data = IssueService.get_issue_links(issue_id)
+    if not links_data:
+        return jsonify({'success': False, 'error': 'Issue not found'}), 404
+        
+    return jsonify({'success': True, 'data': links_data})
+
+
+@api_bp.route('/project/<int:project_id>/gantt_data', methods=['GET'])
+@api_auth_required
+def get_project_gantt_data(project_id):
+    """Get all project issues with live dates, progress, and dependency links with conflict detection."""
+    from sqlalchemy.orm import joinedload
+    from app.models import Issue, IssueLink
+    from app.services.issue_service import check_schedule_constraint
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    issues = Issue.query.filter_by(project_id=project_id)\
+        .options(joinedload(Issue.assignee), joinedload(Issue.parent))\
+        .order_by(Issue.position.asc(), Issue.created_at.asc()).all()
+        
+    links = IssueLink.query.filter(
+        (IssueLink.source_issue.has(project_id=project_id)) | (IssueLink.target_issue.has(project_id=project_id))
+    ).options(joinedload(IssueLink.source_issue), joinedload(IssueLink.target_issue)).all()
+    
+    issue_list = []
+    for iss in issues:
+        start_str = iss.start_date.isoformat() if iss.start_date else None
+        due_str = iss.due_date.isoformat() if iss.due_date else None
+        
+        status_progress = {
+            'todo': 0, 'open': 0, 'backlog': 0,
+            'in_progress': 50,
+            'code_review': 75, 'testing': 85,
+            'done': 100, 'closed': 100
+        }
+        progress = status_progress.get(iss.status.lower() if iss.status else 'todo', 0)
+        
+        issue_list.append({
+            'id': iss.id,
+            'key': iss.key,
+            'title': iss.title,
+            'status': iss.status,
+            'priority': iss.priority,
+            'issue_type': iss.issue_type,
+            'start_date': start_str,
+            'due_date': due_str,
+            'progress': progress,
+            'parent_id': iss.parent_id,
+            'assignee': iss.assignee.username if iss.assignee else 'Unassigned'
+        })
+        
+    dep_list = []
+    for l in links:
+        is_conflict, min_req, viol = check_schedule_constraint(
+            l.link_type,
+            l.source_issue.start_date if l.source_issue else None,
+            l.source_issue.due_date if l.source_issue else None,
+            l.target_issue.start_date if l.target_issue else None,
+            l.target_issue.due_date if l.target_issue else None,
+            l.lag_days
+        )
+                
+        dep_list.append({
+            'id': l.id,
+            'source_id': l.source_issue_id,
+            'target_id': l.target_issue_id,
+            'source_key': l.source_issue.key if l.source_issue else None,
+            'target_key': l.target_issue.key if l.target_issue else None,
+            'link_type': l.link_type,
+            'type': l.link_type,
+            'label': l.label,
+            'is_dependency': l.is_dependency,
+            'is_conflict': is_conflict,
+            'conflict': is_conflict,
+            'conflict_min_date': min_req.isoformat() if min_req else None,
+            'violation_days': viol,
+            'lag_days': l.lag_days or 0
+        })
+        
+    return jsonify({
+        'success': True,
+        'project': {
+            'id': project.id,
+            'key': project.key,
+            'name': project.name
+        },
+        'issues': issue_list,
+        'dependencies': dep_list
+    })
+
+
+@api_bp.route('/project/<int:project_id>/graph_data', methods=['GET'])
+@api_auth_required
+def get_project_graph_data(project_id):
+    """Get nodes and edges for visual dependency and relationship graph."""
+    from sqlalchemy.orm import joinedload
+    from app.models import Issue, IssueLink
+    from app.services.issue_service import check_schedule_constraint
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    issues = Issue.query.filter_by(project_id=project_id)\
+        .options(joinedload(Issue.assignee))\
+        .order_by(Issue.position.asc(), Issue.created_at.asc()).all()
+        
+    links = IssueLink.query.filter(
+        (IssueLink.source_issue.has(project_id=project_id)) | (IssueLink.target_issue.has(project_id=project_id))
+    ).options(joinedload(IssueLink.source_issue), joinedload(IssueLink.target_issue)).all()
+    
+    nodes = [{
+        'id': f'issue-{i.id}',
+        'issue_id': i.id,
+        'key': i.key,
+        'title': i.title,
+        'status': i.status,
+        'priority': i.priority,
+        'issue_type': i.issue_type
+    } for i in issues]
+    
+    edges = []
+    for l in links:
+        is_conflict, _, _ = check_schedule_constraint(
+            l.link_type,
+            l.source_issue.start_date if l.source_issue else None,
+            l.source_issue.due_date if l.source_issue else None,
+            l.target_issue.start_date if l.target_issue else None,
+            l.target_issue.due_date if l.target_issue else None,
+            l.lag_days
+        )
+                
+        edges.append({
+            'id': f'link-{l.id}',
+            'source': f'issue-{l.source_issue_id}',
+            'target': f'issue-{l.target_issue_id}',
+            'source_id': l.source_issue_id,
+            'target_id': l.target_issue_id,
+            'link_id': l.id,
+            'link_type': l.link_type,
+            'type': l.link_type,
+            'label': l.label,
+            'is_conflict': is_conflict,
+            'is_directed': l.link_type != 'relates_to'
+        })
+        
+    return jsonify({
+        'success': True,
+        'nodes': nodes,
+        'edges': edges
+    })
 
 
 @api_bp.route('/project/<int:project_id>/issue/<int:issue_id>/comment', methods=['POST'])
@@ -455,53 +778,6 @@ def add_comment(project_id, issue_id):
     else:
         return jsonify({'success': False, 'error': message}), 400
 
-
-@api_bp.route('/project/<int:project_id>/issue/<int:issue_id>/link', methods=['POST'])
-@api_auth_required
-def link_issues(project_id, issue_id):
-    """Link two issues."""
-    has_access, project = check_project_access(project_id)
-    
-    if not has_access:
-        return jsonify({'success': False, 'error': 'Project not found'}), 404
-    
-    issue = IssueService.get_issue_by_id(issue_id)
-    
-    if not issue or issue.project_id != project_id:
-        return jsonify({'success': False, 'error': 'Issue not found'}), 404
-    
-    data = request.get_json()
-    target_issue_id = data.get('target_issue_id')
-    link_type = data.get('link_type', 'relates_to')
-    
-    if not target_issue_id:
-        return jsonify({'success': False, 'error': 'Target issue required'}), 400
-    
-    # Validate target issue ID
-    try:
-        target_issue_id = int(target_issue_id)
-    except (ValueError, TypeError):
-        return jsonify({'success': False, 'error': 'Invalid target issue ID'}), 400
-    
-    # Validate link type
-    valid_link_types = ['relates_to', 'blocks', 'is_blocked_by', 'duplicates', 'is_duplicated_by', 'parent_of', 'child_of']
-    if link_type not in valid_link_types:
-        return jsonify({'success': False, 'error': 'Invalid link type'}), 400
-    
-    success, link, message = IssueService.link_issues(
-        source_id=issue_id,
-        target_id=target_issue_id,
-        link_type=link_type,
-        created_by=session['user_id']
-    )
-    
-    if success:
-        return jsonify({
-            'success': True,
-            'data': {'link_id': link.id}
-        }), 201
-    else:
-        return jsonify({'success': False, 'error': message}), 400
 
 
 # ============= STATUS UPDATE APIs =============

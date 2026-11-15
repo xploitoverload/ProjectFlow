@@ -32,8 +32,12 @@
                 </p>
             </div>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;">
-            <select id="projectSelector" class="form-select" style="min-width: 220px; height: 36px; background: rgba(255, 255, 255, 0.05); color: var(--text-primary); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 0 12px; font-size: 13px; font-weight: 500;" onchange="changeProject(this.value)">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div style="position: relative; width: 200px;">
+                <input type="text" id="boardQuickFilter" placeholder="Filter issues..." oninput="filterBoardCards(this.value)" style="width: 100%; height: 36px; background: rgba(255, 255, 255, 0.05); color: var(--text-primary); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 0 10px 0 32px; font-size: 13px;">
+                <span class="iconify" data-icon="solar:magnifer-linear" style="position: absolute; left: 10px; top: 10px; width: 16px; height: 16px; color: var(--text-secondary); pointer-events: none;"></span>
+            </div>
+            <select id="projectSelector" class="form-select" style="min-width: 200px; height: 36px; background: rgba(255, 255, 255, 0.05); color: var(--text-primary); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 0 12px; font-size: 13px; font-weight: 500;" onchange="changeProject(this.value)">
                 {% if not projects %}
                 <option value="">No projects available</option>
                 {% else %}
@@ -73,22 +77,38 @@
                         {% endif %}
                         <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-primary, #F8FAFC);">{{ status_labels.get(status, status|title) }}</span>
                     </div>
-                    <span style="background: rgba(255,255,255,0.08); color: var(--text-secondary, #94A3B8); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">{{ status_issues|length }}</span>
+                    <span class="column-count-badge" style="{% if status == 'in_progress' and status_issues|length > 4 %}background: rgba(245, 158, 11, 0.2); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.4);{% else %}background: rgba(255,255,255,0.08); color: var(--text-secondary, #94A3B8);{% endif %} padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">
+                        {{ status_issues|length }}{% if status == 'in_progress' %}<span style="opacity: 0.7; font-size: 10px;">/4 WIP</span>{% endif %}
+                    </span>
                 </div>
-                <div class="column-body" style="flex: 1 1 auto; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 240px;">
+                <div class="column-body kanban-dropzone" data-status="{{ status }}" style="flex: 1 1 auto; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 240px; transition: background 0.15s ease, border-color 0.15s ease;">
                     {% for issue in status_issues %}
-                    <div class="kanban-card" onclick="viewIssue({{ issue.id }}, {{ issue.project_id }})" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.2s;">
-                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                            {% if issue.issue_type == 'bug' %}
-                            <i data-lucide="bug" style="width: 14px; height: 14px; color: #dc2626;"></i>
-                            {% elif issue.issue_type == 'story' %}
-                            <i data-lucide="bookmark" style="width: 14px; height: 14px; color: #22c55e;"></i>
-                            {% elif issue.issue_type == 'epic' %}
-                            <i data-lucide="zap" style="width: 14px; height: 14px; color: #8b5cf6;"></i>
-                            {% else %}
-                            <i data-lucide="check-square" style="width: 14px; height: 14px; color: #3b82f6;"></i>
+                    <div class="kanban-card" 
+                         draggable="true" 
+                         data-issue-id="{{ issue.id }}" 
+                         data-status="{{ status }}" 
+                         data-project-id="{{ issue.project_id }}" 
+                         onclick="handleCardClick(event, {{ issue.id }}, {{ issue.project_id }})" 
+                         style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 14px; cursor: grab; transition: all 0.2s; user-select: none;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                {% if issue.issue_type == 'bug' %}
+                                <i data-lucide="bug" style="width: 14px; height: 14px; color: #dc2626;"></i>
+                                {% elif issue.issue_type == 'story' %}
+                                <i data-lucide="bookmark" style="width: 14px; height: 14px; color: #22c55e;"></i>
+                                {% elif issue.issue_type == 'epic' %}
+                                <i data-lucide="zap" style="width: 14px; height: 14px; color: #8b5cf6;"></i>
+                                {% else %}
+                                <i data-lucide="check-square" style="width: 14px; height: 14px; color: #3b82f6;"></i>
+                                {% endif %}
+                                <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">{{ issue.key }}</span>
+                            </div>
+                            {% if issue.outgoing_links|length > 0 or issue.incoming_links|length > 0 %}
+                            <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 10px; background: rgba(99, 102, 241, 0.12); color: #818CF8; padding: 1px 6px; border-radius: 4px;" title="Connected to other issues">
+                                <span class="iconify" data-icon="solar:link-circle-bold" style="width: 12px; height: 12px;"></span>
+                                {{ issue.outgoing_links|length + issue.incoming_links|length }}
+                            </div>
                             {% endif %}
-                            <span style="font-size: 11px; color: var(--text-secondary);">{{ issue.key }}</span>
                         </div>
                         <div style="font-size: 13px; font-weight: 500; margin-bottom: 12px; line-height: 1.4; color: var(--text-primary);">{{ issue.title }}</div>
                         <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -105,23 +125,37 @@
                                 {% if issue.story_points %}
                                 <span style="background: rgba(255,255,255,0.06); color: var(--text-secondary); padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 500;">{{ issue.story_points }}</span>
                                 {% endif %}
+                                {% if issue.start_date and issue.due_date %}
+                                <span style="font-size: 10px; color: var(--text-tertiary); margin-left: 2px;" title="Scheduled: {{ issue.start_date.strftime('%b %d') }} - {{ issue.due_date.strftime('%b %d') }}">
+                                    📅 {{ issue.start_date.strftime('%b %d') }}
+                                </span>
+                                {% endif %}
                             </div>
-                            {% if issue.assignee %}
-                            <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-500, #6366F1); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;" title="{{ issue.assignee.username }}">
-                                {{ issue.assignee.username[:2].upper() }}
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                {% if issue.assignee %}
+                                <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-500, #6366F1); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;" title="{{ issue.assignee.username }}">
+                                    {{ issue.assignee.username[:2].upper() }}
+                                </div>
+                                {% endif %}
+                                <div class="card-move-actions" style="display: flex; gap: 2px;" onclick="event.stopPropagation()">
+                                    <button type="button" class="card-move-btn" onclick="moveCardStep({{ issue.id }}, {{ issue.project_id }}, 'prev')" title="Move to previous column" style="background: rgba(255,255,255,0.05); border: 1px solid var(--surface-border-color); padding: 2px 5px; color: var(--text-secondary); cursor: pointer; border-radius: 4px; font-size: 10px; line-height: 1;">
+                                        ◀
+                                    </button>
+                                    <button type="button" class="card-move-btn" onclick="moveCardStep({{ issue.id }}, {{ issue.project_id }}, 'next')" title="Move to next column" style="background: rgba(255,255,255,0.05); border: 1px solid var(--surface-border-color); padding: 2px 5px; color: var(--text-secondary); cursor: pointer; border-radius: 4px; font-size: 10px; line-height: 1;">
+                                        ▶
+                                    </button>
+                                </div>
                             </div>
-                            {% endif %}
                         </div>
                     </div>
-                    {% else %}
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 48px 16px; color: var(--text-tertiary); text-align: center;">
+                    {% endfor %}
+                    <div class="kanban-empty-placeholder" style="{% if status_issues|length > 0 %}display: none;{% else %}display: flex;{% endif %} flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 48px 16px; color: var(--text-tertiary); text-align: center; pointer-events: none;">
                         <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); border: 1px dashed var(--surface-border-color); display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
                             <i data-lucide="inbox" style="width: 20px; height: 20px; opacity: 0.6;"></i>
                         </div>
                         <p style="font-size: 13px; font-weight: 500; margin: 0 0 2px; color: var(--text-secondary);">No issues</p>
                         <p style="font-size: 11px; margin: 0; opacity: 0.7;">Drop here or create new</p>
                     </div>
-                    {% endfor %}
                 </div>
                 <div class="column-footer" style="padding: 10px 12px; border-top: 1px solid var(--surface-border-color); margin-top: auto; flex-shrink: 0;">
                     <button class="btn btn-ghost btn-sm" style="width: 100%; justify-content: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);" onclick="openCreateIssueModal('{{ status }}')">
@@ -156,356 +190,102 @@
 
 
 <style>
-
-    :root {
-  /* Background Colors */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #0f0f0f;
-  --bg-tertiary: #141414;
-  --bg-card: #1a1a1a;
-  --bg-hover: #252525;
-  --bg-elevated: #1f1f1f;
-  
-  /* Text Colors */
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-tertiary: #71717a;
-  --text-muted: #52525b;
-  
-  /* Border Colors */
-  --border-primary: rgba(255, 255, 255, 0.1);
-  --border-secondary: rgba(255, 255, 255, 0.05);
-  --border-accent: rgba(124, 58, 237, 0.5);
-  
-  /* Accent Colors */
-  --primary-100: rgba(124, 58, 237, 0.15);
-  --primary-300: #a855f7;
-  --primary-500: #7c3aed;
-  --primary-600: #6d28d9;
-  
-  /* Other */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-}
-
-/* Base Body Styling */
-body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  margin: 0;
-  padding: 0;
-}
-
-/* Kanban Card Hover */
-.kanban-card:hover {
-    border-color: var(--primary-300) !important;
-    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
-    transform: translateY(-1px);
-}
-
-/* Modal Container */
-.modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-}
-
-/* Modal Content - FIXED LAYOUT */
-.modal-content {
-    position: relative;
-    background: var(--bg-card);
-    border: 1px solid var(--border-accent);
-    border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(124, 58, 237, 0.2);
-    width: 100%;
-    max-height: 85vh;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-}
-
-/* Modal Header */
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border-primary);
-    flex-shrink: 0;
-    background: var(--bg-card);
-}
-
-.modal-header h2 { 
-    margin: 0; 
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-/* Modal Body - SCROLLABLE */
-.modal-body { 
-    padding: 24px;
-    overflow-y: auto;
-    flex: 1;
-    background: var(--bg-card);
-}
-
-/* Custom Scrollbar */
-.modal-body::-webkit-scrollbar {
-    width: 8px;
-}
-
-.modal-body::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-    background: rgba(124, 58, 237, 0.5);
-    border-radius: 4px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-    background: rgba(124, 58, 237, 0.7);
-}
-
-/* Modal Footer */
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 16px 24px;
-    border-top: 1px solid var(--border-primary);
-    background: var(--bg-secondary);
-    flex-shrink: 0;
-}
-
-/* Form Elements */
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 6px;
-    color: var(--text-secondary);
-}
-
-.form-input, 
-.form-select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border-primary);
+.kanban-dropzone.drag-over-active {
+    background: rgba(99, 102, 241, 0.08) !important;
+    outline: 2px dashed rgba(99, 102, 241, 0.5) !important;
+    outline-offset: -2px;
     border-radius: 8px;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    font-size: 14px;
-    transition: all 0.2s;
 }
-
-.form-input::placeholder {
-    color: var(--text-muted);
-}
-
-.form-input:focus, 
-.form-select:focus {
-    outline: none;
-    border-color: var(--primary-500);
-    background: var(--bg-elevated);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
-}
-
-/* Fix Select Dropdown */
-.form-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a1a1aa' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 40px;
-    cursor: pointer;
-}
-
-.form-select option {
-    background: var(--bg-card);
-    color: var(--text-primary);
-}
-
-/* Button Icon */
-.btn-icon {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-primary);
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-icon:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
-}
-
-/* Button Styles */
-.btn {
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-}
-
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-}
-
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-primary);
-}
-
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
-}
-
-.btn-ghost {
-    background: transparent;
-    color: var(--text-secondary);
-    border: 1px solid transparent;
-}
-
-.btn-ghost:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
-
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 13px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .modal {
-        padding: 10px;
-    }
-    
-    .modal-content {
-        max-height: 90vh;
-    }
+.kanban-card.is-dragging {
+    opacity: 0.35 !important;
+    transform: scale(0.98);
 }
 .kanban-card:hover {
-    border-color: var(--primary-300) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    background: var(--bg-surface-hover, rgba(255, 255, 255, 0.05)) !important;
 }
-.modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.kanban-card .card-move-btn {
+    opacity: 0.35;
+    transition: opacity 0.15s ease, background 0.15s ease;
 }
-.modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+.kanban-card:hover .card-move-btn {
+    opacity: 0.8;
 }
-.modal-content {
-    position: relative;
-    background: var(--bg-primary);
-    border-radius: 12px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    width: 100%;
+.kanban-card .card-move-btn:hover {
+    opacity: 1;
+    background: rgba(99, 102, 241, 0.2) !important;
+    color: var(--color-primary, #6366F1) !important;
 }
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border-primary);
-}
-.modal-header h2 { margin: 0; font-size: 18px; }
-.modal-body { padding: 24px; }
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 16px 24px;
-    border-top: 1px solid var(--border-primary);
-}
-.form-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 6px;
-}
-.form-input, .form-select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border-primary);
-    border-radius: 6px;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    font-size: 14px;
-}
-.form-input:focus, .form-select:focus {
-    outline: none;
-    border-color: var(--primary-500);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-}
-.btn-icon {
-    background: none;
-    border: none;
-    padding: 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.btn-icon:hover {
-    background: var(--bg-secondary);
-}
-
-    
 </style>
 
 <script>
+let isDraggingCard = false;
+let draggedCardElement = null;
+let dragSourceColumn = null;
+let dragSourceIndex = -1;
+
+const STATUS_ORDER = ['todo', 'in_progress', 'code_review', 'done'];
+
+function filterBoardCards(query) {
+    const q = (query || '').trim().toLowerCase();
+    document.querySelectorAll('.kanban-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+async function moveCardStep(issueId, projectId, direction) {
+    const card = document.querySelector(`.kanban-card[data-issue-id="${issueId}"]`);
+    if (!card) return;
+    const currentStatus = card.dataset.status;
+    const idx = STATUS_ORDER.indexOf(currentStatus);
+    if (idx === -1) return;
+    const nextIdx = direction === 'next' ? idx + 1 : idx - 1;
+    if (nextIdx < 0 || nextIdx >= STATUS_ORDER.length) return;
+    
+    const targetStatus = STATUS_ORDER[nextIdx];
+    const targetColumn = document.querySelector(`.kanban-column[data-status="${targetStatus}"]`);
+    const targetDropzone = targetColumn ? targetColumn.querySelector('.column-body') : null;
+    
+    if (targetDropzone) {
+        targetDropzone.insertBefore(card, targetDropzone.firstChild);
+        card.dataset.status = targetStatus;
+        updateColumnCounters();
+    }
+    
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+    
+    try {
+        const response = await fetch(`/api/v1/project/${projectId}/issue/${issueId}/update_status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ status: targetStatus, position: 0 })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Failed to move issue');
+        }
+    } catch (e) {
+        console.error('Failed to move card:', e);
+        location.reload();
+    }
+}
+
 function changeProject(projectId) {
     window.location.href = '/board?project=' + projectId;
+}
+
+function handleCardClick(event, issueId, projectId) {
+    if (isDraggingCard) return;
+    window.location.href = '/project/' + projectId + '/issue/' + issueId;
 }
 
 function openCreateIssueModal(status) {
@@ -539,14 +319,159 @@ function closeCreateIssueModal() {
     }
 }
 
-function viewIssue(issueId, projectId) {
-    window.location.href = '/project/' + projectId + '/issue/' + issueId;
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.kanban-card:not(.is-dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function updateColumnCounters() {
+    document.querySelectorAll('.kanban-column').forEach(col => {
+        const countBadge = col.querySelector('.column-header > span:last-child');
+        const cards = col.querySelectorAll('.kanban-card');
+        const emptyPlaceholder = col.querySelector('.kanban-empty-placeholder');
+        if (countBadge) {
+            countBadge.textContent = cards.length;
+        }
+        if (emptyPlaceholder) {
+            emptyPlaceholder.style.display = cards.length === 0 ? 'flex' : 'none';
+        }
+    });
+}
+
+function initKanbanDragDrop() {
+    const cards = document.querySelectorAll('.kanban-card');
+    const dropzones = document.querySelectorAll('.kanban-dropzone');
+    
+    cards.forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            isDraggingCard = true;
+            draggedCardElement = card;
+            dragSourceColumn = card.closest('.kanban-column');
+            const siblingCards = Array.from(card.parentElement.querySelectorAll('.kanban-card'));
+            dragSourceIndex = siblingCards.indexOf(card);
+            
+            card.classList.add('is-dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', card.dataset.issueId);
+            
+            setTimeout(() => {
+                if (draggedCardElement) draggedCardElement.style.opacity = '0.35';
+            }, 0);
+        });
+        
+        card.addEventListener('dragend', () => {
+            card.style.opacity = '1';
+            card.classList.remove('is-dragging');
+            dropzones.forEach(dz => dz.classList.remove('drag-over-active'));
+            setTimeout(() => {
+                isDraggingCard = false;
+                draggedCardElement = null;
+            }, 60);
+        });
+    });
+    
+    dropzones.forEach(dropzone => {
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            dropzone.classList.add('drag-over-active');
+            
+            if (draggedCardElement) {
+                const afterElement = getDragAfterElement(dropzone, e.clientY);
+                if (afterElement == null) {
+                    dropzone.appendChild(draggedCardElement);
+                } else {
+                    dropzone.insertBefore(draggedCardElement, afterElement);
+                }
+                updateColumnCounters();
+            }
+        });
+        
+        dropzone.addEventListener('dragleave', (e) => {
+            if (!dropzone.contains(e.relatedTarget)) {
+                dropzone.classList.remove('drag-over-active');
+            }
+        });
+        
+        dropzone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over-active');
+            
+            if (!draggedCardElement) return;
+            
+            const issueId = draggedCardElement.dataset.issueId;
+            const projectId = draggedCardElement.dataset.projectId;
+            const targetColumn = dropzone.closest('.kanban-column');
+            const targetStatus = targetColumn.dataset.status;
+            
+            const currentCards = Array.from(dropzone.querySelectorAll('.kanban-card'));
+            const newPosition = currentCards.indexOf(draggedCardElement);
+            
+            updateColumnCounters();
+            
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+            
+            try {
+                const response = await fetch(`/api/v1/project/${projectId}/issue/${issueId}/update_status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        status: targetStatus,
+                        position: newPosition
+                    })
+                });
+                
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to update issue status');
+                }
+                
+                draggedCardElement.dataset.status = targetStatus;
+                
+                if (window.notificationManager && typeof window.notificationManager.addNotification === 'function') {
+                    window.notificationManager.addNotification({
+                        title: 'Status Updated',
+                        message: `Issue moved to ${targetColumn.querySelector('.column-header span:first-child span:last-child').textContent}`,
+                        type: 'success',
+                        duration: 2000
+                    });
+                }
+            } catch (err) {
+                console.error('Drag and drop error:', err);
+                if (dragSourceColumn) {
+                    const sourceBody = dragSourceColumn.querySelector('.column-body');
+                    const sourceCards = Array.from(sourceBody.querySelectorAll('.kanban-card'));
+                    if (dragSourceIndex >= 0 && dragSourceIndex < sourceCards.length) {
+                        sourceBody.insertBefore(draggedCardElement, sourceCards[dragSourceIndex]);
+                    } else {
+                        sourceBody.appendChild(draggedCardElement);
+                    }
+                    updateColumnCounters();
+                }
+                alert('Could not update status: ' + err.message);
+            }
+        });
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+    initKanbanDragDrop();
 });
 </script>
 {% endblock %}
