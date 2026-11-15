@@ -312,6 +312,25 @@ def resource_planner():
     )
 
 
+@main_bp.route('/portfolio')
+@login_required
+def portfolio():
+    """Strategic portfolio roadmap & initiative planning view."""
+    from models import Project, Initiative, Team, User
+    projects = Project.query.order_by(Project.name).all()
+    initiatives = Initiative.query.order_by(Initiative.created_at.desc()).all()
+    teams = Team.query.order_by(Team.name).all()
+    users = User.query.filter_by(is_active=True).order_by(User.username).all()
+    return render_template(
+        'portfolio_roadmap.html',
+        projects=projects,
+        initiatives=initiatives,
+        teams=teams,
+        users=users,
+        active_tab='portfolio'
+    )
+
+
 @main_bp.route('/profile')
 @login_required
 def profile():

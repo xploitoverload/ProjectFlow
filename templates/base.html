@@ -146,6 +146,10 @@
                         <span class="iconify nav-icon" data-icon="solar:user-hand-up-bold-duotone"></span>
                         <span>Capacity</span>
                     </a>
+                    <a href="{{ url_for('main.portfolio') }}" class="sidebar-nav-item {% if request.endpoint == 'main.portfolio' %}active{% endif %}">
+                        <span class="iconify nav-icon" data-icon="solar:compass-bold-duotone"></span>
+                        <span>Portfolio</span>
+                    </a>
                     <a href="{{ url_for('admin.admin_teams') if current_user.is_authenticated and current_user.role == 'admin' else url_for('main.dashboard') }}" class="sidebar-nav-item">
                         <span class="iconify nav-icon" data-icon="solar:users-group-rounded-bold-duotone"></span>
                         <span>Teams</span>
