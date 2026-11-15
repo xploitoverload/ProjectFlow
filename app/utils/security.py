@@ -214,10 +214,10 @@ def rate_limit(key, max_requests, window_seconds):
     """
     from flask import current_app, has_request_context
     if current_app:
+        if current_app.config.get('RATELIMIT_ENABLED') is False:
+            return True
         if not current_app.config.get('TESTING'):
-            if current_app.config.get('RATELIMIT_ENABLED') is False:
-                return True
-            if current_app.debug or current_app.config.get('DEBUG'):
+            if current_app.debug or current_app.config.get('DEBUG') or current_app.config.get('ENV') == 'development':
                 remote = request.remote_addr if has_request_context() else '127.0.0.1'
                 if remote in ('127.0.0.1', 'localhost', '::1'):
                     return True
