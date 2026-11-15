@@ -490,7 +490,15 @@ class Issue(db.Model):
             'labels': [label.name for label in self.labels] if self.labels else [],
             'comment_count': self.comment_count,
             'attachment_count': self.attachment_count,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
             'due_date': self.due_date.isoformat() if self.due_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'parent_id': self.parent_id,
+            'parent_key': self.parent.key if self.parent else None,
+            'parent_title': self.parent.title if self.parent else None,
+            'position': self.position if self.position is not None else 0,
+            'subtask_count': len(self.subtasks),
+            'subtasks': [{'id': s.id, 'key': s.key, 'title': s.title, 'status': s.status} for s in self.subtasks],
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -499,13 +507,62 @@ class Issue(db.Model):
         return f'<Issue {self.key}>'
 
 class IssueLink(db.Model):
-    """Issue dependencies and relationships"""
+    """Issue dependencies and relationships with full Jira & Plane parity"""
     __tablename__ = 'issue_link'
+    
+    RELATION_TYPES = [
+        'relates_to',
+        'blocks',
+        'is_blocked_by',
+        'duplicates',
+        'is_duplicated_by',
+        'clones',
+        'is_cloned_by',
+        'implements',
+        'is_implemented_by'
+    ]
+    
+    DEPENDENCY_TYPES = [
+        'finish_to_start',  # FS: Task B cannot start until Task A finishes
+        'start_to_start',    # SS: Task B cannot start until Task A starts
+        'finish_to_finish'   # FF: Task B cannot finish until Task A finishes
+    ]
+    
+    INVERSE_MAP = {
+        'relates_to': 'relates_to',
+        'blocks': 'is_blocked_by',
+        'is_blocked_by': 'blocks',
+        'duplicates': 'is_duplicated_by',
+        'is_duplicated_by': 'duplicates',
+        'clones': 'is_cloned_by',
+        'is_cloned_by': 'clones',
+        'implements': 'is_implemented_by',
+        'is_implemented_by': 'implements',
+        'finish_to_start': 'precedes_finish_to_start',
+        'start_to_start': 'precedes_start_to_start',
+        'finish_to_finish': 'precedes_finish_to_finish'
+    }
+    
+    LABELS = {
+        'relates_to': 'Relates to',
+        'blocks': 'Blocks',
+        'is_blocked_by': 'Is blocked by',
+        'duplicates': 'Duplicates',
+        'is_duplicated_by': 'Is duplicated by',
+        'clones': 'Clones',
+        'is_cloned_by': 'Is cloned by',
+        'implements': 'Implements',
+        'is_implemented_by': 'Is implemented by',
+        'finish_to_start': 'Finish-to-Start (FS)',
+        'start_to_start': 'Start-to-Start (SS)',
+        'finish_to_finish': 'Finish-to-Finish (FF)'
+    }
     
     id = db.Column(db.Integer, primary_key=True)
     source_issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False, index=True)
     target_issue_id = db.Column(db.Integer, db.ForeignKey('issue.id', ondelete='CASCADE'), nullable=False, index=True)
-    link_type = db.Column(db.String(20), nullable=False)  # blocks, is_blocked_by, relates_to, duplicates, clones
+    link_type = db.Column(db.String(35), nullable=False)
+    lag_days = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     
@@ -514,10 +571,49 @@ class IssueLink(db.Model):
     
     __table_args__ = (
         db.UniqueConstraint('source_issue_id', 'target_issue_id', 'link_type', name='uq_issue_link'),
+        db.Index('ix_issue_link_type', 'link_type'),
     )
     
+    @property
+    def is_dependency(self):
+        """Returns True if this is a scheduling dependency (FS, SS, FF), separate from ordinary relationships."""
+        return self.link_type in self.DEPENDENCY_TYPES
+    
+    @property
+    def is_relationship(self):
+        """Returns True if this is an ordinary issue relationship (relates_to, blocks, duplicates, clones)."""
+        return self.link_type in self.RELATION_TYPES
+    
+    @property
+    def inverse_type(self):
+        return self.INVERSE_MAP.get(self.link_type, self.link_type)
+    
+    @property
+    def label(self):
+        return self.LABELS.get(self.link_type, self.link_type.replace('_', ' ').title())
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'source_issue_id': self.source_issue_id,
+            'target_issue_id': self.target_issue_id,
+            'source_key': self.source_issue.key if self.source_issue else None,
+            'target_key': self.target_issue.key if self.target_issue else None,
+            'source_title': self.source_issue.title if self.source_issue else None,
+            'target_title': self.target_issue.title if self.target_issue else None,
+            'source_status': self.source_issue.status if self.source_issue else None,
+            'target_status': self.target_issue.status if self.target_issue else None,
+            'link_type': self.link_type,
+            'label': self.label,
+            'inverse_type': self.inverse_type,
+            'is_dependency': self.is_dependency,
+            'lag_days': self.lag_days or 0,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'created_by': self.created_by
+        }
+    
     def __repr__(self):
-        return f'<IssueLink {self.source_issue_id} -> {self.target_issue_id}>'
+        return f'<IssueLink {self.source_issue_id} -[{self.link_type}]-> {self.target_issue_id}>'
 
 class Comment(db.Model):
     """Comment model for issue discussions"""

@@ -151,20 +151,75 @@ def reports():
 @main_bp.route('/gantt')
 @login_required
 def gantt_chart():
-    """Gantt chart view."""
-    from app.models import User, Team
+    """Gantt / Timeline view for issues and dependencies."""
+    from app.models import User, Team, Project, Issue, IssueLink
     
     user = User.query.get(session['user_id'])
-    
-    if user.role not in ['admin', 'super_admin', 'manager']:
-        flash('Access denied. Manager or admin access required.', 'error')
-        return redirect(url_for('main.dashboard'))
     
     projects = ProjectService.get_user_accessible_projects(user)
     teams = Team.query.all()
     gantt_data = ProjectService.get_gantt_data(projects)
     
+    project_id = request.args.get('project', type=int)
+    selected_project = None
+    if project_id:
+        selected_project = next((p for p in projects if p.id == project_id), None)
+    if not selected_project and projects:
+        selected_project = projects[0]
+        
+    issues = []
+    dependencies = []
+    issues_data = []
+    dep_data = []
+    if selected_project:
+        issues = Issue.query.filter_by(project_id=selected_project.id).order_by(Issue.created_at.asc()).all()
+        dependencies = IssueLink.query.join(Issue, IssueLink.source_issue_id == Issue.id).filter(Issue.project_id == selected_project.id).all()
+        for iss in issues:
+            issues_data.append({
+                'id': iss.id,
+                'key': iss.key,
+                'title': iss.title,
+                'status': iss.status,
+                'priority': iss.priority,
+                'issue_type': iss.issue_type,
+                'start_date': iss.start_date.isoformat() if iss.start_date else None,
+                'due_date': iss.due_date.isoformat() if iss.due_date else None,
+                'progress': 100 if iss.status == 'done' else 50 if iss.status == 'in_progress' else 0,
+                'parent_id': iss.parent_id,
+                'assignee': iss.assignee.username if iss.assignee else 'Unassigned'
+            })
+        from app.services.issue_service import check_schedule_constraint
+        for l in dependencies:
+            is_conflict = False
+            if l.is_dependency and l.source_issue and l.target_issue:
+                is_conflict, _, _ = check_schedule_constraint(
+                    l.link_type,
+                    l.source_issue.start_date,
+                    l.source_issue.due_date,
+                    l.target_issue.start_date,
+                    l.target_issue.due_date,
+                    l.lag_days or 0
+                )
+            dep_data.append({
+                'id': l.id,
+                'source_id': l.source_issue_id,
+                'target_id': l.target_issue_id,
+                'source_key': l.source_issue.key if l.source_issue else None,
+                'target_key': l.target_issue.key if l.target_issue else None,
+                'link_type': l.link_type,
+                'label': l.label,
+                'is_dependency': l.is_dependency,
+                'is_conflict': is_conflict,
+                'lag_days': l.lag_days or 0
+            })
+        
     return render_template('gantt_chart.html',
+                          projects=projects,
+                          selected_project=selected_project,
+                          issues=issues,
+                          dependencies=dependencies,
+                          issues_json=issues_data,
+                          dependencies_json=dep_data,
                           gantt_data=gantt_data,
                           teams=teams)
 

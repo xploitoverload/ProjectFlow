@@ -182,20 +182,22 @@ def validate_password_strength(password):
 def get_client_ip():
     """
     Get client IP address, handling proxies securely.
+    Only trusts proxy headers when BEHIND_PROXY is explicitly enabled.
     """
-    from flask import has_request_context
+    from flask import has_request_context, current_app
     
     if not has_request_context():
         return '127.0.0.1'
     
-    # Check X-Forwarded-For header (from reverse proxy)
-    if request.environ.get('HTTP_X_FORWARDED_FOR'):
-        # Take the first IP (client IP)
-        ip = request.environ['HTTP_X_FORWARDED_FOR'].split(',')[0].strip()
-    elif request.environ.get('HTTP_X_REAL_IP'):
-        ip = request.environ['HTTP_X_REAL_IP']
+    if current_app and current_app.config.get('BEHIND_PROXY'):
+        if request.environ.get('HTTP_X_FORWARDED_FOR'):
+            ip = request.environ['HTTP_X_FORWARDED_FOR'].split(',')[0].strip()
+        elif request.environ.get('HTTP_X_REAL_IP'):
+            ip = request.environ['HTTP_X_REAL_IP'].strip()
+        else:
+            ip = request.remote_addr or '127.0.0.1'
     else:
-        ip = request.environ.get('REMOTE_ADDR', '127.0.0.1')
+        ip = request.remote_addr or '127.0.0.1'
     
     # Validate IP format
     ip_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
@@ -210,11 +212,15 @@ def rate_limit(key, max_requests, window_seconds):
     Check if rate limit is exceeded.
     Returns True if request should be allowed.
     """
-    from flask import current_app
-    if current_app and current_app.config.get('ENV') == 'development' and not current_app.config.get('TESTING'):
-        # In development mode, relax localhost rate limits to prevent developer lockout
-        if '127.0.0.1' in key or 'localhost' in key:
-            max_requests = max(max_requests, 100)
+    from flask import current_app, has_request_context
+    if current_app:
+        if not current_app.config.get('TESTING'):
+            if current_app.config.get('RATELIMIT_ENABLED') is False:
+                return True
+            if current_app.debug or current_app.config.get('DEBUG'):
+                remote = request.remote_addr if has_request_context() else '127.0.0.1'
+                if remote in ('127.0.0.1', 'localhost', '::1'):
+                    return True
 
     now = datetime.utcnow()
     window_key = f"{key}:{now.strftime('%Y%m%d%H%M')}"

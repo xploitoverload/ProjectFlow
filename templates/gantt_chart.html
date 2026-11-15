@@ -1,1634 +1,1346 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roadmap - ProjectFlow</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/advanced-features.css') }}">
-    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/theme-manager.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/notification-manager.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/inline-edit.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bulk-actions.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/advanced-search.js') }}"></script>
-    <style>
-        :root {
-            --jira-dark-bg: #1d2125;
-            --jira-darker-bg: #161a1d;
-            --jira-card-bg: #22272b;
-            --jira-border: #2c333a;
-            --jira-text: #b6c2cf;
-            --jira-text-secondary: #8c9bab;
-            --jira-hover: #2c3338;
-        }
-        
-        body {
-            background: var(--jira-dark-bg);
-            color: var(--jira-text);
-        }
-        
-        .app-sidebar {
-            background: var(--jira-darker-bg);
-            border-right: 1px solid var(--jira-border);
-            transition: width 0.3s ease, margin-left 0.3s ease;
-        }
-        
-        .app-sidebar.collapsed {
-            width: 60px;
-        }
-        
-        .app-sidebar.collapsed .sidebar-logo-text,
-        .app-sidebar.collapsed .sidebar-section-title,
-        .app-sidebar.collapsed .nav-icon + span,
-        .app-sidebar.collapsed .sidebar-user-info,
-        .app-sidebar.collapsed .beta-badge {
-            display: none;
-        }
-        
-        .sidebar-toggle {
-            position: absolute;
-            right: -12px;
-            top: 20px;
-            width: 24px;
-            height: 24px;
-            background: var(--jira-card-bg);
-            border: 1px solid var(--jira-border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 100;
-            transition: all 0.2s;
-        }
-        
-        .sidebar-toggle:hover {
-            background: var(--jira-hover);
-        }
-        
-        .sidebar-nav-item {
-            color: var(--jira-text-secondary);
-        }
-        
-        .sidebar-nav-item:hover,
-        .sidebar-nav-item.active {
-            background: var(--jira-hover);
-            color: var(--jira-text);
-        }
-        
-        .sidebar-section-title {
-            color: var(--jira-text-secondary);
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .roadmap-header {
-            padding: 16px 24px;
-            background: var(--jira-darker-bg);
-            border-bottom: 1px solid var(--jira-border);
-        }
-        
-        .roadmap-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 24px;
-            background: var(--jira-darker-bg);
-            border-bottom: 1px solid var(--jira-border);
-        }
-        
-        .roadmap-container {
-            display: flex;
-            height: calc(100vh - 140px);
-            overflow: hidden;
-        }
-        
-        .roadmap-sidebar {
-            width: 280px;
-            background: var(--jira-card-bg);
-            border-right: 1px solid var(--jira-border);
-            overflow-y: auto;
-        }
-        
-        .roadmap-section {
-            padding: 16px;
-            border-bottom: 1px solid var(--jira-border);
-        }
-        
-        .roadmap-section-title {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--jira-text-secondary);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .roadmap-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px;
-            margin-bottom: 4px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .roadmap-item:hover {
-            background: var(--jira-hover);
-        }
-        
-        .roadmap-item-icon {
-            width: 16px;
-            height: 16px;
-            color: var(--jira-text-secondary);
-        }
-        
-        .roadmap-item-label {
-            font-size: 14px;
-            color: var(--jira-text);
-        }
-        
-        .roadmap-timeline {
-            flex: 1;
-            overflow-x: auto;
-            overflow-y: auto;
-            background: var(--jira-dark-bg);
-        }
-        
-        .timeline-header {
-            display: flex;
-            position: sticky;
-            top: 0;
-            background: var(--jira-darker-bg);
-            border-bottom: 1px solid var(--jira-border);
-            z-index: 10;
-        }
-        
-        .timeline-month {
-            min-width: 200px;
-            padding: 12px 16px;
-            text-align: center;
-            border-right: 1px solid var(--jira-border);
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--jira-text-secondary);
-            text-transform: uppercase;
-        }
-        
-        .timeline-body {
-            padding: 16px;
-        }
-        
-        .timeline-row {
-            margin-bottom: 24px;
-            position: relative;
-        }
-        
-        .timeline-row-header {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--jira-text);
-            margin-bottom: 12px;
-            padding-left: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        /* Issue Hierarchy Styles */
-        .timeline-row.epic {
-            border-left: 3px solid #6554c0;
-            padding-left: 12px;
-        }
-        
-        .timeline-row.story {
-            margin-left: 24px;
-            border-left: 3px solid #0052cc;
-            padding-left: 12px;
-        }
-        
-        .timeline-row.subtask {
-            margin-left: 48px;
-            border-left: 3px solid #00b8d9;
-            padding-left: 12px;
-        }
-        
-        .timeline-row.collapsed .timeline-items {
-            display: none;
-        }
-        
-        .hierarchy-toggle {
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--jira-card-bg);
-            border: 1px solid var(--jira-border);
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .hierarchy-toggle:hover {
-            background: var(--jira-hover);
-            border-color: #0052cc;
-        }
-        
-        .hierarchy-toggle i {
-            width: 12px;
-            height: 12px;
-            color: var(--jira-text-secondary);
-            transition: transform 0.2s;
-        }
-        
-        .timeline-row.collapsed .hierarchy-toggle i {
-            transform: rotate(-90deg);
-        }
-        
-        .hierarchy-icon {
-            width: 16px;
-            height: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 3px;
-        }
-        
-        .hierarchy-icon.epic {
-            background: rgba(101, 84, 192, 0.2);
-            color: #6554c0;
-        }
-        
-        .hierarchy-icon.story {
-            background: rgba(0, 82, 204, 0.2);
-            color: #0052cc;
-        }
-        
-        .hierarchy-icon.subtask {
-            background: rgba(0, 184, 217, 0.2);
-            color: #00b8d9;
-        }
-        
-        .hierarchy-icon i {
-            width: 12px;
-            height: 12px;
-        }
-        
-        .hierarchy-count {
-            font-size: 11px;
-            color: var(--jira-text-secondary);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 2px 6px;
-            border-radius: 10px;
-        }
-        
-        .timeline-items {
-            position: relative;
-            min-height: 40px;
-        }
-        
-        .timeline-bar {
-            position: absolute;
-            height: 32px;
-            border-radius: 4px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 500;
-            color: white;
-            cursor: move;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            transition: all 0.2s;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .timeline-bar:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-            z-index: 10;
-        }
-        
-        .timeline-bar.sprint { background: #5e4db2; }
-        .timeline-bar.billing { background: #0052cc; }
-        .timeline-bar.accounts { background: #00b8d9; }
-        .timeline-bar.feedback { background: #ffab00; }
-        .timeline-bar.aws { background: #ff5630; }
-        .timeline-bar.forms { background: #6554c0; }
-        .timeline-bar.reporting { background: #ff5630; }
-        
-        .timeline-bar-progress {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px 0 0 4px;
-            z-index: 1;
-        }
-        
-        .timeline-bar-content {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .timeline-bar-badge {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 2;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        
-        .zoom-controls {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            padding: 4px;
-            background: var(--jira-card-bg);
-            border-radius: 6px;
-            border: 1px solid var(--jira-border);
-        }
-        
-        .zoom-btn {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: none;
-            color: var(--jira-text-secondary);
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-        
-        .zoom-btn:hover {
-            background: var(--jira-hover);
-            color: var(--jira-text);
-        }
-        
-        .zoom-btn.active {
-            background: #0052cc;
-            color: white;
-        }
-        
-        .zoom-separator {
-            width: 1px;
-            height: 20px;
-            background: var(--jira-border);
-            margin: 0 4px;
-        }
-        
-        .milestone-marker {
-            position: absolute;
-            top: 0;
-            width: 2px;
-            height: 100%;
-            background: #00b8d9;
-            z-index: 5;
-        }
-        
-        .milestone-marker::before {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: -5px;
-            width: 12px;
-            height: 12px;
-            background: #00b8d9;
-            border: 2px solid var(--jira-dark-bg);
-            border-radius: 50%;
-        }
-        
-        .milestone-label {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 11px;
-            font-weight: 600;
-            color: #00b8d9;
-            white-space: nowrap;
-            background: var(--jira-darker-bg);
-            padding: 2px 8px;
-            border-radius: 3px;
-            border: 1px solid #00b8d9;
-        }
-        
-        .dependency-line {
-            position: absolute;
-            height: 2px;
-            background: var(--jira-text-secondary);
-            opacity: 0.4;
-            z-index: 1;
-        }
-        
-        .dependency-arrow {
-            position: absolute;
-            right: -4px;
-            top: -3px;
-            width: 0;
-            height: 0;
-            border-left: 4px solid var(--jira-text-secondary);
-            border-top: 4px solid transparent;
-            border-bottom: 4px solid transparent;
-            opacity: 0.4;
-        }
-        
-        .view-switcher {
-            display: flex;
-            gap: 8px;
-            margin-left: auto;
-            align-items: center;
-        }
-        
-        .view-btn {
-            padding: 6px 12px;
-            background: transparent;
-            border: none;
-            color: var(--jira-text-secondary);
-            font-size: 13px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-        
-        .view-btn:hover {
-            background: var(--jira-hover);
-            color: var(--jira-text);
-        }
-        
-        .view-btn.active {
-            background: #0052cc;
-            color: white;
-        }
-        
-        .beta-badge {
-            background: #5e4db2;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: 600;
-            margin-left: 4px;
-        }
+{% extends "base.html" %}
 
-        /* Dropdown menu styles */
-        .filter-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            margin-top: 4px;
-            background: var(--jira-card-bg);
-            border: 1px solid var(--jira-border);
-            border-radius: 4px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-            min-width: 220px;
-            z-index: 1000;
-            display: none;
-            max-height: 400px;
-            overflow-y: auto;
-        }
+{% block title %}Roadmap & Gantt - {{ selected_project.name if selected_project else 'ProjectFlow' }}{% endblock %}
 
-        .filter-dropdown.show {
-            display: block;
-        }
+{% block extra_head %}
+<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+<style>
+/* Gantt & Timeline Workspace Styles */
+.gantt-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    min-height: calc(100vh - 120px);
+}
 
-        .filter-dropdown-header {
-            padding: 12px;
-            border-bottom: 1px solid var(--jira-border);
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--jira-text);
-        }
+.gantt-toolbar-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--card-bg, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--surface-border-color);
+    border-radius: 12px;
+}
 
-        .filter-dropdown-search {
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--jira-border);
-        }
+.gantt-tabs-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 3px;
+    border-radius: 8px;
+    border: 1px solid var(--surface-border-color);
+}
 
-        .filter-dropdown-search input {
-            width: 100%;
-            padding: 6px 8px;
-            background: var(--jira-darker-bg);
-            border: 1px solid var(--jira-border);
-            border-radius: 3px;
-            color: var(--jira-text);
-            font-size: 13px;
-        }
+.gantt-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
 
-        .filter-option {
-            padding: 8px 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background 0.2s;
-            font-size: 13px;
-            color: var(--jira-text-secondary);
-        }
+.gantt-tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
 
-        .filter-option:hover {
-            background: var(--jira-hover);
-            color: var(--jira-text);
-        }
+.gantt-tab-btn.active {
+    color: #ffffff;
+    background: var(--primary-500, #6366F1);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
 
-        .filter-option input[type="checkbox"] {
-            margin: 0;
-            cursor: pointer;
-        }
+.gantt-zoom-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--surface-border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
 
-        .filter-option.selected {
-            background: rgba(0, 82, 204, 0.1);
-            color: #4c9aff;
-        }
+.gantt-zoom-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
 
-        .filter-dropdown-footer {
-            padding: 8px 12px;
-            border-top: 1px solid var(--jira-border);
-            display: flex;
-            gap: 8px;
-        }
+.gantt-zoom-btn.active {
+    color: #fff;
+    background: rgba(99, 102, 241, 0.2);
+    border-color: var(--primary-500, #6366F1);
+}
 
-        .filter-btn-apply {
-            flex: 1;
-            padding: 6px 12px;
-            background: #0052cc;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 13px;
-        }
+/* Split Pane Layout */
+.gantt-split-pane {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    background: var(--bg-primary, #0B0F19);
+    border: 1px solid var(--surface-border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    min-height: 540px;
+}
 
-        .filter-btn-clear {
-            padding: 6px 12px;
-            background: transparent;
-            color: var(--jira-text-secondary);
-            border: 1px solid var(--jira-border);
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <!-- Sidebar -->
-        <aside class="app-sidebar" id="sidebar">
-            <div class="sidebar-toggle" id="sidebarToggle">
-                <i data-lucide="chevron-left" style="width: 14px; height: 14px; color: var(--jira-text-secondary);"></i>
-            </div>
-            <div class="sidebar-header">
-                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">
-                        <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
-                    </div>
-                    <span class="sidebar-logo-text">ProjectFlow</span>
-                </a>
-            </div>
+/* Left Table: Issues */
+.gantt-issues-list {
+    width: 380px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--surface-border-color);
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg, rgba(255, 255, 255, 0.02));
+    z-index: 10;
+}
 
-            <nav class="sidebar-nav">
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">PLANNING</div>
-                    <a href="{{ url_for('main.gantt_chart') }}" class="sidebar-nav-item active">
-                        <i data-lucide="gantt-chart" class="nav-icon"></i>
-                        <span>Timeline</span>
-                    </a>
-                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="list" class="nav-icon"></i>
-                        <span>Backlog</span>
-                    </a>
-                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="trello" class="nav-icon"></i>
-                        <span>Board</span>
-                    </a>
-                    <a href="{{ url_for('main.calendar') }}" class="sidebar-nav-item">
-                        <i data-lucide="calendar" class="nav-icon"></i>
-                        <span>Calendar</span>
-                    </a>
-                    <a href="{{ url_for('main.reports') }}" class="sidebar-nav-item">
-                        <i data-lucide="bar-chart-2" class="nav-icon"></i>
-                        <span>Reports</span>
-                    </a>
-                    <a href="{{ url_for('main.dashboard') }}" class="sidebar-nav-item">
-                        <i data-lucide="alert-circle" class="nav-icon"></i>
-                        <span>Issues</span>
-                    </a>
+.gantt-table-header {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--surface-border-color);
+    background: rgba(0, 0, 0, 0.15);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gantt-issue-row {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 13px;
+    gap: 8px;
+    transition: background 0.15s;
+    cursor: pointer;
+}
+
+.gantt-issue-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* Right Viewport: Timeline */
+.gantt-timeline-viewport {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: relative;
+    background: var(--bg-primary, #0B0F19);
+    user-select: none;
+}
+
+.gantt-timeline-inner {
+    position: relative;
+    min-height: 100%;
+}
+
+.gantt-timeline-header {
+    height: 48px;
+    display: flex;
+    border-bottom: 1px solid var(--surface-border-color);
+    background: rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.gantt-header-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 11px;
+    color: var(--text-secondary);
+    box-sizing: border-box;
+}
+
+.gantt-header-col.is-today {
+    background: rgba(99, 102, 241, 0.1);
+    color: #818CF8;
+    font-weight: 600;
+}
+
+.gantt-header-col.is-weekend {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.gantt-row-track {
+    height: 44px;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    box-sizing: border-box;
+}
+
+.gantt-grid-col {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.03);
+    pointer-events: none;
+}
+
+.gantt-grid-col.is-weekend {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* Today vertical indicator line */
+.gantt-today-line {
+    position: absolute;
+    top: 48px;
+    bottom: 0;
+    width: 2px;
+    background: #6366F1;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.gantt-today-badge {
+    position: absolute;
+    top: 50px;
+    transform: translateX(-50%);
+    background: #6366F1;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 6;
+    pointer-events: none;
+}
+
+/* Task Bar */
+.gantt-task-bar {
+    position: absolute;
+    top: 8px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    cursor: grab;
+    z-index: 3;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+    transition: box-shadow 0.15s, border-color 0.15s;
+    overflow: visible;
+}
+
+.gantt-task-bar:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 5;
+}
+
+.gantt-task-bar.dragging {
+    cursor: grabbing;
+    opacity: 0.85;
+    z-index: 10;
+}
+
+.gantt-task-bar.status-done {
+    background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+    border: 1px solid #34D399;
+    color: #ffffff;
+}
+
+.gantt-task-bar.status-in_progress {
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    border: 1px solid #818CF8;
+    color: #ffffff;
+}
+
+.gantt-task-bar.status-todo {
+    background: linear-gradient(135deg, #334155 0%, #475569 100%);
+    border: 1px solid #64748B;
+    color: #F8FAFC;
+}
+
+.gantt-task-bar.status-code_review {
+    background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
+    border: 1px solid #A78BFA;
+    color: #ffffff;
+}
+
+/* Resize Handles */
+.gantt-resize-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: ew-resize;
+    z-index: 6;
+}
+
+.gantt-resize-left {
+    left: 0;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.gantt-resize-right {
+    right: 0;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+.gantt-resize-handle:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Dependency Connector Anchor Dots */
+.gantt-connector-dot {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #6366F1;
+    cursor: crosshair;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+    z-index: 7;
+}
+
+.gantt-task-bar:hover .gantt-connector-dot {
+    opacity: 1;
+}
+
+.gantt-connector-dot:hover {
+    transform: translateY(-50%) scale(1.3);
+}
+
+.gantt-connector-left {
+    left: -5px;
+}
+
+.gantt-connector-right {
+    right: -5px;
+}
+
+/* Task Bar Progress fill */
+.gantt-progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 5px 0 0 5px;
+    pointer-events: none;
+}
+
+.gantt-task-title {
+    position: relative;
+    z-index: 2;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+}
+
+/* SVG Dependency Connection Layer */
+.gantt-svg-layer {
+    position: absolute;
+    top: 48px;
+    left: 0;
+    pointer-events: none;
+    z-index: 4;
+    overflow: visible;
+}
+
+.dep-line {
+    fill: none;
+    stroke: #818CF8;
+    stroke-width: 2px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.2s;
+}
+
+.dep-line.is-conflict {
+    stroke: #EF4444 !important;
+    stroke-width: 2.5px;
+    stroke-dasharray: 4 3;
+    animation: pulseConflict 1.5s infinite;
+}
+
+@keyframes pulseConflict {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.dep-arrow {
+    fill: #818CF8;
+}
+
+.dep-arrow.is-conflict {
+    fill: #EF4444 !important;
+}
+
+/* Live Tooltip */
+.gantt-drag-tooltip {
+    position: fixed;
+    background: rgba(15, 23, 42, 0.95);
+    color: #F8FAFC;
+    border: 1px solid var(--surface-border-color);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+}
+
+/* Dependency Conflict Warning Indicator */
+.conflict-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #F87171;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+/* Graph View Tab */
+.gantt-graph-container {
+    width: 100%;
+    min-height: 540px;
+    background: var(--bg-primary, #0B0F19);
+    border: 1px solid var(--surface-border-color);
+    border-radius: 12px;
+    display: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.gantt-graph-svg {
+    width: 100%;
+    height: 600px;
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<div class="header-breadcrumb">
+    <a href="{{ url_for('main.dashboard') }}" style="color: inherit; text-decoration: none;">Home</a>
+    <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
+    {% if selected_project %}
+    <span style="color: inherit;">{{ selected_project.name }}</span>
+    <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
+    {% endif %}
+    <span class="header-breadcrumb-current">Roadmap & Gantt</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="gantt-page-container">
+    <!-- Toolbar Card -->
+    <div class="gantt-toolbar-card">
+        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <!-- Icon & Title -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99, 102, 241, 0.15); display: flex; align-items: center; justify-content: center; color: #818CF8; flex-shrink: 0;">
+                    <span class="iconify" data-icon="solar:chart-square-bold" style="width: 20px; height: 20px;"></span>
                 </div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">DEVELOPMENT</div>
-                    <a href="#" class="sidebar-nav-item">
-                        <i data-lucide="code" class="nav-icon"></i>
-                        <span>Code</span>
-                    </a>
-                    <a href="{{ url_for('admin.security_dashboard') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
-                        <i data-lucide="shield" class="nav-icon"></i>
-                        <span>Security</span>
-                    </a>
-                    <a href="#" class="sidebar-nav-item">
-                        <i data-lucide="package" class="nav-icon"></i>
-                        <span>Releases</span>
-                    </a>
-                </div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-section-title">OPERATIONS</div>
-                    <a href="#" class="sidebar-nav-item">
-                        <i data-lucide="rocket" class="nav-icon"></i>
-                        <span>Deployments</span>
-                    </a>
-                    <a href="#" class="sidebar-nav-item">
-                        <i data-lucide="alert-triangle" class="nav-icon"></i>
-                        <span>Incidents</span>
-                        <span class="beta-badge">BETA</span>
-                    </a>
-                    <a href="#" class="sidebar-nav-item">
-                        <i data-lucide="phone-call" class="nav-icon"></i>
-                        <span>On-call</span>
-                    </a>
-                </div>
-
-                <div class="sidebar-section">
-                    <a href="#" class="sidebar-nav-item">
-                        <i data-lucide="file-text" class="nav-icon"></i>
-                        <span>Project Pages</span>
-                    </a>
-                    <a href="#" class="sidebar-nav-item">
-                        <i data-lucide="bookmark-plus" class="nav-icon"></i>
-                        <span>Add shortcut</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_projects') if current_user.role == 'admin' else '#' }}" class="sidebar-nav-item">
-                        <i data-lucide="settings" class="nav-icon"></i>
-                        <span>Project settings</span>
-                    </a>
-                </div>
-            </nav>
-
-            <div class="sidebar-footer">
-                <a href="{{ url_for('main.profile') }}" class="sidebar-user">
-                    <div class="sidebar-user-avatar">{{ current_user.username[:2].upper() if current_user.is_authenticated else 'U' }}</div>
-                    <div class="sidebar-user-info">
-                        <div class="sidebar-user-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
-                        <div class="sidebar-user-role">{{ current_user.role.title() if current_user.role else 'User' }}</div>
-                    </div>
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="app-main">
-            <!-- Roadmap Header -->
-            <div class="roadmap-header">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">
-                        BG
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: var(--jira-text-secondary); margin-bottom: 2px;">
-                            Projects / Beyond Gravity
-                        </div>
-                        <h1 style="font-size: 20px; font-weight: 600; color: var(--jira-text); margin: 0;">Roadmap</h1>
-                    </div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="view-btn">
-                        <i data-lucide="star" style="width: 16px; height: 16px;"></i>
-                    </button>
-                    <button class="view-btn">
-                        <i data-lucide="more-horizontal" style="width: 16px; height: 16px;"></i>
-                    </button>
+                <div>
+                    <h1 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2;">
+                        Roadmap & Timeline
+                    </h1>
+                    <p style="color: var(--text-secondary); margin: 2px 0 0; font-size: 12px;">
+                        Interactive schedule, FS/SS/FF dependency linking & conflict detection
+                    </p>
                 </div>
             </div>
 
-            <!-- Roadmap Toolbar -->
-            <div class="roadmap-toolbar">
-                <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                    <div style="position: relative; width: 280px;">
-                        <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--jira-text-secondary);"></i>
-                        <input type="text" placeholder="Search" style="width: 100%; padding: 6px 12px 6px 36px; background: var(--jira-card-bg); border: 1px solid var(--jira-border); border-radius: 4px; color: var(--jira-text); font-size: 14px;">
-                    </div>
-                    
-                    <div style="display: flex; align-items: center; gap: -8px; margin-left: 8px;">
-                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #ff5630; border: 2px solid var(--jira-darker-bg); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600;">JD</div>
-                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #00b8d9; border: 2px solid var(--jira-darker-bg); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; margin-left: -8px;">SK</div>
-                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #6554c0; border: 2px solid var(--jira-darker-bg); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; margin-left: -8px;">AL</div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="position: relative;">
-                        <button class="view-btn" id="statusCategoryBtn">
-                            <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
-                            Status category
-                            <i data-lucide="chevron-down" style="width: 12px; height: 12px; margin-left: 4px;"></i>
-                        </button>
-                        <div class="filter-dropdown" id="statusCategoryDropdown">
-                            <div class="filter-dropdown-header">Status Category</div>
-                            <div class="filter-option" data-value="to-do">
-                                <input type="checkbox" id="status-todo">
-                                <label for="status-todo">To Do</label>
-                            </div>
-                            <div class="filter-option" data-value="in-progress">
-                                <input type="checkbox" id="status-progress">
-                                <label for="status-progress">In Progress</label>
-                            </div>
-                            <div class="filter-option" data-value="done">
-                                <input type="checkbox" id="status-done">
-                                <label for="status-done">Done</label>
-                            </div>
-                            <div class="filter-dropdown-footer">
-                                <button class="filter-btn-apply">Apply</button>
-                                <button class="filter-btn-clear">Clear</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="position: relative;">
-                        <button class="view-btn" id="epicBtn">
-                            <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
-                            Epic
-                            <i data-lucide="chevron-down" style="width: 12px; height: 12px; margin-left: 4px;"></i>
-                        </button>
-                        <div class="filter-dropdown" id="epicDropdown">
-                            <div class="filter-dropdown-header">Epic</div>
-                            <div class="filter-dropdown-search">
-                                <input type="text" placeholder="Search epics...">
-                            </div>
-                            <div class="filter-option" data-value="billing">
-                                <input type="checkbox" id="epic-billing">
-                                <label for="epic-billing">🔵 Billing System</label>
-                            </div>
-                            <div class="filter-option" data-value="accounts">
-                                <input type="checkbox" id="epic-accounts">
-                                <label for="epic-accounts">🟢 User Accounts</label>
-                            </div>
-                            <div class="filter-option" data-value="feedback">
-                                <input type="checkbox" id="epic-feedback">
-                                <label for="epic-feedback">🟡 Feedback Module</label>
-                            </div>
-                            <div class="filter-option" data-value="aws">
-                                <input type="checkbox" id="epic-aws">
-                                <label for="epic-aws">🔴 AWS Integration</label>
-                            </div>
-                            <div class="filter-dropdown-footer">
-                                <button class="filter-btn-apply">Apply</button>
-                                <button class="filter-btn-clear">Clear</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="position: relative;">
-                        <button class="view-btn" id="typeBtn">
-                            <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
-                            Type
-                            <i data-lucide="chevron-down" style="width: 12px; height: 12px; margin-left: 4px;"></i>
-                        </button>
-                        <div class="filter-dropdown" id="typeDropdown">
-                            <div class="filter-dropdown-header">Issue Type</div>
-                            <div class="filter-option" data-value="story">
-                                <input type="checkbox" id="type-story">
-                                <label for="type-story">📘 Story</label>
-                            </div>
-                            <div class="filter-option" data-value="task">
-                                <input type="checkbox" id="type-task">
-                                <label for="type-task">✅ Task</label>
-                            </div>
-                            <div class="filter-option" data-value="bug">
-                                <input type="checkbox" id="type-bug">
-                                <label for="type-bug">🐛 Bug</label>
-                            </div>
-                            <div class="filter-option" data-value="epic">
-                                <input type="checkbox" id="type-epic">
-                                <label for="type-epic">⚡ Epic</label>
-                            </div>
-                            <div class="filter-dropdown-footer">
-                                <button class="filter-btn-apply">Apply</button>
-                                <button class="filter-btn-clear">Clear</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="position: relative;">
-                        <button class="view-btn" id="quickFiltersBtn">
-                            <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
-                            Quick filters
-                            <i data-lucide="chevron-down" style="width: 12px; height: 12px; margin-left: 4px;"></i>
-                        </button>
-                        <div class="filter-dropdown" id="quickFiltersDropdown">
-                            <div class="filter-dropdown-header">Quick Filters</div>
-                            <div class="filter-option" data-value="my-issues">
-                                <input type="checkbox" id="quick-my">
-                                <label for="quick-my">🙋 My Issues</label>
-                            </div>
-                            <div class="filter-option" data-value="recently-updated">
-                                <input type="checkbox" id="quick-recent">
-                                <label for="quick-recent">🕐 Recently Updated</label>
-                            </div>
-                            <div class="filter-option" data-value="overdue">
-                                <input type="checkbox" id="quick-overdue">
-                                <label for="quick-overdue">⚠️ Overdue</label>
-                            </div>
-                            <div class="filter-option" data-value="high-priority">
-                                <input type="checkbox" id="quick-priority">
-                                <label for="quick-priority">🔥 High Priority</label>
-                            </div>
-                            <div class="filter-dropdown-footer">
-                                <button class="filter-btn-apply">Apply</button>
-                                <button class="filter-btn-clear">Clear</button>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="view-btn">
-                        <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
-                        Quick filters
-                    </button>
-                    <div style="width: 1px; height: 20px; background: var(--jira-border);"></div>
-                    <div class="view-switcher">
-                        <button class="view-btn" data-view="today">Today</button>
-                        <button class="view-btn" data-view="weeks" class="active">Weeks</button>
-                        <button class="view-btn" data-view="months">Months</button>
-                        <button class="view-btn" data-view="quarters">Quarters</button>
-                    </div>
-                    <div style="width: 1px; height: 20px; background: var(--jira-border);"></div>
-                    <div class="zoom-controls">
-                        <button class="zoom-btn" id="zoomOutBtn" title="Zoom Out">
-                            <i data-lucide="zoom-out" style="width: 14px; height: 14px;"></i>
-                        </button>
-                        <span style="font-size: 12px; color: var(--jira-text-secondary); min-width: 40px; text-align: center;" id="zoomLevel">100%</span>
-                        <button class="zoom-btn" id="zoomInBtn" title="Zoom In">
-                            <i data-lucide="zoom-in" style="width: 14px; height: 14px;"></i>
-                        </button>
-                        <div class="zoom-separator"></div>
-                        <button class="zoom-btn" id="fitToScreenBtn" title="Fit to Screen">
-                            <i data-lucide="maximize-2" style="width: 14px; height: 14px;"></i>
-                        </button>
-                    </div>
-                    <div style="width: 1px; height: 20px; background: var(--jira-border);"></div>
-                    <button class="view-btn">
-                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
-                        View settings
-                    </button>
-                    <button class="view-btn">
-                        <i data-lucide="share-2" style="width: 14px; height: 14px;"></i>
-                        Share
-                    </button>
-                    <button class="view-btn" id="exportRoadmapBtn" title="Export Roadmap">
-                        <i data-lucide="download" style="width: 14px; height: 14px;"></i>
-                        Export
-                    </button>
-                    
-                    <!-- Notifications -->
-                    <button class="view-btn" id="notificationBtn" style="position: relative;" title="Notifications">
-                        <i data-lucide="bell" style="width: 14px; height: 14px;"></i>
-                        <span class="notification-badge">0</span>
-                    </button>
-                    
-                    <!-- Theme Toggle -->
-                    <button class="view-btn theme-toggle-btn" id="themeToggle" title="Toggle Theme">
-                        <i data-lucide="moon" style="width: 14px; height: 14px;"></i>
-                    </button>
-                </div>
+            <!-- Tabs: Timeline vs Graph -->
+            <div class="gantt-tabs-container">
+                <button class="gantt-tab-btn active" id="tabTimeline" onclick="switchView('timeline')">
+                    <span class="iconify" data-icon="solar:calendar-date-bold" style="width: 14px; height: 14px;"></span>
+                    Timeline
+                </button>
+                <button class="gantt-tab-btn" id="tabGraph" onclick="switchView('graph')">
+                    <span class="iconify" data-icon="solar:diagram-up-bold" style="width: 14px; height: 14px;"></span>
+                    Dependency Graph
+                </button>
+            </div>
+        </div>
+
+        <!-- Controls: Project Selector, Zoom Presets, Add Dependency Button -->
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <!-- Project Dropdown -->
+            <select id="projectSelector" class="form-select" style="min-width: 200px; height: 36px; background: rgba(255, 255, 255, 0.05); color: var(--text-primary); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 0 12px; font-size: 13px;" onchange="changeProject(this.value)">
+                {% for p in projects %}
+                <option value="{{ p.id }}" {% if selected_project and selected_project.id == p.id %}selected{% endif %}>
+                    {{ p.name }} ({{ p.key }})
+                </option>
+                {% endfor %}
+            </select>
+
+            <!-- Zoom Presets -->
+            <div id="zoomControls" style="display: flex; gap: 4px;">
+                <button class="gantt-zoom-btn" onclick="setZoomMode('day')">Day</button>
+                <button class="gantt-zoom-btn active" onclick="setZoomMode('week')">Week</button>
+                <button class="gantt-zoom-btn" onclick="setZoomMode('month')">Month</button>
+                <button class="gantt-zoom-btn" onclick="setZoomMode('quarter')">Quarter</button>
             </div>
 
-            <!-- Roadmap Container -->
-            <div class="roadmap-container">
-                <!-- Left Sidebar: Releases and Sprints -->
-                <div class="roadmap-sidebar">
-                    <div class="roadmap-section">
-                        <div class="roadmap-section-title">Sprints</div>
-                        <div class="roadmap-item">
-                            <i data-lucide="calendar" class="roadmap-item-icon"></i>
-                            <span class="roadmap-item-label">Sprint 2</span>
-                        </div>
-                    </div>
-                    
-                    <div class="roadmap-section">
-                        <div class="roadmap-section-title">Releases</div>
-                        <div class="roadmap-item">
-                            <i data-lucide="package" class="roadmap-item-icon"></i>
-                            <span class="roadmap-item-label">NUC-10 Billing</span>
-                        </div>
-                        <div class="roadmap-item">
-                            <i data-lucide="package" class="roadmap-item-icon"></i>
-                            <span class="roadmap-item-label">NUC-11 Accounts</span>
-                        </div>
-                        <div class="roadmap-item">
-                            <i data-lucide="package" class="roadmap-item-icon"></i>
-                            <span class="roadmap-item-label">NUC-12 Feedback</span>
-                        </div>
-                        <div class="roadmap-item">
-                            <i data-lucide="package" class="roadmap-item-icon"></i>
-                            <span class="roadmap-item-label">NUC-13 AWS Spike</span>
-                        </div>
-                        <div class="roadmap-item">
-                            <i data-lucide="package" class="roadmap-item-icon"></i>
-                            <span class="roadmap-item-label">NUC-14 Forms</span>
-                        </div>
-                        <div class="roadmap-item">
-                            <i data-lucide="package" class="roadmap-item-icon"></i>
-                            <span class="roadmap-item-label">NUC-15 Reporting</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Auto-Schedule Cascade Button -->
+            <button class="btn btn-secondary" id="autoScheduleBtn" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: 8px; border: 1px solid var(--surface-border-color);" onclick="runAutoSchedule()" title="Cascade dates downstream to resolve all dependency conflicts">
+                <span class="iconify" data-icon="solar:magic-stick-3-bold" style="width: 15px; height: 15px; color: #10B981;"></span>
+                Auto-Schedule
+            </button>
 
-                <!-- Right Side: Timeline -->
-                <div class="roadmap-timeline">
-                    <!-- Timeline Header with Months -->
-                    <div class="timeline-header">
-                        <div class="timeline-month">FEB 2024</div>
-                        <div class="timeline-month">MAR 2024</div>
-                        <div class="timeline-month">APR 2024</div>
-                        <div class="timeline-month">MAY 2024</div>
-                    </div>
-
-                    <!-- Timeline Body with Bars -->
-                    <div class="timeline-body">
-                        <!-- Sprint Row -->
-                        <div class="timeline-row">
-                            <div class="timeline-row-header">Sprint 2</div>
-                            <div class="timeline-items">
-                                <div class="timeline-bar sprint" style="left: 5%; width: 25%;">
-                                    <div class="timeline-bar-progress" style="width: 60%;"></div>
-                                    <div class="timeline-bar-content">
-                                        <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
-                                        Sprint 2
-                                    </div>
-                                    <span class="timeline-bar-badge">60%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Billing Release -->
-                        <div class="timeline-row">
-                            <div class="timeline-row-header">NUC-10 Billing</div>
-                            <div class="timeline-items">
-                                <div class="timeline-bar billing" style="left: 8%; width: 22%;">
-                                    <div class="timeline-bar-progress" style="width: 80%;"></div>
-                                    <div class="timeline-bar-content">
-                                        <i data-lucide="package" style="width: 14px; height: 14px;"></i>
-                                        Billing Module
-                                    </div>
-                                    <span class="timeline-bar-badge">80%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Accounts Release -->
-                        <div class="timeline-row">
-                            <div class="timeline-row-header">NUC-11 Accounts</div>
-                            <div class="timeline-items">
-                                <div class="timeline-bar accounts" style="left: 15%; width: 28%;">
-                                    <div class="timeline-bar-progress" style="width: 45%;"></div>
-                                    <div class="timeline-bar-content">
-                                        <i data-lucide="users" style="width: 14px; height: 14px;"></i>
-                                        Account Management
-                                    </div>
-                                    <span class="timeline-bar-badge">45%</span>
-                                </div>
-                                <!-- Milestone marker -->
-                                <div class="milestone-marker" style="left: calc(15% + 28%); height: 40px;">
-                                    <div class="milestone-label">v2.0</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Feedback Release -->
-                        <div class="timeline-row">
-                            <div class="timeline-row-header">NUC-12 Feedback</div>
-                            <div class="timeline-items">
-                                <div class="timeline-bar feedback" style="left: 32%; width: 20%;">
-                                    <div class="timeline-bar-progress" style="width: 25%;"></div>
-                                    <div class="timeline-bar-content">
-                                        <i data-lucide="message-square" style="width: 14px; height: 14px;"></i>
-                                        Feedback System
-                                    </div>
-                                    <span class="timeline-bar-badge">25%</span>
-                                </div>
-                                <!-- Dependency line from Accounts to Feedback -->
-                                <div class="dependency-line" style="left: calc(15% + 28%); top: -25px; width: calc(32% - (15% + 28%));">
-                                    <div class="dependency-arrow"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- AWS Spike -->
-                        <div class="timeline-row">
-                            <div class="timeline-row-header">NUC-13 AWS Spike</div>
-                            <div class="timeline-items">
-                                <div class="timeline-bar aws" style="left: 45%; width: 15%;">
-                                    <div class="timeline-bar-progress" style="width: 90%;"></div>
-                                    <div class="timeline-bar-content">
-                                        <i data-lucide="cloud" style="width: 14px; height: 14px;"></i>
-                                        AWS Integration
-                                    </div>
-                                    <span class="timeline-bar-badge">90%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Forms Release -->
-                        <div class="timeline-row">
-                            <div class="timeline-row-header">NUC-14 Forms</div>
-                            <div class="timeline-items">
-                                <div class="timeline-bar forms" style="left: 55%; width: 25%;">
-                                    <div class="timeline-bar-progress" style="width: 10%;"></div>
-                                    <div class="timeline-bar-content">
-                                        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
-                                        Form Builder
-                                    </div>
-                                    <span class="timeline-bar-badge">10%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Reporting Release -->
-                        <div class="timeline-row">
-                            <div class="timeline-row-header">NUC-15 Reporting</div>
-                            <div class="timeline-items">
-                                <div class="timeline-bar reporting" style="left: 62%; width: 18%;">
-                                    <div class="timeline-bar-progress" style="width: 5%;"></div>
-                                    <div class="timeline-bar-content">
-                                        <i data-lucide="bar-chart" style="width: 14px; height: 14px;"></i>
-                                        Analytics Dashboard
-                                    </div>
-                                    <span class="timeline-bar-badge">5%</span>
-                                </div>
-                                <!-- Milestone marker -->
-                                <div class="milestone-marker" style="left: calc(62% + 18%); height: 40px;">
-                                    <div class="milestone-label">Release</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+            <!-- Add Dependency Button -->
+            <button class="btn btn-primary" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;" onclick="openAddDependencyModal()">
+                <span class="iconify" data-icon="solar:link-circle-bold" style="width: 16px; height: 16px;"></span>
+                Add Dependency
+            </button>
+        </div>
     </div>
 
-    <script>
-        // Wait for DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Lucide icons
-            lucide.createIcons();
-
-            // View switcher functionality
-            document.querySelectorAll('.view-switcher .view-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.view-switcher .view-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
-
-        // Roadmap item click handlers
-        document.querySelectorAll('.roadmap-item').forEach(item => {
-            item.addEventListener('click', () => {
-                console.log('Clicked:', item.querySelector('.roadmap-item-label').textContent);
-            });
-        });
-
-        // Timeline bar click handlers
-        document.querySelectorAll('.timeline-bar').forEach(bar => {
-            bar.addEventListener('click', () => {
-                console.log('Clicked timeline bar:', bar.textContent.trim());
-            });
-        });
-
-        // Sidebar collapse toggle
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const toggleIcon = sidebarToggle.querySelector('[data-lucide]');
-        
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
-            lucide.createIcons();
-        });
-        
-        // Initialize theme toggle
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            window.themeManager.toggleTheme();
-            window.notificationManager.addNotification({
-                title: 'Theme Changed',
-                message: `Switched to ${window.themeManager.getTheme()} mode`,
-                type: 'success'
-            });
-        });
-        
-        // Initialize notification panel
-        const notificationBtn = document.getElementById('notificationBtn');
-        const notificationPanel = document.createElement('div');
-        notificationPanel.className = 'notification-panel';
-        notificationPanel.innerHTML = `
-            <div class="notification-panel-header">
-                <div class="notification-panel-title">Notifications</div>
-                <div class="notification-actions">
-                    <button class="notification-action-btn" id="markAllRead">Mark all as read</button>
-                    <button class="notification-action-btn" id="clearNotifications">Clear all</button>
-                </div>
+    <!-- View 1: Timeline & Gantt Split Pane -->
+    <div id="timelineView" class="gantt-split-pane">
+        <!-- Left Table: Issues List -->
+        <div class="gantt-issues-list">
+            <div class="gantt-table-header">
+                <span style="flex: 1;">Issue Key & Title</span>
+                <span style="width: 80px; text-align: right;">Status</span>
             </div>
-            <div class="notification-panel-content" id="notificationList"></div>
-        `;
-        document.body.appendChild(notificationPanel);
-        
-        notificationBtn.addEventListener('click', () => {
-            notificationPanel.classList.toggle('show');
-            updateNotificationList();
-        });
-        
-        function updateNotificationList() {
-            const list = document.getElementById('notificationList');
-            const notifications = window.notificationManager.getNotifications();
+            <div id="issuesListBody" style="flex: 1; overflow-y: auto;">
+                {% for issue in issues %}
+                <div class="gantt-issue-row" data-issue-id="{{ issue.id }}" onclick="window.location.href='/project/{{ issue.project_id }}/issue/{{ issue.id }}'">
+                    <span class="iconify" data-icon="{% if issue.issue_type == 'bug' %}solar:bug-bold{% elif issue.issue_type == 'story' %}solar:bookmark-bold{% elif issue.issue_type == 'epic' %}solar:bolt-bold{% else %}solar:check-square-bold{% endif %}" style="width: 15px; height: 15px; color: {% if issue.issue_type == 'bug' %}#EF4444{% elif issue.issue_type == 'story' %}#10B981{% elif issue.issue_type == 'epic' %}#8B5CF6{% else %}#3B82F6{% endif %}; flex-shrink: 0;"></span>
+                    <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); width: 50px; flex-shrink: 0;">{{ issue.key }}</span>
+                    <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary); font-weight: 500;" title="{{ issue.title }}">{{ issue.title }}</span>
+                    <span style="width: 75px; text-align: right; font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary);">{{ issue.status }}</span>
+                </div>
+                {% else %}
+                <div style="padding: 32px; text-align: center; color: var(--text-tertiary);">
+                    No issues found in this project.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Viewport: Timeline Canvas -->
+        <div class="gantt-timeline-viewport" id="timelineViewport">
+            <div class="gantt-timeline-inner" id="timelineInner">
+                <!-- Header with Dynamic Dates -->
+                <div class="gantt-timeline-header" id="timelineHeader"></div>
+
+                <!-- Today Indicator Line & Badge -->
+                <div class="gantt-today-line" id="todayLine"></div>
+                <div class="gantt-today-badge" id="todayBadge">Today</div>
+
+                <!-- Rows with Task Bars -->
+                <div id="timelineRows"></div>
+
+                <!-- SVG Layer for Directed Dependency Lines -->
+                <svg class="gantt-svg-layer" id="ganttSvgLayer">
+                    <defs>
+                        <marker id="depArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 8 5 L 0 9 z" class="dep-arrow" />
+                        </marker>
+                        <marker id="depArrowConflict" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 8 5 L 0 9 z" class="dep-arrow is-conflict" />
+                        </marker>
+                    </defs>
+                    <g id="svgDependencyPaths"></g>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- View 2: Visual Dependency Graph -->
+    <div id="graphView" class="gantt-graph-container">
+        <div style="padding: 12px 16px; border-bottom: 1px solid var(--surface-border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.15);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="iconify" data-icon="solar:diagram-up-bold" style="color: #818CF8; width: 16px; height: 16px;"></span>
+                <span style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Interactive Dependency & Relationship Topology</span>
+            </div>
+            <div style="display: flex; gap: 14px; font-size: 11px; color: var(--text-secondary);">
+                <span><span style="display: inline-block; width: 10px; height: 3px; background: #818CF8; vertical-align: middle; margin-right: 4px;"></span> Dependency (FS/SS/FF)</span>
+                <span><span style="display: inline-block; width: 10px; height: 3px; background: #EF4444; vertical-align: middle; margin-right: 4px;"></span> Conflict (Schedule Overlap)</span>
+                <span><span style="display: inline-block; width: 10px; height: 3px; background: #60A5FA; border-top: 1px dashed #60A5FA; vertical-align: middle; margin-right: 4px;"></span> Relates To / Association</span>
+            </div>
+        </div>
+        <svg id="dependencyGraphSvg" class="gantt-graph-svg"></svg>
+    </div>
+</div>
+
+<!-- Live Tooltip for Dragging / Dependencies -->
+<div id="ganttDragTooltip" class="gantt-drag-tooltip"></div>
+
+<!-- Add Dependency Modal -->
+<div id="addDependencyModal" class="modal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeAddDependencyModal()"></div>
+    <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+            <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span class="iconify" data-icon="solar:link-circle-bold" style="color: #818CF8;"></span>
+                Create Issue Dependency / Relationship
+            </h2>
+            <button class="btn-icon" onclick="closeAddDependencyModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+                <span class="iconify" data-icon="solar:close-circle-bold" style="width: 20px; height: 20px;"></span>
+            </button>
+        </div>
+        <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+            <div>
+                <label class="form-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">Predecessor (From Issue)</label>
+                <select id="linkPredecessorSelect" class="form-select" style="width: 100%; height: 38px; background: rgba(255,255,255,0.05); border: 1px solid var(--surface-border-color); border-radius: 8px; color: var(--text-primary); padding: 0 10px;">
+                    {% for iss in issues %}
+                    <option value="{{ iss.id }}">{{ iss.key }} - {{ iss.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">Dependency / Relationship Type</label>
+                <select id="linkTypeSelect" class="form-select" style="width: 100%; height: 38px; background: rgba(255,255,255,0.05); border: 1px solid var(--surface-border-color); border-radius: 8px; color: var(--text-primary); padding: 0 10px;">
+                    <optgroup label="Scheduling Dependencies">
+                        <option value="finish_to_start" selected>Finish-to-Start (Successor starts after Predecessor finishes)</option>
+                        <option value="start_to_start">Start-to-Start (Successor starts together with Predecessor)</option>
+                        <option value="finish_to_finish">Finish-to-Finish (Successor finishes together with Predecessor)</option>
+                    </optgroup>
+                    <optgroup label="Issue Relationships">
+                        <option value="blocks">Blocks (Predecessor blocks Successor)</option>
+                        <option value="relates_to">Relates to (Bidirectional Association)</option>
+                        <option value="duplicates">Duplicates</option>
+                        <option value="clones">Clones</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">Successor (To Issue)</label>
+                <select id="linkSuccessorSelect" class="form-select" style="width: 100%; height: 38px; background: rgba(255,255,255,0.05); border: 1px solid var(--surface-border-color); border-radius: 8px; color: var(--text-primary); padding: 0 10px;">
+                    {% for iss in issues %}
+                    <option value="{{ iss.id }}" {% if loop.index == 2 %}selected{% endif %}>{{ iss.key }} - {{ iss.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">Lag / Buffer (Days)</label>
+                <input type="number" id="linkLagDays" value="0" min="0" max="90" style="width: 100%; height: 38px; background: rgba(255,255,255,0.05); border: 1px solid var(--surface-border-color); border-radius: 8px; color: var(--text-primary); padding: 0 10px;">
+            </div>
+        </div>
+        <div class="modal-footer" style="padding: 14px 24px; border-top: 1px solid var(--surface-border-color); display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn btn-ghost" onclick="closeAddDependencyModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitCreateDependency()">Link Issues</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Live State
+let currentProjectId = {{ selected_project.id if selected_project else 1 }};
+let zoomMode = 'week'; // 'day', 'week', 'month', 'quarter'
+let dayWidth = 24; // pixels per day
+let startDateTimeline = new Date(2026, 10, 1); // Nov 1 2026
+let totalDays = 60; // 2 months view
+let projectIssues = {{ issues_json|tojson if issues_json else '[]' }};
+let projectDependencies = {{ dependencies_json|tojson if dependencies_json else '[]' }};
+
+// Drag state
+let isDraggingBar = false;
+let isResizingLeft = false;
+let isResizingRight = false;
+let activeIssue = null;
+let dragStartX = 0;
+let initialStartDayOffset = 0;
+let initialDurationDays = 0;
+
+function changeProject(projId) {
+    window.location.href = '/gantt?project=' + projId;
+}
+
+function switchView(view) {
+    const tabTimeline = document.getElementById('tabTimeline');
+    const tabGraph = document.getElementById('tabGraph');
+    const timelineView = document.getElementById('timelineView');
+    const graphView = document.getElementById('graphView');
+    const zoomControls = document.getElementById('zoomControls');
+
+    if (view === 'timeline') {
+        tabTimeline.classList.add('active');
+        tabGraph.classList.remove('active');
+        timelineView.style.display = 'flex';
+        graphView.style.display = 'none';
+        zoomControls.style.display = 'flex';
+        renderTimeline();
+    } else {
+        tabGraph.classList.add('active');
+        tabTimeline.classList.remove('active');
+        timelineView.style.display = 'none';
+        graphView.style.display = 'block';
+        zoomControls.style.display = 'none';
+        renderDependencyGraph();
+    }
+}
+
+function setZoomMode(mode) {
+    zoomMode = mode;
+    document.querySelectorAll('.gantt-zoom-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase() === mode);
+    });
+
+    if (mode === 'day') {
+        dayWidth = 44;
+    } else if (mode === 'week') {
+        dayWidth = 22;
+    } else if (mode === 'month') {
+        dayWidth = 10;
+    } else if (mode === 'quarter') {
+        dayWidth = 4;
+    }
+    renderTimeline();
+}
+
+async function loadGanttData() {
+    try {
+        const response = await fetch(`/api/v1/project/${currentProjectId}/gantt_data`);
+        const result = await response.json();
+        if (result.success) {
+            projectIssues = result.issues;
+            projectDependencies = result.dependencies;
             
-            if (notifications.length === 0) {
-                list.innerHTML = `
-                    <div class="notification-empty">
-                        <i data-lucide="bell-off" class="notification-empty-icon"></i>
-                        <div class="notification-empty-text">No notifications</div>
-                    </div>
-                `;
+            // Adjust timeline start to encompass earliest task
+            let earliest = null;
+            projectIssues.forEach(iss => {
+                if (iss.start_date) {
+                    const d = new Date(iss.start_date);
+                    if (!earliest || d < earliest) earliest = d;
+                }
+            });
+            if (earliest) {
+                // Buffer by 3 days prior
+                startDateTimeline = new Date(earliest.getFullYear(), earliest.getMonth(), Math.max(1, earliest.getDate() - 3));
             } else {
-                list.innerHTML = notifications.map(n => `
-                    <div class="notification-item ${n.type} ${n.read ? '' : 'unread'}" data-id="${n.id}">
-                        <div class="notification-item-icon">
-                            <i data-lucide="${window.notificationManager.getIconForType(n.type)}"></i>
-                        </div>
-                        <div class="notification-item-content">
-                            <div class="notification-item-title">${n.title}</div>
-                            <div class="notification-item-message">${n.message}</div>
-                            <div class="notification-item-time">${new Date(n.timestamp).toLocaleString()}</div>
-                        </div>
-                    </div>
-                `).join('');
+                startDateTimeline = new Date(2026, 10, 1);
             }
-            
-            lucide.createIcons();
-            
-            document.querySelectorAll('.notification-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const id = parseInt(item.dataset.id);
-                    window.notificationManager.markAsRead(id);
-                    updateNotificationList();
-                });
-            });
+            renderTimeline();
         }
-        
-        document.getElementById('markAllRead').addEventListener('click', () => {
-            window.notificationManager.markAllAsRead();
-            updateNotificationList();
-        });
-        
-        document.getElementById('clearNotifications').addEventListener('click', () => {
-            if (confirm('Clear all notifications?')) {
-                window.notificationManager.clearAll();
-                updateNotificationList();
-            }
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!notificationPanel.contains(e.target) && e.target !== notificationBtn && !notificationBtn.contains(e.target)) {
-                notificationPanel.classList.remove('show');
-            }
-        });
-        
-        // Export roadmap functionality
-        document.getElementById('exportRoadmapBtn').addEventListener('click', () => {
-            const releases = [];
-            document.querySelectorAll('.timeline-bar').forEach(bar => {
-                releases.push({
-                    name: bar.textContent.trim(),
-                    type: bar.classList[1]
-                });
-            });
-            
-            const csv = 'Name,Type\\n' + releases.map(r => `"${r.name}",${r.type}`).join('\\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `roadmap-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            
-            window.notificationManager.addNotification({
-                title: 'Export Complete',
-                message: 'Roadmap data exported successfully',
-                type: 'success'
-            });
-        });
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-                e.preventDefault();
-                window.themeManager.toggleTheme();
-            }
-        });
-        
-        // Welcome notification
-        setTimeout(() => {
-            window.notificationManager.addNotification({
-                title: 'Welcome to Roadmap',
-                message: 'View your project timeline and releases. Use Ctrl+D to toggle theme.',
-                type: 'info'
-            });
-        }, 1000);
+    } catch (e) {
+        console.error('Failed to load gantt data:', e);
+    }
+}
 
-        // Search functionality
-        const searchInput = document.querySelector('input[placeholder="Search"]');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                console.log('Searching for:', searchTerm);
-                
-                // Filter roadmap items and timeline bars
-                document.querySelectorAll('.roadmap-item, .timeline-bar').forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    if (text.includes(searchTerm)) {
-                        item.style.display = '';
-                        item.style.opacity = '1';
-                    } else {
-                        item.style.opacity = '0.3';
-                    }
-                });
-                
-                if (searchTerm) {
-                    window.notificationManager.addNotification({
-                        title: 'Search Active',
-                        message: `Filtering items containing "${e.target.value}"`,
-                        type: 'info'
-                    });
-                }
-            });
+function renderTimeline() {
+    const header = document.getElementById('timelineHeader');
+    const rows = document.getElementById('timelineRows');
+    const inner = document.getElementById('timelineInner');
+    const totalWidth = totalDays * dayWidth;
 
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    searchInput.value = '';
-                    searchInput.dispatchEvent(new Event('input'));
-                }
-            });
+    inner.style.width = totalWidth + 'px';
+    header.innerHTML = '';
+    rows.innerHTML = '';
 
-            console.log('Search functionality initialized');
+    const today = new Date(2026, 10, 15); // Simulated today matching current demo date
+    const todayOffset = Math.floor((today - startDateTimeline) / (1000 * 60 * 60 * 24));
+    
+    // Position today line
+    const todayLine = document.getElementById('todayLine');
+    const todayBadge = document.getElementById('todayBadge');
+    if (todayOffset >= 0 && todayOffset < totalDays) {
+        const todayPx = todayOffset * dayWidth + (dayWidth / 2);
+        todayLine.style.left = todayPx + 'px';
+        todayLine.style.display = 'block';
+        todayBadge.style.left = todayPx + 'px';
+        todayBadge.style.display = 'block';
+    } else {
+        todayLine.style.display = 'none';
+        todayBadge.style.display = 'none';
+    }
+
+    // Render Header Columns
+    for (let i = 0; i < totalDays; i++) {
+        const colDate = new Date(startDateTimeline);
+        colDate.setDate(colDate.getDate() + i);
+
+        const col = document.createElement('div');
+        col.className = 'gantt-header-col';
+        col.style.width = dayWidth + 'px';
+        col.style.flexShrink = '0';
+
+        const isToday = i === todayOffset;
+        const isWeekend = colDate.getDay() === 0 || colDate.getDay() === 6;
+        if (isToday) col.classList.add('is-today');
+        if (isWeekend) col.classList.add('is-weekend');
+
+        if (zoomMode === 'day' || zoomMode === 'week') {
+            const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+            col.innerHTML = `
+                <div style="font-size: 9px; opacity: 0.7;">${dayNames[colDate.getDay()]}</div>
+                <div style="font-weight: 600;">${colDate.getDate()}</div>
+            `;
+        } else {
+            if (colDate.getDate() === 1 || i === 0) {
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                col.innerHTML = `<div style="font-weight: 700;">${monthNames[colDate.getMonth()]}</div>`;
+            } else if (colDate.getDate() % 5 === 0) {
+                col.innerHTML = `<div>${colDate.getDate()}</div>`;
+            }
+        }
+        header.appendChild(col);
+    }
+
+    // Render Rows & Bars
+    projectIssues.forEach((issue, index) => {
+        const track = document.createElement('div');
+        track.className = 'gantt-row-track';
+        track.style.width = totalWidth + 'px';
+        track.dataset.issueId = issue.id;
+
+        // Render background column grid lines
+        for (let i = 0; i < totalDays; i++) {
+            const colDate = new Date(startDateTimeline);
+            colDate.setDate(colDate.getDate() + i);
+            const isWeekend = colDate.getDay() === 0 || colDate.getDay() === 6;
+
+            const gridCol = document.createElement('div');
+            gridCol.className = 'gantt-grid-col';
+            gridCol.style.left = (i * dayWidth) + 'px';
+            gridCol.style.width = dayWidth + 'px';
+            if (isWeekend) gridCol.classList.add('is-weekend');
+            track.appendChild(gridCol);
         }
 
-        // Filter buttons functionality
-        const filterButtons = document.querySelectorAll('.view-btn');
-        filterButtons.forEach(btn => {
-            const buttonText = btn.textContent.trim();
-            
-            if (buttonText.includes('Status category') || 
-                buttonText.includes('Epic') || 
-                buttonText.includes('Type') || 
-                buttonText.includes('Quick filters')) {
-                
-                btn.addEventListener('click', () => {
-                    console.log('Filter clicked:', buttonText);
-                    btn.classList.toggle('active');
-                    
-                    window.notificationManager.addNotification({
-                        title: 'Filter Applied',
-                        message: `${buttonText} filter ${btn.classList.contains('active') ? 'activated' : 'deactivated'}`,
-                        type: 'info'
-                    });
-                });
-            }
-            
-            if (buttonText.includes('View settings')) {
-                btn.addEventListener('click', () => {
-                    console.log('View settings clicked');
-                    window.notificationManager.addNotification({
-                        title: 'View Settings',
-                        message: 'View settings panel will open here',
-                        type: 'info'
-                    });
-                });
-            }
-            
-            if (buttonText.includes('Share')) {
-                btn.addEventListener('click', () => {
-                    console.log('Share clicked');
-                    const url = window.location.href;
-                    navigator.clipboard.writeText(url).then(() => {
-                        window.notificationManager.addNotification({
-                            title: 'Link Copied',
-                            message: 'Roadmap URL copied to clipboard',
-                            type: 'success'
-                        });
-                    });
-                });
-            }
-        });
+        // Calculate bar position
+        let startD = issue.start_date ? new Date(issue.start_date) : new Date(startDateTimeline);
+        let dueD = issue.due_date ? new Date(issue.due_date) : new Date(startD.getTime() + 4 * 24 * 60 * 60 * 1000);
 
-        console.log('All buttons initialized and ready');
+        const startOffsetDays = Math.max(0, (startD - startDateTimeline) / (1000 * 60 * 60 * 24));
+        const durationDays = Math.max(1, (dueD - startD) / (1000 * 60 * 60 * 24));
 
-        // Dropdown functionality
-        const dropdowns = {
-            'statusCategoryBtn': 'statusCategoryDropdown',
-            'epicBtn': 'epicDropdown',
-            'typeBtn': 'typeDropdown',
-            'quickFiltersBtn': 'quickFiltersDropdown'
+        const barLeft = startOffsetDays * dayWidth;
+        const barWidth = Math.max(dayWidth, durationDays * dayWidth);
+
+        const bar = document.createElement('div');
+        bar.className = `gantt-task-bar status-${issue.status || 'todo'}`;
+        bar.id = `task-bar-${issue.id}`;
+        bar.dataset.issueId = issue.id;
+        bar.style.left = barLeft + 'px';
+        bar.style.width = barWidth + 'px';
+
+        // Check if blocked or has conflict
+        const isConflict = projectDependencies.some(d => d.target_id === issue.id && d.is_conflict);
+
+        bar.innerHTML = `
+            <div class="gantt-resize-handle gantt-resize-left" data-action="resize-left"></div>
+            <div class="gantt-connector-dot gantt-connector-left" data-action="connect-in" title="Predecessor connector"></div>
+            <div class="gantt-progress-fill" style="width: ${issue.progress || 0}%;"></div>
+            <span class="gantt-task-title">${issue.key}: ${issue.title}</span>
+            ${isConflict ? '<span class="conflict-badge" style="margin-left: 6px;">⚠️ Conflict</span>' : ''}
+            <div class="gantt-connector-dot gantt-connector-right" data-action="connect-out" title="Successor connector"></div>
+            <div class="gantt-resize-handle gantt-resize-right" data-action="resize-right"></div>
+        `;
+
+        // Attach Mouse Drag & Resize Listeners
+        bar.addEventListener('mousedown', (e) => handleBarMouseDown(e, issue, bar));
+
+        track.appendChild(bar);
+        rows.appendChild(track);
+    });
+
+    // Render SVG dependency connectors
+    renderSvgDependencies();
+}
+
+function renderSvgDependencies() {
+    const svgGroup = document.getElementById('svgDependencyPaths');
+    svgGroup.innerHTML = '';
+
+    projectDependencies.forEach(dep => {
+        const srcBar = document.getElementById(`task-bar-${dep.source_id}`);
+        const tgtBar = document.getElementById(`task-bar-${dep.target_id}`);
+
+        if (!srcBar || !tgtBar) return;
+
+        // Coordinates relative to timeline inner
+        const srcRect = {
+            right: parseFloat(srcBar.style.left) + parseFloat(srcBar.style.width),
+            top: srcBar.closest('.gantt-row-track').offsetTop + 22
         };
 
-        Object.keys(dropdowns).forEach(btnId => {
-            const btn = document.getElementById(btnId);
-            const dropdown = document.getElementById(dropdowns[btnId]);
-            
-            if (btn && dropdown) {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    
-                    // Close all other dropdowns and check their filter status
-                    document.querySelectorAll('.filter-dropdown').forEach(d => {
-                        if (d !== dropdown) {
-                            d.classList.remove('show');
-                            // Check if dropdown has any filters applied
-                            const relatedBtn = document.querySelector(`[aria-controls="${d.id}"]`) || 
-                                             Object.keys(dropdowns).find(k => dropdowns[k] === d.id);
-                            if (relatedBtn) {
-                                const hasActiveFilters = d.querySelectorAll('input[type="checkbox"]:checked').length > 0;
-                                const btnElement = typeof relatedBtn === 'string' ? document.getElementById(relatedBtn) : relatedBtn;
-                                if (!hasActiveFilters && btnElement) {
-                                    btnElement.classList.remove('active');
-                                }
-                            }
-                        }
-                    });
-                    
-                    // Toggle this dropdown
-                    dropdown.classList.toggle('show');
-                    console.log(`Dropdown ${btnId} toggled`);
-                });
+        const tgtRect = {
+            left: parseFloat(tgtBar.style.left),
+            top: tgtBar.closest('.gantt-row-track').offsetTop + 22
+        };
 
-                // Handle checkbox changes
-                dropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.addEventListener('change', (e) => {
-                        const option = e.target.closest('.filter-option');
-                        if (e.target.checked) {
-                            option.classList.add('selected');
-                        } else {
-                            option.classList.remove('selected');
-                        }
-                        console.log('Filter option changed:', e.target.id, e.target.checked);
-                    });
-                });
+        // Draw bezier or orthogonal curve
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const dx = Math.abs(tgtRect.left - srcRect.right);
+        const curveOffset = Math.min(30, Math.max(15, dx / 2));
 
-                // Apply button
-                const applyBtn = dropdown.querySelector('.filter-btn-apply');
-                if (applyBtn) {
-                    applyBtn.addEventListener('click', () => {
-                        const selected = [];
-                        dropdown.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-                            selected.push(cb.id);
-                        });
-                        
-                        dropdown.classList.remove('show');
-                        btn.classList.add('active');
-                        
-                        window.notificationManager.addNotification({
-                            title: 'Filters Applied',
-                            message: `${selected.length} filter(s) applied`,
-                            type: 'success'
-                        });
-                        
-                        console.log('Applied filters:', selected);
-                    });
-                }
-
-                // Clear button
-                const clearBtn = dropdown.querySelector('.filter-btn-clear');
-                if (clearBtn) {
-                    clearBtn.addEventListener('click', () => {
-                        dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                            cb.checked = false;
-                        });
-                        dropdown.querySelectorAll('.filter-option').forEach(opt => {
-                            opt.classList.remove('selected');
-                        });
-                        btn.classList.remove('active');
-                        
-                        window.notificationManager.addNotification({
-                            title: 'Filters Cleared',
-                            message: 'All filters removed',
-                            type: 'info'
-                        });
-                        
-                        console.log('Cleared filters');
-                    });
-                }
-
-                // Search within dropdown
-                const searchInput = dropdown.querySelector('.filter-dropdown-search input');
-                if (searchInput) {
-                    searchInput.addEventListener('input', (e) => {
-                        const searchTerm = e.target.value.toLowerCase();
-                        dropdown.querySelectorAll('.filter-option').forEach(option => {
-                            const text = option.textContent.toLowerCase();
-                            option.style.display = text.includes(searchTerm) ? 'flex' : 'none';
-                        });
-                    });
-                }
-            }
-        });
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.filter-dropdown') && !e.target.closest('.view-btn')) {
-                document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
-                    dropdown.classList.remove('show');
-                    
-                    // Remove active state from button if no filters are selected
-                    const btnId = Object.keys(dropdowns).find(k => dropdowns[k] === dropdown.id);
-                    if (btnId) {
-                        const btn = document.getElementById(btnId);
-                        const hasActiveFilters = dropdown.querySelectorAll('input[type="checkbox"]:checked').length > 0;
-                        if (!hasActiveFilters && btn) {
-                            btn.classList.remove('active');
-                        }
-                    }
-                });
-            }
-        });
-
-        console.log('Dropdown menus initialized with options');
-
-        // Zoom controls functionality
-        let zoomLevel = 100;
-        const zoomStep = 25;
-        const minZoom = 50;
-        const maxZoom = 200;
-        const timeline = document.querySelector('.roadmap-timeline');
-        const zoomLevelText = document.getElementById('zoomLevel');
-
-        function updateZoom(newLevel) {
-            zoomLevel = Math.max(minZoom, Math.min(maxZoom, newLevel));
-            timeline.style.transform = `scale(${zoomLevel / 100})`;
-            timeline.style.transformOrigin = 'top left';
-            zoomLevelText.textContent = `${zoomLevel}%`;
-            console.log('Zoom level:', zoomLevel);
-            
-            window.notificationManager.addNotification({
-                title: 'Zoom Changed',
-                message: `Timeline zoom set to ${zoomLevel}%`,
-                type: 'info',
-                duration: 2000
-            });
+        let d;
+        if (tgtRect.left >= srcRect.right + 10) {
+            d = `M ${srcRect.right} ${srcRect.top} C ${srcRect.right + curveOffset} ${srcRect.top}, ${tgtRect.left - curveOffset} ${tgtRect.top}, ${tgtRect.left - 2} ${tgtRect.top}`;
+        } else {
+            // Successor starts before predecessor due date: stepped backward path
+            const midY = (srcRect.top + tgtRect.top) / 2;
+            d = `M ${srcRect.right} ${srcRect.top} L ${srcRect.right + 12} ${srcRect.top} L ${srcRect.right + 12} ${midY} L ${tgtRect.left - 12} ${midY} L ${tgtRect.left - 12} ${tgtRect.top} L ${tgtRect.left - 2} ${tgtRect.top}`;
         }
 
-        document.getElementById('zoomInBtn').addEventListener('click', () => {
-            updateZoom(zoomLevel + zoomStep);
-        });
+        path.setAttribute('d', d);
+        path.setAttribute('class', `dep-line ${dep.is_conflict ? 'is-conflict' : ''}`);
+        path.setAttribute('marker-end', dep.is_conflict ? 'url(#depArrowConflict)' : 'url(#depArrow)');
+        path.setAttribute('id', `dep-path-${dep.id}`);
+        path.style.pointerEvents = 'stroke';
+        path.style.cursor = 'pointer';
 
-        document.getElementById('zoomOutBtn').addEventListener('click', () => {
-            updateZoom(zoomLevel - zoomStep);
-        });
-
-        document.getElementById('fitToScreenBtn').addEventListener('click', () => {
-            updateZoom(100);
-        });
-
-        // Keyboard shortcuts for zoom
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                if (e.key === '=' || e.key === '+') {
-                    e.preventDefault();
-                    updateZoom(zoomLevel + zoomStep);
-                } else if (e.key === '-') {
-                    e.preventDefault();
-                    updateZoom(zoomLevel - zoomStep);
-                } else if (e.key === '0') {
-                    e.preventDefault();
-                    updateZoom(100);
-                }
+        path.addEventListener('click', () => {
+            if (confirm(`Remove dependency: ${dep.source_key} ➔ ${dep.target_key} (${dep.label || dep.link_type})?`)) {
+                deleteDependency(dep.id);
             }
         });
 
-        // View switcher enhanced functionality
-        const viewSwitcher = document.querySelectorAll('.view-switcher .view-btn');
-        viewSwitcher.forEach(btn => {
-            btn.addEventListener('click', () => {
-                viewSwitcher.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                const view = btn.dataset.view || btn.textContent.trim().toLowerCase();
-                console.log('View changed to:', view);
-                
-                // Adjust timeline based on view
-                const timelineMonths = document.querySelectorAll('.timeline-month');
-                switch(view) {
-                    case 'today':
-                        timelineMonths.forEach(m => m.style.minWidth = '500px');
-                        updateZoom(150);
-                        break;
-                    case 'weeks':
-                        timelineMonths.forEach(m => m.style.minWidth = '200px');
-                        updateZoom(100);
-                        break;
-                    case 'months':
-                        timelineMonths.forEach(m => m.style.minWidth = '150px');
-                        updateZoom(75);
-                        break;
-                    case 'quarters':
-                        timelineMonths.forEach(m => m.style.minWidth = '100px');
-                        updateZoom(50);
-                        break;
-                }
-                
+        svgGroup.appendChild(path);
+    });
+}
+
+// Interactive Mouse Dragging & Resizing
+function handleBarMouseDown(e, issue, bar) {
+    if (e.button !== 0) return;
+    const action = e.target.dataset.action;
+
+    activeIssue = issue;
+    dragStartX = e.clientX;
+    initialStartDayOffset = parseFloat(bar.style.left) / dayWidth;
+    initialDurationDays = parseFloat(bar.style.width) / dayWidth;
+
+    if (action === 'resize-left') {
+        isResizingLeft = true;
+    } else if (action === 'resize-right') {
+        isResizingRight = true;
+    } else if (action === 'connect-out' || action === 'connect-in') {
+        openAddDependencyModal(issue.id);
+        return;
+    } else {
+        isDraggingBar = true;
+        bar.classList.add('dragging');
+    }
+
+    e.preventDefault();
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+}
+
+function onMouseMove(e) {
+    if (!activeIssue) return;
+    const deltaX = e.clientX - dragStartX;
+    const deltaDays = Math.round(deltaX / dayWidth);
+    const bar = document.getElementById(`task-bar-${activeIssue.id}`);
+    const tooltip = document.getElementById('ganttDragTooltip');
+
+    let newStartOffset = initialStartDayOffset;
+    let newDuration = initialDurationDays;
+
+    if (isDraggingBar) {
+        newStartOffset = Math.max(0, initialStartDayOffset + deltaDays);
+    } else if (isResizingLeft) {
+        newStartOffset = Math.max(0, Math.min(initialStartDayOffset + initialDurationDays - 1, initialStartDayOffset + deltaDays));
+        newDuration = (initialStartDayOffset + initialDurationDays) - newStartOffset;
+    } else if (isResizingRight) {
+        newDuration = Math.max(1, initialDurationDays + deltaDays);
+    }
+
+    bar.style.left = (newStartOffset * dayWidth) + 'px';
+    bar.style.width = (newDuration * dayWidth) + 'px';
+
+    // Calculate dates for tooltip
+    const newStartDate = new Date(startDateTimeline);
+    newStartDate.setDate(newStartDate.getDate() + newStartOffset);
+    const newDueDate = new Date(newStartDate);
+    newDueDate.setDate(newDueDate.getDate() + newDuration);
+
+    const fmt = d => d.toISOString().split('T')[0];
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top = (e.clientY + 14) + 'px';
+    tooltip.innerHTML = `<strong>${activeIssue.key}</strong>: ${fmt(newStartDate)} ➔ ${fmt(newDueDate)} (${newDuration}d)`;
+
+    renderSvgDependencies();
+}
+
+async function onMouseUp(e) {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.getElementById('ganttDragTooltip').style.display = 'none';
+
+    if (!activeIssue) return;
+    const bar = document.getElementById(`task-bar-${activeIssue.id}`);
+    bar.classList.remove('dragging');
+
+    const newStartOffset = Math.round(parseFloat(bar.style.left) / dayWidth);
+    const newDuration = Math.round(parseFloat(bar.style.width) / dayWidth);
+
+    const newStartDate = new Date(startDateTimeline);
+    newStartDate.setDate(newStartDate.getDate() + newStartOffset);
+    const newDueDate = new Date(newStartDate);
+    newDueDate.setDate(newDueDate.getDate() + newDuration);
+
+    const fmt = d => d.toISOString().split('T')[0];
+    const payload = {
+        start_date: fmt(newStartDate),
+        due_date: fmt(newDueDate)
+    };
+
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    try {
+        const resp = await fetch(`/api/v1/project/${currentProjectId}/issue/${activeIssue.id}/dates`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (data.success) {
+            // Update local memory
+            activeIssue.start_date = payload.start_date;
+            activeIssue.due_date = payload.due_date;
+            if (window.notificationManager && typeof window.notificationManager.addNotification === 'function') {
                 window.notificationManager.addNotification({
-                    title: 'View Changed',
-                    message: `Timeline view changed to ${btn.textContent.trim()}`,
-                    type: 'info'
+                    title: 'Schedule Updated',
+                    message: `${activeIssue.key} dates saved to ${payload.start_date} - ${payload.due_date}`,
+                    type: data.conflicts && data.conflicts.length > 0 ? 'warning' : 'success',
+                    duration: 2500
                 });
-            });
-        });
+            }
+            // Reload gantt to refresh conflicts cleanly
+            loadGanttData();
+        } else {
+            alert('Failed to save dates: ' + (data.error || 'Server error'));
+            renderTimeline();
+        }
+    } catch (err) {
+        console.error('Error saving dates:', err);
+        renderTimeline();
+    }
 
-        // Drag timeline bars functionality
-        let draggedElement = null;
-        let dragStartX = 0;
-        let dragStartLeft = 0;
+    isDraggingBar = false;
+    isResizingLeft = false;
+    isResizingRight = false;
+    activeIssue = null;
+}
 
-        document.querySelectorAll('.timeline-bar').forEach(bar => {
-            bar.addEventListener('mousedown', (e) => {
-                if (e.button === 0) { // Left click only
-                    draggedElement = bar;
-                    dragStartX = e.clientX;
-                    dragStartLeft = parseFloat(bar.style.left);
-                    bar.style.cursor = 'grabbing';
-                    bar.style.zIndex = '100';
-                    e.preventDefault();
+// Auto-Schedule Cascade Action
+async function runAutoSchedule() {
+    if (!currentProjectId || !ganttIssues || ganttIssues.length === 0) return;
+    const btn = document.getElementById('autoScheduleBtn');
+    if (btn) btn.disabled = true;
+
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    let shiftedCount = 0;
+    try {
+        for (const iss of ganttIssues) {
+            const res = await fetch(`/api/v1/project/${currentProjectId}/issue/${iss.id}/auto_schedule`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
                 }
             });
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (draggedElement) {
-                const timeline = draggedElement.closest('.roadmap-timeline');
-                const timelineWidth = timeline.offsetWidth;
-                const deltaX = e.clientX - dragStartX;
-                const deltaPercent = (deltaX / timelineWidth) * 100;
-                const newLeft = Math.max(0, Math.min(90, dragStartLeft + deltaPercent));
-                draggedElement.style.left = `${newLeft}%`;
+            const data = await res.json();
+            if (data.success && data.shifted_issues) {
+                shiftedCount += data.shifted_issues.length;
             }
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (draggedElement) {
-                draggedElement.style.cursor = 'move';
-                draggedElement.style.zIndex = '';
-                
+        }
+        await loadGanttData();
+        if (shiftedCount > 0) {
+            if (window.notificationManager && typeof window.notificationManager.addNotification === 'function') {
                 window.notificationManager.addNotification({
-                    title: 'Task Moved',
-                    message: 'Timeline bar position updated',
+                    title: 'Auto-Schedule Complete',
+                    message: `Resolved conflicts and cascaded dates for ${shiftedCount} downstream tasks`,
                     type: 'success',
-                    duration: 2000
+                    duration: 3500
                 });
-                
-                draggedElement = null;
+            }
+        } else {
+            if (window.notificationManager && typeof window.notificationManager.addNotification === 'function') {
+                window.notificationManager.addNotification({
+                    title: 'Schedule Up to Date',
+                    message: 'No conflicts detected; all tasks are topologically aligned.',
+                    type: 'info',
+                    duration: 2500
+                });
+            }
+        }
+    } catch (e) {
+        console.error('Auto-schedule failed:', e);
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+// Add / Delete Dependency Modals & Actions
+function openAddDependencyModal(fromIssueId) {
+    const modal = document.getElementById('addDependencyModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+        if (fromIssueId) {
+            document.getElementById('linkPredecessorSelect').value = fromIssueId;
+        }
+    }
+}
+
+function closeAddDependencyModal() {
+    const modal = document.getElementById('addDependencyModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
+}
+
+async function submitCreateDependency() {
+    const sourceId = document.getElementById('linkPredecessorSelect').value;
+    const targetId = document.getElementById('linkSuccessorSelect').value;
+    const linkType = document.getElementById('linkTypeSelect').value;
+    const lagDays = parseInt(document.getElementById('linkLagDays').value, 10) || 0;
+
+    if (sourceId === targetId) {
+        alert('An issue cannot depend on itself.');
+        return;
+    }
+
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    try {
+        const resp = await fetch(`/api/v1/project/${currentProjectId}/issue/${sourceId}/link`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                target_issue_id: targetId,
+                link_type: linkType,
+                lag_days: lagDays
+            })
+        });
+        const res = await resp.json();
+        if (res.success) {
+            closeAddDependencyModal();
+            loadGanttData();
+            if (window.notificationManager && typeof window.notificationManager.addNotification === 'function') {
+                window.notificationManager.addNotification({
+                    title: 'Dependency Established',
+                    message: res.message || 'Linked successfully',
+                    type: 'success'
+                });
+            }
+        } else {
+            alert(res.error || 'Failed to create link');
+        }
+    } catch (e) {
+        alert('Error linking issues: ' + e.message);
+    }
+}
+
+async function deleteDependency(linkId) {
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    try {
+        const resp = await fetch(`/api/v1/project/${currentProjectId}/issue/1/link/${linkId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+        const res = await resp.json();
+        if (res.success) {
+            loadGanttData();
+        } else {
+            alert(res.error || 'Failed to remove dependency');
+        }
+    } catch (e) {
+        alert('Error deleting link: ' + e.message);
+    }
+}
+
+// Dependency Graph Visualization (Canvas / SVG topological layout)
+async function renderDependencyGraph() {
+    const svg = document.getElementById('dependencyGraphSvg');
+    svg.innerHTML = '';
+
+    try {
+        const resp = await fetch(`/api/v1/project/${currentProjectId}/graph_data`);
+        const data = await resp.json();
+        if (!data.success) return;
+
+        const nodes = data.nodes || [];
+        const edges = data.edges || [];
+
+        const width = svg.clientWidth || 900;
+        const height = 560;
+
+        // Simple layered layout: group nodes by dependencies or arrange in neat grid
+        const cols = 4;
+        const nodeWidth = 180;
+        const nodeHeight = 65;
+        const nodeMap = {};
+        nodes.forEach((node, idx) => {
+            const col = idx % cols;
+            const row = Math.floor(idx / cols);
+            const x = 50 + col * (nodeWidth + 70);
+            const y = 60 + row * (nodeHeight + 70);
+            const nodeObj = { ...node, x, y };
+            nodeMap[node.id] = nodeObj;
+            if (node.issue_id) {
+                nodeMap[node.issue_id] = nodeObj;
+                nodeMap[`issue-${node.issue_id}`] = nodeObj;
             }
         });
 
-        // Timeline bar hover effects
-        document.querySelectorAll('.timeline-bar').forEach(bar => {
-            bar.addEventListener('mouseenter', () => {
-                const badge = bar.querySelector('.timeline-bar-badge');
-                if (badge) {
-                    badge.style.opacity = '1';
-                }
-            });
-            
-            bar.addEventListener('mouseleave', () => {
-                if (!draggedElement) {
-                    const badge = bar.querySelector('.timeline-bar-badge');
-                    if (badge) {
-                        badge.style.opacity = '0.9';
-                    }
-                }
-            });
+        // Defs for graph arrow markers
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.innerHTML = `
+            <marker id="graphArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="#818CF8" />
+            </marker>
+            <marker id="graphArrowConflict" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="#EF4444" />
+            </marker>
+        `;
+        svg.appendChild(defs);
+
+        // Draw edges
+        edges.forEach(edge => {
+            const src = nodeMap[edge.source_id] || nodeMap[edge.source];
+            const tgt = nodeMap[edge.target_id] || nodeMap[edge.target];
+            if (!src || !tgt) return;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const startX = src.x + nodeWidth;
+            const startY = src.y + nodeHeight / 2;
+            const endX = tgt.x;
+            const endY = tgt.y + nodeHeight / 2;
+
+            const dx = Math.abs(endX - startX);
+            const cOffset = Math.max(30, dx / 2);
+            let d;
+            if (endX >= startX + 15) {
+                d = `M ${startX} ${startY} C ${startX + cOffset} ${startY}, ${endX - cOffset} ${endY}, ${endX - 4} ${endY}`;
+            } else {
+                const midY = (startY + endY) / 2;
+                d = `M ${startX} ${startY} L ${startX + 20} ${startY} L ${startX + 20} ${midY} L ${endX - 20} ${midY} L ${endX - 20} ${endY} L ${endX - 4} ${endY}`;
+            }
+
+            path.setAttribute('d', d);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', edge.is_conflict ? '#EF4444' : (edge.link_type === 'relates_to' || edge.type === 'relates_to' ? '#60A5FA' : '#818CF8'));
+            path.setAttribute('stroke-width', edge.is_conflict ? '2.5' : '2');
+            if (edge.link_type === 'relates_to' || edge.type === 'relates_to') {
+                path.setAttribute('stroke-dasharray', '4 4');
+            } else {
+                path.setAttribute('marker-end', edge.is_conflict ? 'url(#graphArrowConflict)' : 'url(#graphArrow)');
+            }
+            svg.appendChild(path);
         });
 
-        console.log('Timeline zoom, drag, and view controls initialized');
+        // Draw node cards
+        nodes.forEach(node => {
+            const pos = nodeMap[node.id];
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+            g.style.cursor = 'pointer';
+            g.addEventListener('click', () => {
+                const targetId = node.issue_id || (typeof node.id === 'string' && node.id.startsWith('issue-') ? node.id.split('-')[1] : node.id);
+                window.location.href = `/project/${currentProjectId}/issue/${targetId}`;
+            });
+
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('width', nodeWidth);
+            rect.setAttribute('height', nodeHeight);
+            rect.setAttribute('rx', '8');
+            rect.setAttribute('fill', 'rgba(30, 41, 59, 0.95)');
+            rect.setAttribute('stroke', 'rgba(99, 102, 241, 0.4)');
+            rect.setAttribute('stroke-width', '1');
+            g.appendChild(rect);
+
+            const textKey = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            textKey.setAttribute('x', '12');
+            textKey.setAttribute('y', '22');
+            textKey.setAttribute('fill', '#818CF8');
+            textKey.setAttribute('font-size', '11');
+            textKey.setAttribute('font-weight', '700');
+            textKey.textContent = `${node.key} [${node.status}]`;
+            g.appendChild(textKey);
+
+            const textTitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            textTitle.setAttribute('x', '12');
+            textTitle.setAttribute('y', '42');
+            textTitle.setAttribute('fill', '#F8FAFC');
+            textTitle.setAttribute('font-size', '11');
+            textTitle.setAttribute('font-weight', '500');
+            const titleSnippet = node.title.length > 22 ? node.title.substring(0, 20) + '...' : node.title;
+            textTitle.textContent = titleSnippet;
+            g.appendChild(textTitle);
+
+            svg.appendChild(g);
         });
-    </script>
-</body>
-</html>
+    } catch (e) {
+        console.error('Graph render error:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    if (projectIssues && projectIssues.length > 0) {
+        let earliest = null;
+        projectIssues.forEach(iss => {
+            if (iss.start_date) {
+                const d = new Date(iss.start_date);
+                if (!earliest || d < earliest) earliest = d;
+            }
+        });
+        if (earliest) {
+            startDateTimeline = new Date(earliest.getFullYear(), earliest.getMonth(), Math.max(1, earliest.getDate() - 3));
+        }
+        renderTimeline();
+    }
+    loadGanttData();
+});
+</script>
+{% endblock %}
