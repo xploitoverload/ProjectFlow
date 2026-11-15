@@ -274,15 +274,39 @@
         }
 
         .alert-error {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.12);
             color: #fca5a5;
             border-left-color: #ef4444;
         }
 
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fde047;
+            border-left-color: #f59e0b;
+        }
+
+        .alert-info {
+            background: rgba(2, 132, 199, 0.12);
+            color: #7dd3fc;
+            border-left-color: #0284c7;
+        }
+
         .alert-success {
-            background: rgba(34, 197, 94, 0.1);
+            background: rgba(34, 197, 94, 0.12);
             color: #86efac;
             border-left-color: #22c55e;
+        }
+
+        /* WebKit Autofill Styling Fix */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 1000px #0f1117 inset !important;
+            -webkit-text-fill-color: #F8FAFC !important;
+            caret-color: #F8FAFC !important;
+            border-color: var(--primary) !important;
+            transition: background-color 5000s ease-in-out 0s;
         }
 
         /* Right column - features */
@@ -437,9 +461,17 @@
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
-                            <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
-                                <span class="iconify" data-icon="{{ 'solar:danger-triangle-bold' if category in ['danger', 'error'] else 'solar:check-circle-bold' }}" style="width: 18px; height: 18px; flex-shrink: 0;"></span>
-                                <div>{{ message }}</div>
+                            <div class="alert alert-{{ 'error' if category in ['danger', 'error'] else ('warning' if category == 'warning' else ('success' if category == 'success' else 'info')) }}">
+                                {% if category in ['danger', 'error'] %}
+                                    <span class="iconify" data-icon="solar:danger-triangle-bold" style="width: 18px; height: 18px; flex-shrink: 0; color: #ef4444;"></span>
+                                {% elif category == 'warning' %}
+                                    <span class="iconify" data-icon="solar:alarm-bold" style="width: 18px; height: 18px; flex-shrink: 0; color: #f59e0b;"></span>
+                                {% elif category == 'success' %}
+                                    <span class="iconify" data-icon="solar:check-circle-bold" style="width: 18px; height: 18px; flex-shrink: 0; color: #22c55e;"></span>
+                                {% else %}
+                                    <span class="iconify" data-icon="solar:info-circle-bold" style="width: 18px; height: 18px; flex-shrink: 0; color: #38bdf8;"></span>
+                                {% endif %}
+                                <div style="line-height: 1.4;">{{ message }}</div>
                             </div>
                         {% endfor %}
                     {% endif %}
