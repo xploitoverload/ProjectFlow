@@ -1682,6 +1682,203 @@ def get_user_resource_workload(user_id):
     return jsonify({'success': True, 'user_workload': data})
 
 
+# ============= STRATEGIC INITIATIVES & PORTFOLIO API (Target 6) =============
+
+@api_bp.route('/initiatives', methods=['GET'])
+@api_auth_required
+def get_initiatives():
+    """List all strategic initiatives."""
+    from models import Initiative
+    status = request.args.get('status')
+    quarter = request.args.get('quarter')
+    query = Initiative.query
+    if status:
+        query = query.filter_by(status=status)
+    if quarter:
+        query = query.filter_by(target_quarter=quarter)
+    initiatives = query.order_by(Initiative.created_at.desc()).all()
+    return jsonify({
+        'success': True,
+        'initiatives': [i.to_dict() for i in initiatives]
+    })
+
+
+@api_bp.route('/initiatives', methods=['POST'])
+@api_auth_required
+def create_initiative():
+    """Create a new strategic initiative."""
+    from models import Initiative, Project, db
+    from datetime import date
+    data = request.get_json() or {}
+    title = (data.get('title') or '').strip()
+    if not title:
+        return jsonify({'success': False, 'error': 'Title is required'}), 400
+
+    def parse_d(val):
+        if not val:
+            return None
+        if isinstance(val, date):
+            return val
+        try:
+            return date.fromisoformat(str(val)[:10])
+        except Exception:
+            return None
+
+    init = Initiative(
+        title=title,
+        description=data.get('description'),
+        status=data.get('status', 'planned'),
+        target_quarter=data.get('target_quarter'),
+        start_date=parse_d(data.get('start_date')),
+        target_date=parse_d(data.get('target_date')),
+        owner_id=data.get('owner_id') or session.get('user_id')
+    )
+
+    proj_ids = data.get('project_ids', [])
+    if proj_ids:
+        projects = Project.query.filter(Project.id.in_(proj_ids)).all()
+        init.projects = projects
+
+    db.session.add(init)
+    db.session.commit()
+    return jsonify({'success': True, 'initiative': init.to_dict()}), 201
+
+
+@api_bp.route('/initiatives/<int:initiative_id>', methods=['GET'])
+@api_auth_required
+def get_initiative(initiative_id):
+    """Get single initiative details."""
+    from models import Initiative
+    init = Initiative.query.get(initiative_id)
+    if not init:
+        return jsonify({'success': False, 'error': 'Initiative not found'}), 404
+    return jsonify({'success': True, 'initiative': init.to_dict()})
+
+
+@api_bp.route('/initiatives/<int:initiative_id>', methods=['PUT', 'PATCH'])
+@api_auth_required
+def update_initiative(initiative_id):
+    """Update initiative fields."""
+    from models import Initiative, Project, db
+    from datetime import date
+    init = Initiative.query.get(initiative_id)
+    if not init:
+        return jsonify({'success': False, 'error': 'Initiative not found'}), 404
+
+    data = request.get_json() or {}
+    if 'title' in data and data['title'].strip():
+        init.title = data['title'].strip()
+    if 'description' in data:
+        init.description = data['description']
+    if 'status' in data:
+        init.status = data['status']
+    if 'target_quarter' in data:
+        init.target_quarter = data['target_quarter']
+
+    def parse_d(val):
+        if not val:
+            return None
+        if isinstance(val, date):
+            return val
+        try:
+            return date.fromisoformat(str(val)[:10])
+        except Exception:
+            return None
+
+    if 'start_date' in data:
+        init.start_date = parse_d(data['start_date'])
+    if 'target_date' in data:
+        init.target_date = parse_d(data['target_date'])
+    if 'owner_id' in data:
+        init.owner_id = data['owner_id']
+    if 'project_ids' in data:
+        init.projects = Project.query.filter(Project.id.in_(data['project_ids'])).all()
+
+    db.session.commit()
+    return jsonify({'success': True, 'initiative': init.to_dict()})
+
+
+@api_bp.route('/initiatives/<int:initiative_id>', methods=['DELETE'])
+@api_auth_required
+def delete_initiative(initiative_id):
+    """Delete an initiative."""
+    from models import Initiative, db
+    init = Initiative.query.get(initiative_id)
+    if not init:
+        return jsonify({'success': False, 'error': 'Initiative not found'}), 404
+    db.session.delete(init)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Initiative deleted'})
+
+
+@api_bp.route('/initiatives/<int:initiative_id>/projects', methods=['POST'])
+@api_auth_required
+def link_project_to_initiative(initiative_id):
+    """Link a project to an initiative."""
+    from models import Initiative, Project, db
+    init = Initiative.query.get(initiative_id)
+    if not init:
+        return jsonify({'success': False, 'error': 'Initiative not found'}), 404
+    data = request.get_json() or {}
+    project_id = data.get('project_id')
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+
+    if project not in init.projects:
+        init.projects.append(project)
+        db.session.commit()
+
+    return jsonify({'success': True, 'initiative': init.to_dict()})
+
+
+@api_bp.route('/initiatives/<int:initiative_id>/projects/<int:project_id>', methods=['DELETE'])
+@api_auth_required
+def unlink_project_from_initiative(initiative_id, project_id):
+    """Unlink a project from an initiative."""
+    from models import Initiative, Project, db
+    init = Initiative.query.get(initiative_id)
+    if not init:
+        return jsonify({'success': False, 'error': 'Initiative not found'}), 404
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+
+    if project in init.projects:
+        init.projects.remove(project)
+        db.session.commit()
+
+    return jsonify({'success': True, 'initiative': init.to_dict()})
+
+
+@api_bp.route('/portfolio/roadmap_data', methods=['GET'])
+@api_auth_required
+def get_portfolio_roadmap_data():
+    """Get cross-project roadmap dataset aggregating initiatives, projects, and milestones."""
+    from models import Initiative, Project, Milestone
+    initiatives = Initiative.query.order_by(Initiative.created_at.desc()).all()
+    projects = Project.query.order_by(Project.name).all()
+    milestones = Milestone.query.order_by(Milestone.target_date).all()
+
+    return jsonify({
+        'success': True,
+        'initiatives': [i.to_dict() for i in initiatives],
+        'projects': [{
+            'id': p.id,
+            'name': p.name,
+            'key': p.key,
+            'status': p.status,
+            'progress': p.progress,
+            'start_date': p.start_date.isoformat() if p.start_date else None,
+            'end_date': p.end_date.isoformat() if p.end_date else None,
+            'issue_count': len(p.issues),
+            'open_issues': sum(1 for i in p.issues if i.status not in ['done', 'closed']),
+            'lead_name': p.lead.username if p.lead else 'Unassigned'
+        } for p in projects],
+        'milestones': [m.to_dict() for m in milestones]
+    })
+
+
 # ============= ERROR HANDLERS =============
 
 @api_bp.errorhandler(400)

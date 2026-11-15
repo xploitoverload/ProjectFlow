@@ -27,6 +27,8 @@ from models import (
     Milestone,
     WorkingCalendar,
     ScheduleBaseline,
+    Initiative,
+    initiative_projects,
     encrypt_field,
     decrypt_field
 )
@@ -54,6 +56,8 @@ __all__ = [
     'Milestone',
     'WorkingCalendar',
     'ScheduleBaseline',
+    'Initiative',
+    'initiative_projects',
     'encrypt_field',
     'decrypt_field'
 ]

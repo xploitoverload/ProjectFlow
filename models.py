@@ -1132,3 +1132,54 @@ class ScheduleBaseline(db.Model):
             'task_count': task_count,
             'milestone_count': milestone_count
         }
+
+
+# Association table for Strategic Initiative and Projects (Target 6)
+initiative_projects = db.Table(
+    'initiative_projects',
+    db.Column('initiative_id', db.Integer, db.ForeignKey('initiative.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('project_id', db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), primary_key=True)
+)
+
+
+class Initiative(db.Model):
+    """Strategic portfolio initiative spanning multiple projects."""
+    __tablename__ = 'initiative'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(50), default='planned', nullable=False, index=True)  # planned, active, on_hold, completed
+    target_quarter = db.Column(db.String(20), nullable=True)  # e.g. "2026-Q4"
+    start_date = db.Column(db.Date, nullable=True)
+    target_date = db.Column(db.Date, nullable=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    owner = db.relationship('User', foreign_keys=[owner_id])
+    projects = db.relationship('Project', secondary=initiative_projects, backref=db.backref('initiatives', lazy='dynamic'))
+
+    @property
+    def progress(self):
+        """Aggregate progress across linked projects."""
+        projs = self.projects
+        if not projs:
+            return 0
+        total_p = sum(p.progress for p in projs)
+        return int(total_p / len(projs))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'status': self.status,
+            'target_quarter': self.target_quarter,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'target_date': self.target_date.isoformat() if self.target_date else None,
+            'owner_id': self.owner_id,
+            'owner_name': self.owner.username if self.owner else 'Unassigned',
+            'progress': self.progress,
+            'project_count': len(self.projects),
+            'projects': [{'id': p.id, 'name': p.name, 'key': p.key, 'progress': p.progress, 'status': p.status} for p in self.projects]
+        }

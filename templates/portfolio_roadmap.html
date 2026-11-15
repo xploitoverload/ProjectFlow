@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}Strategic Portfolio & Initiatives — ProjectFlow{% endblock %}
+
+{% block extra_head %}
+<style>
+.portfolio-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.portfolio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.portfolio-metric-card {
+    padding: 20px 24px;
+    border-radius: 12px;
+    background: var(--bg-surface, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.portfolio-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    width: fit-content;
+}
+
+.portfolio-tab-btn {
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.portfolio-tab-btn.active {
+    background: #6366F1;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.initiative-card {
+    background: var(--bg-surface, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.initiative-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.initiative-status-pill {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+.initiative-status-pill.planned { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
+.initiative-status-pill.active { background: rgba(16, 185, 129, 0.12); color: #10B981; }
+.initiative-status-pill.on_hold { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
+.initiative-status-pill.completed { background: rgba(99, 102, 241, 0.12); color: #6366F1; }
+
+.multi-roadmap-container {
+    background: var(--bg-surface, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 12px;
+    overflow-x: auto;
+    padding: 0;
+}
+
+.multi-roadmap-header {
+    display: flex;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    background: rgba(0, 0, 0, 0.15);
+    height: 44px;
+}
+
+.multi-roadmap-row {
+    display: flex;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    height: 52px;
+    align-items: center;
+}
+
+.multi-roadmap-row:hover {
+    background: rgba(0, 0, 0, 0.015);
+}
+
+.project-bar-track {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.project-roadmap-bar {
+    position: absolute;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #0284C7 0%, #0EA5E9 100%);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="portfolio-container">
+    <!-- Header -->
+    <div class="portfolio-header">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="iconify" data-icon="solar:compass-bold-duotone" style="width: 28px; height: 28px; color: #6366F1;"></span>
+                <h1 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: -0.02em;">
+                    Portfolio & Strategic Initiatives
+                </h1>
+            </div>
+            <p style="margin: 4px 0 0 0; color: var(--text-secondary); font-size: 13px;">
+                Cross-project delivery alignment, quarterly targets, and strategic portfolio initiatives
+            </p>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <button class="btn btn-primary" onclick="openCreateInitiativeModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="iconify" data-icon="solar:add-circle-bold" style="width: 18px; height: 18px;"></span>
+                New Initiative
+            </button>
+        </div>
+    </div>
+
+    <!-- Metrics Row -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+        <div class="portfolio-metric-card">
+            <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em;">Total Initiatives</span>
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="font-size: 28px; font-weight: 800; color: var(--text-primary);" id="totalInitiativesCount">{{ initiatives|length }}</span>
+                <span style="font-size: 12px; color: #10B981; font-weight: 600;">Active Strategy</span>
+            </div>
+        </div>
+        <div class="portfolio-metric-card">
+            <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em;">Connected Projects</span>
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="font-size: 28px; font-weight: 800; color: var(--text-primary);">{{ projects|length }}</span>
+                <span style="font-size: 12px; color: var(--text-secondary);">Enterprise scope</span>
+            </div>
+        </div>
+        <div class="portfolio-metric-card">
+            <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em;">Target Planning Horizon</span>
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="font-size: 24px; font-weight: 800; color: #6366F1;">2026-Q4 → 2027-Q2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Toggles -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div class="portfolio-tabs">
+            <button class="portfolio-tab-btn active" id="tabInitiatives" onclick="switchPortfolioView('initiatives')">
+                <span class="iconify" data-icon="solar:flag-2-bold" style="width: 16px; height: 16px;"></span>
+                Strategic Initiatives
+            </button>
+            <button class="portfolio-tab-btn" id="tabRoadmap" onclick="switchPortfolioView('roadmap')">
+                <span class="iconify" data-icon="solar:calendar-bold" style="width: 16px; height: 16px;"></span>
+                Multi-Project Roadmap
+            </button>
+        </div>
+    </div>
+
+    <!-- View 1: Strategic Initiatives Cards -->
+    <div id="initiativesView" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px;">
+        {% for init in initiatives %}
+        <div class="initiative-card" id="initiative-card-{{ init.id }}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                <div>
+                    <span class="initiative-status-pill {{ init.status }}">{{ init.status }}</span>
+                    {% if init.target_quarter %}
+                    <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-left: 6px;">{{ init.target_quarter }}</span>
+                    {% endif %}
+                </div>
+                <button onclick="deleteInitiative({{ init.id }})" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;" title="Delete Initiative">
+                    <span class="iconify" data-icon="solar:trash-bin-trash-bold" style="width: 16px; height: 16px;"></span>
+                </button>
+            </div>
+
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px 0;">{{ init.title }}</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); margin: 0; line-height: 1.4;">{{ init.description or 'No description provided.' }}</p>
+            </div>
+
+            <!-- Progress -->
+            <div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; margin-bottom: 6px;">
+                    <span style="color: var(--text-secondary);">Overall Progress</span>
+                    <span style="color: var(--text-primary);">{{ init.progress }}%</span>
+                </div>
+                <div style="width: 100%; height: 8px; border-radius: 4px; background: rgba(148, 163, 184, 0.15); overflow: hidden;">
+                    <div style="width: {{ init.progress }}%; height: 100%; border-radius: 4px; background: {% if init.progress >= 80 %}#10B981{% elif init.progress >= 40 %}#3B82F6{% else %}#F59E0B{% endif %}; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+
+            <!-- Linked Projects -->
+            <div>
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); display: block; margin-bottom: 6px;">Connected Projects ({{ init.projects|length }})</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    {% for p in init.projects %}
+                    <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); color: var(--text-primary);">
+                        {{ p.key }} • {{ p.name }}
+                    </span>
+                    {% else %}
+                    <span style="font-size: 11px; color: var(--text-secondary); font-style: italic;">No projects linked yet.</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Footer: Owner & Dates -->
+            <div style="border-top: 1px solid var(--border-subtle); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-secondary);">
+                <span>Owner: <strong style="color: var(--text-primary);">{{ init.owner.username if init.owner else 'Unassigned' }}</strong></span>
+                {% if init.target_date %}
+                <span>Target: {{ init.target_date }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div style="grid-column: 1 / -1; padding: 48px; text-align: center; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: 12px;">
+            <span class="iconify" data-icon="solar:compass-bold-duotone" style="width: 48px; height: 48px; color: var(--text-secondary); margin-bottom: 12px;"></span>
+            <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 6px 0;">No Strategic Initiatives Created</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px 0;">Connect projects under high-level quarterly strategic initiatives to track portfolio delivery.</p>
+            <button class="btn btn-primary" onclick="openCreateInitiativeModal()">Create First Initiative</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- View 2: Multi-Project Roadmap Timeline -->
+    <div id="roadmapView" style="display: none;" class="multi-roadmap-container">
+        <!-- Timeline Header: Quarters -->
+        <div class="multi-roadmap-header">
+            <div style="width: 280px; padding: 0 20px; display: flex; align-items: center; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); border-right: 1px solid var(--border-subtle); flex-shrink: 0;">
+                Project
+            </div>
+            <div style="flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); text-align: center;">
+                <div style="padding: 12px; border-right: 1px solid var(--border-subtle); font-size: 11px; font-weight: 700; color: var(--text-primary);">Q4 2026 (OCT - DEC)</div>
+                <div style="padding: 12px; border-right: 1px solid var(--border-subtle); font-size: 11px; font-weight: 700; color: var(--text-primary);">Q1 2027 (JAN - MAR)</div>
+                <div style="padding: 12px; border-right: 1px solid var(--border-subtle); font-size: 11px; font-weight: 700; color: var(--text-primary);">Q2 2027 (APR - JUN)</div>
+                <div style="padding: 12px; font-size: 11px; font-weight: 700; color: var(--text-primary);">Q3 2027 (JUL - SEP)</div>
+            </div>
+        </div>
+
+        <!-- Project Rows -->
+        {% for p in projects %}
+        <div class="multi-roadmap-row">
+            <div style="width: 280px; padding: 0 20px; display: flex; align-items: center; gap: 10px; border-right: 1px solid var(--border-subtle); flex-shrink: 0;">
+                <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(99, 102, 241, 0.15); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: #6366F1;">
+                    {{ p.key[:3] }}
+                </div>
+                <div style="overflow: hidden;">
+                    <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.name }}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">{{ p.progress }}% complete • {{ p.issues|length }} issues</div>
+                </div>
+            </div>
+            <div class="project-bar-track" style="padding: 0 16px;">
+                <div class="project-roadmap-bar" style="left: {% if loop.index == 1 %}5%{% elif loop.index == 2 %}25%{% else %}10%{% endif %}; width: {% if loop.index == 1 %}40%{% elif loop.index == 2 %}35%{% else %}50%{% endif %};">
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.key }}: {{ p.name }} ({{ p.progress }}%)</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Create Initiative Modal -->
+<div id="createInitiativeModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-surface, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-radius: 12px; width: 100%; max-width: 520px; padding: 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Create Strategic Initiative</h2>
+            <button onclick="closeCreateInitiativeModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+        </div>
+        <form onsubmit="submitCreateInitiative(event)" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-secondary);">Initiative Title *</label>
+                <input type="text" id="initTitleInput" required class="form-control" placeholder="e.g., Enterprise Multi-Region Cloud Scaling" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-secondary); color: var(--text-primary);">
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-secondary);">Strategic Goal / Description</label>
+                <textarea id="initDescInput" rows="3" class="form-control" placeholder="Describe strategic objective..." style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-secondary); color: var(--text-primary);"></textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-secondary);">Target Quarter</label>
+                    <select id="initQuarterInput" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-secondary); color: var(--text-primary);">
+                        <option value="2026-Q4">2026-Q4</option>
+                        <option value="2027-Q1">2027-Q1</option>
+                        <option value="2027-Q2">2027-Q2</option>
+                        <option value="2027-Q3">2027-Q3</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-secondary);">Status</label>
+                    <select id="initStatusInput" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-secondary); color: var(--text-primary);">
+                        <option value="planned">Planned</option>
+                        <option value="active">Active</option>
+                        <option value="on_hold">On Hold</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-secondary);">Connect Projects</label>
+                <div style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; padding: 8px; border-radius: 8px; background: var(--bg-secondary); border: 1px solid var(--border-subtle);">
+                    {% for p in projects %}
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-primary); cursor: pointer;">
+                        <input type="checkbox" name="initProjects" value="{{ p.id }}">
+                        <span>{{ p.key }} — {{ p.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateInitiativeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Initiative</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function switchPortfolioView(v) {
+    const tabInit = document.getElementById('tabInitiatives');
+    const tabRoad = document.getElementById('tabRoadmap');
+    const vInit = document.getElementById('initiativesView');
+    const vRoad = document.getElementById('roadmapView');
+
+    if (v === 'initiatives') {
+        tabInit.classList.add('active');
+        tabRoad.classList.remove('active');
+        vInit.style.display = 'grid';
+        vRoad.style.display = 'none';
+    } else {
+        tabRoad.classList.add('active');
+        tabInit.classList.remove('active');
+        vInit.style.display = 'none';
+        vRoad.style.display = 'block';
+    }
+}
+
+function openCreateInitiativeModal() {
+    document.getElementById('createInitiativeModal').style.display = 'flex';
+}
+
+function closeCreateInitiativeModal() {
+    document.getElementById('createInitiativeModal').style.display = 'none';
+}
+
+async function submitCreateInitiative(e) {
+    e.preventDefault();
+    const title = document.getElementById('initTitleInput').value.trim();
+    const description = document.getElementById('initDescInput').value.trim();
+    const target_quarter = document.getElementById('initQuarterInput').value;
+    const status = document.getElementById('initStatusInput').value;
+    const project_ids = Array.from(document.querySelectorAll('input[name="initProjects"]:checked')).map(cb => parseInt(cb.value));
+
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    try {
+        const resp = await fetch('/api/v1/initiatives', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                title, description, target_quarter, status, project_ids
+            })
+        });
+        const data = await resp.json();
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Failed: ' + (data.error || 'Unknown error'));
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+async function deleteInitiative(initId) {
+    if (!confirm('Are you sure you want to delete this strategic initiative?')) return;
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    try {
+        const resp = await fetch(`/api/v1/initiatives/${initId}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        const data = await resp.json();
+        if (data.success) {
+            const card = document.getElementById(`initiative-card-${initId}`);
+            if (card) card.remove();
+        } else {
+            alert('Error deleting: ' + data.error);
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+</script>
+{% endblock %}
