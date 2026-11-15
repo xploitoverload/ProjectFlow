@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Resource & Capacity Planning — ProjectFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+.resource-metric-card {
+    padding: 20px 24px;
+    border-radius: 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.resource-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.resource-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.02);
+}
+.resource-table td {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+}
+.resource-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+.utilization-bar-container {
+    width: 140px;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    margin-top: 6px;
+}
+.utilization-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+.status-pill {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.status-pill.over_allocated {
+    background: rgba(244, 63, 94, 0.15);
+    color: #F43F5E;
+    border: 1px solid rgba(244, 63, 94, 0.3);
+}
+.status-pill.high_capacity {
+    background: rgba(245, 158, 11, 0.15);
+    color: #F59E0B;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.status-pill.optimal {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.status-pill.under_utilized {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94A3B8;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+.filter-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container" style="padding: 24px; max-width: 1600px; margin: 0 auto;">
+    
+    <!-- Header & Scope Selectors -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Intelligence & Delivery</span>
+            </div>
+            <h1 style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+                <span class="iconify" data-icon="solar:user-hand-up-bold-duotone" style="color: var(--color-primary); width: 26px; height: 26px;"></span>
+                Resource & Capacity Planning
+            </h1>
+        </div>
+
+        <form method="GET" action="{{ url_for('main.resource_planner') }}" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Project:</span>
+                <select name="project" class="filter-select" onchange="this.form.submit()">
+                    {% for p in projects %}
+                    <option value="{{ p.id }}" {% if p.id == selected_project_id %}selected{% endif %}>{{ p.name }} ({{ p.key }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Team:</span>
+                <select name="team" class="filter-select" onchange="this.form.submit()">
+                    {% for t in teams %}
+                    <option value="{{ t.id }}" {% if t.id == selected_team_id %}selected{% endif %}>{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Top KPI Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="resource-metric-card">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Active Contributors</span>
+            <div style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin: 8px 0;">
+                {{ project_utilization.total_active_resources if project_utilization else 0 }}
+            </div>
+            <span style="font-size: 12px; color: var(--text-muted);">Assigned to open work</span>
+        </div>
+
+        <div class="resource-metric-card">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Over-Allocated Staff</span>
+            <div style="font-size: 28px; font-weight: 800; color: {% if project_utilization and project_utilization.over_allocated_resources_count > 0 %}#F43F5E{% else %}#10B981{% endif %}; margin: 8px 0;">
+                {{ project_utilization.over_allocated_resources_count if project_utilization else 0 }}
+            </div>
+            <span style="font-size: 12px; color: {% if project_utilization and project_utilization.over_allocated_resources_count > 0 %}#F43F5E{% else %}var(--text-muted){% endif %};">
+                {% if project_utilization and project_utilization.over_allocated_resources_count > 0 %}⚠️ Burnout risk detected{% else %}All within standard limits{% endif %}
+            </span>
+        </div>
+
+        <div class="resource-metric-card">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Allocated Workload</span>
+            <div style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin: 8px 0;">
+                {{ project_utilization.total_allocated_hours if project_utilization else 0 }}h
+            </div>
+            <span style="font-size: 12px; color: var(--text-muted);">Committed across sprint window</span>
+        </div>
+
+        <div class="resource-metric-card">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Unassigned Workload</span>
+            <div style="font-size: 28px; font-weight: 800; color: {% if project_utilization and project_utilization.unassigned_hours > 0 %}#F59E0B{% else %}var(--text-primary){% endif %}; margin: 8px 0;">
+                {{ project_utilization.unassigned_hours if project_utilization else 0 }}h
+            </div>
+            <span style="font-size: 12px; color: var(--text-muted);">
+                {{ project_utilization.unassigned_tasks_count if project_utilization else 0 }} unassigned tasks
+            </span>
+        </div>
+    </div>
+
+    <!-- Contributor Utilization Table -->
+    <div class="bento-card" style="padding: 0; overflow: hidden; margin-bottom: 24px; border-radius: 12px;">
+        <div style="padding: 18px 24px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px;">Contributor Capacity & Allocation</h3>
+                <span style="font-size: 12px; color: var(--text-secondary);">Utilization percentage based on assigned open issues and standard 40h work week</span>
+            </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="resource-table">
+                <thead>
+                    <tr>
+                        <th>Contributor</th>
+                        <th>Role & Dept</th>
+                        <th>Assigned Tasks</th>
+                        <th>Allocated (Est)</th>
+                        <th>Capacity</th>
+                        <th>Utilization</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if project_utilization and project_utilization.resources %}
+                    {% for res in project_utilization.resources %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: {{ res.user.avatar_color or '#6366F1' }}; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">
+                                    {{ res.user.username[:2]|upper }}
+                                </div>
+                                <span style="font-weight: 600; color: var(--text-primary);">{{ res.user.username }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="font-size: 12px; color: var(--text-secondary); text-transform: capitalize;">{{ res.user.role }}</span>
+                            {% if res.user.department %}
+                            <span style="font-size: 11px; color: var(--text-muted);">({{ res.user.department }})</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span style="font-weight: 600;">{{ res.assigned_tasks_count }} tasks</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: 700; color: var(--text-primary);">{{ res.allocated_hours }}h</span>
+                        </td>
+                        <td>
+                            <span style="color: var(--text-secondary);">{{ res.capacity_hours }}h</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-weight: 700; font-size: 12px; min-width: 45px;">{{ res.utilization_percentage }}%</span>
+                                <div class="utilization-bar-container">
+                                    <div class="utilization-bar-fill" style="width: {{ [res.utilization_percentage, 100]|min }}%; background: {% if res.is_over_allocated %}#F43F5E{% elif res.allocation_status == 'high_capacity' %}#F59E0B{% else %}#10B981{% endif %};"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-pill {{ res.allocation_status }}">
+                                {% if res.allocation_status == 'over_allocated' %}
+                                <span class="iconify" data-icon="solar:danger-triangle-bold"></span> Over-Allocated
+                                {% elif res.allocation_status == 'high_capacity' %}
+                                <span class="iconify" data-icon="solar:bolt-bold"></span> High Capacity
+                                {% elif res.allocation_status == 'optimal' %}
+                                <span class="iconify" data-icon="solar:check-circle-bold"></span> Optimal
+                                {% else %}
+                                <span class="iconify" data-icon="solar:info-circle-bold"></span> Under-Utilized
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-secondary);">
+                            No assigned contributors found for the selected project and window.
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Unassigned Issues Queue -->
+    {% if project_utilization and project_utilization.unassigned_tasks %}
+    <div class="bento-card" style="padding: 20px 24px; border-radius: 12px;">
+        <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 12px; display: flex; align-items: center; gap: 8px;">
+            <span class="iconify" data-icon="solar:clipboard-list-bold-duotone" style="color: #F59E0B;"></span>
+            Unassigned Work Items Queue ({{ project_utilization.unassigned_tasks|length }})
+        </h3>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;">
+            These tasks have not yet been assigned to a contributor and represent pending capacity demand.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px;">
+            {% for item in project_utilization.unassigned_tasks %}
+            <div style="padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-subtle); background: rgba(255, 255, 255, 0.02); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">{{ item.key }}</div>
+                    <div style="font-size: 13px; font-weight: 500; color: var(--text-primary); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.title }}</div>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">{{ item.estimated_hours }}h</span>
+                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">{{ item.priority or 'Normal' }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

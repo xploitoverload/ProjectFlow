@@ -1636,6 +1636,52 @@ def delete_project_baseline(project_id, baseline_id):
     return jsonify({'success': False, 'error': msg}), 404
 
 
+# ============= RESOURCE & CAPACITY PLANNING (TARGET 5) =============
+
+@api_bp.route('/project/<int:project_id>/resources/capacity', methods=['GET'])
+@api_auth_required
+def get_project_resource_capacity(project_id):
+    """Get project resource utilization and contributor workloads."""
+    from app.services.resource_service import ResourceService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    data, err = ResourceService.get_project_resource_utilization(project_id, start_date=start_date, end_date=end_date)
+    if err:
+        return jsonify({'success': False, 'error': err}), 400
+    return jsonify({'success': True, 'resource_planning': data})
+
+
+@api_bp.route('/team/<int:team_id>/resources/workload', methods=['GET'])
+@api_auth_required
+def get_team_resource_workload(team_id):
+    """Get aggregate team capacity and member workloads."""
+    from app.services.resource_service import ResourceService
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    data, err = ResourceService.get_team_capacity(team_id, start_date=start_date, end_date=end_date)
+    if err:
+        return jsonify({'success': False, 'error': err}), 404
+    return jsonify({'success': True, 'team_capacity': data})
+
+
+@api_bp.route('/user/<int:user_id>/resources/workload', methods=['GET'])
+@api_auth_required
+def get_user_resource_workload(user_id):
+    """Get workload and allocation status for an individual user."""
+    from app.services.resource_service import ResourceService
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    project_id = request.args.get('project_id', type=int)
+    data, err = ResourceService.get_user_workload(user_id, start_date=start_date, end_date=end_date, project_id=project_id)
+    if err:
+        return jsonify({'success': False, 'error': err}), 404
+    return jsonify({'success': True, 'user_workload': data})
+
+
 # ============= ERROR HANDLERS =============
 
 @api_bp.errorhandler(400)

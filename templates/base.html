@@ -142,6 +142,10 @@
                         <span class="iconify nav-icon" data-icon="solar:calendar-bold-duotone"></span>
                         <span>Calendar</span>
                     </a>
+                    <a href="{{ url_for('main.resource_planner') }}" class="sidebar-nav-item {% if request.endpoint == 'main.resource_planner' %}active{% endif %}">
+                        <span class="iconify nav-icon" data-icon="solar:user-hand-up-bold-duotone"></span>
+                        <span>Capacity</span>
+                    </a>
                     <a href="{{ url_for('admin.admin_teams') if current_user.is_authenticated and current_user.role == 'admin' else url_for('main.dashboard') }}" class="sidebar-nav-item">
                         <span class="iconify nav-icon" data-icon="solar:users-group-rounded-bold-duotone"></span>
                         <span>Teams</span>

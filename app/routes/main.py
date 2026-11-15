@@ -271,6 +271,47 @@ def calendar():
                           teams=teams)
 
 
+@main_bp.route('/resources')
+@login_required
+def resource_planner():
+    """Resource & Team Capacity Planning view."""
+    from app.services.resource_service import ResourceService
+    from app.models import Project, Team, User
+    
+    user = User.query.get(session['user_id'])
+    projects = ProjectService.get_user_accessible_projects(user)
+    selected_project_id = request.args.get('project', type=int)
+    if not selected_project_id and projects:
+        selected_project_id = projects[0].id
+        
+    teams = Team.query.all()
+    selected_team_id = request.args.get('team', type=int)
+    if not selected_team_id and teams:
+        selected_team_id = teams[0].id
+        
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    proj_utilization, _ = ResourceService.get_project_resource_utilization(
+        selected_project_id, start_date=start_date, end_date=end_date
+    ) if selected_project_id else (None, None)
+    
+    team_capacity, _ = ResourceService.get_team_capacity(
+        selected_team_id, start_date=start_date, end_date=end_date
+    ) if selected_team_id else (None, None)
+    
+    return render_template(
+        'resource_planner.html',
+        projects=projects,
+        selected_project_id=selected_project_id,
+        teams=teams,
+        selected_team_id=selected_team_id,
+        project_utilization=proj_utilization,
+        team_capacity=team_capacity,
+        page_title='Resource & Capacity Planning'
+    )
+
+
 @main_bp.route('/profile')
 @login_required
 def profile():
