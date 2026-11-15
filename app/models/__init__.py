@@ -26,6 +26,7 @@ from models import (
     FacialIDData,
     Milestone,
     WorkingCalendar,
+    ScheduleBaseline,
     encrypt_field,
     decrypt_field
 )
@@ -52,6 +53,7 @@ __all__ = [
     'FacialIDData',
     'Milestone',
     'WorkingCalendar',
+    'ScheduleBaseline',
     'encrypt_field',
     'decrypt_field'
 ]

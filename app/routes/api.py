@@ -1562,6 +1562,80 @@ def update_project_calendar(project_id):
     return jsonify({'success': False, 'error': msg}), 400
 
 
+# ============= SCHEDULE BASELINES & VARIANCE (TARGET 4) =============
+
+@api_bp.route('/project/<int:project_id>/baselines', methods=['GET'])
+@api_auth_required
+def get_project_baselines(project_id):
+    """List all schedule baselines for a project."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    baselines = SchedulingService.get_project_baselines(project_id)
+    return jsonify({
+        'success': True,
+        'baselines': baselines,
+        'count': len(baselines)
+    })
+
+
+@api_bp.route('/project/<int:project_id>/baselines', methods=['POST'])
+@api_auth_required
+def create_project_baseline(project_id):
+    """Create a new schedule baseline snapshot."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    data = request.get_json() or {}
+    name = data.get('name', '').strip()
+    description = data.get('description', '').strip()
+    user_id = session.get('user_id')
+    
+    ok, baseline, msg = SchedulingService.create_baseline(
+        project_id=project_id,
+        name=name,
+        description=description,
+        created_by=user_id
+    )
+    if ok:
+        return jsonify({'success': True, 'baseline': baseline.to_dict(), 'message': msg}), 201
+    return jsonify({'success': False, 'error': msg}), 400
+
+
+@api_bp.route('/project/<int:project_id>/baselines/<int:baseline_id>/compare', methods=['GET'])
+@api_auth_required
+def compare_project_baseline(project_id, baseline_id):
+    """Compare current project schedule against a saved baseline."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    comparison, err = SchedulingService.compare_baseline(project_id, baseline_id)
+    if err:
+        return jsonify({'success': False, 'error': err}), 404
+    return jsonify({'success': True, 'comparison': comparison})
+
+
+@api_bp.route('/project/<int:project_id>/baselines/<int:baseline_id>', methods=['DELETE'])
+@api_auth_required
+def delete_project_baseline(project_id, baseline_id):
+    """Delete a schedule baseline."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    ok, msg = SchedulingService.delete_baseline(baseline_id, project_id=project_id)
+    if ok:
+        return jsonify({'success': True, 'message': msg})
+    return jsonify({'success': False, 'error': msg}), 404
+
+
 # ============= ERROR HANDLERS =============
 
 @api_bp.errorhandler(400)
