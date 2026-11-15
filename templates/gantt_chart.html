@@ -337,6 +337,49 @@
     filter: grayscale(60%) !important;
 }
 
+/* Schedule Baseline Ghost Bar & Variance Badges (Target 4) */
+.gantt-baseline-ghost-bar {
+    position: absolute;
+    bottom: 2px;
+    height: 6px;
+    border-radius: 3px;
+    background: repeating-linear-gradient(45deg, rgba(148, 163, 184, 0.45), rgba(148, 163, 184, 0.45) 4px, rgba(148, 163, 184, 0.15) 4px, rgba(148, 163, 184, 0.15) 8px);
+    border: 1px dashed rgba(148, 163, 184, 0.6);
+    pointer-events: auto;
+    z-index: 2;
+    transition: all 0.2s ease;
+}
+.gantt-baseline-ghost-bar:hover {
+    height: 10px;
+    bottom: 0px;
+    background: rgba(148, 163, 184, 0.7);
+    border-color: #CBD5E1;
+}
+.variance-badge {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 700;
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
+}
+.variance-badge.delayed {
+    background: rgba(244, 63, 94, 0.2);
+    color: #F43F5E;
+    border: 1px solid rgba(244, 63, 94, 0.4);
+}
+.variance-badge.ahead {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10B981;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.variance-badge.on-track {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94A3B8;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
 /* Resize Handles */
 .gantt-resize-handle {
     position: absolute;
@@ -581,12 +624,29 @@
                 Auto-Schedule
             </button>
 
+            <!-- Schedule Baseline Selector (Target 4) -->
+            <div style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--surface-border-color); background: var(--bg-surface);">
+                <span class="iconify" data-icon="solar:history-bold" style="width: 15px; height: 15px; color: #F59E0B;"></span>
+                <select id="baselineSelector" onchange="onBaselineSelected(this.value)" style="border: none; background: transparent; color: var(--text-primary); font-size: 12px; font-weight: 500; outline: none; cursor: pointer; max-width: 140px;">
+                    <option value="">Baseline: None</option>
+                </select>
+                <button type="button" onclick="openCreateBaselineModal()" style="border: none; background: transparent; color: var(--text-secondary); cursor: pointer; padding: 2px 4px; display: flex; align-items: center;" title="Create new schedule baseline snapshot">
+                    <span class="iconify" data-icon="solar:add-circle-bold" style="width: 14px; height: 14px; color: var(--color-primary);"></span>
+                </button>
+            </div>
+
             <!-- Add Dependency Button -->
             <button class="btn btn-primary" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;" onclick="openAddDependencyModal()">
                 <span class="iconify" data-icon="solar:link-circle-bold" style="width: 16px; height: 16px;"></span>
                 Add Dependency
             </button>
         </div>
+    </div>
+
+    <!-- Baseline Variance Summary Banner (Target 4) -->
+    <div id="baselineVarianceBanner" style="display: none; margin: 0 0 12px 0; padding: 8px 16px; border-radius: 8px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: var(--text-primary); font-size: 12px; justify-content: space-between; align-items: center;">
+        <div id="baselineVarianceSummaryText" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;"></div>
+        <button onclick="clearBaselineSelection()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px; text-decoration: underline;">Clear Baseline</button>
     </div>
 
     <!-- View 1: Timeline & Gantt Split Pane -->
@@ -754,6 +814,39 @@
     </div>
 </div>
 
+<!-- Modal: Snapshot Schedule Baseline (Target 4) -->
+<div id="createBaselineModal" class="modal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeCreateBaselineModal()"></div>
+    <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+            <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span class="iconify" data-icon="solar:history-bold" style="color: #F59E0B;"></span>
+                Snapshot Schedule Baseline
+            </h2>
+            <button class="btn-icon" onclick="closeCreateBaselineModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+                <span class="iconify" data-icon="solar:close-circle-bold" style="width: 20px; height: 20px;"></span>
+            </button>
+        </div>
+        <div class="modal-body" style="padding: 16px 20px;">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; line-height: 1.5;">
+                Capture an immutable snapshot of all current task dates, durations, milestones, and dependencies to track schedule drift and variance over time.
+            </p>
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Baseline Name *</label>
+                <input type="text" id="baselineNameInput" placeholder="e.g. Initial Plan, Q4 Sprint Commit" style="width: 100%; height: 38px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--surface-border-color); background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 13px;">
+            </div>
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Description (Optional)</label>
+                <textarea id="baselineDescInput" rows="2" placeholder="Context, approval gate, or scope notes" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--surface-border-color); background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 13px; resize: vertical;"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding: 12px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--surface-border-color);">
+            <button type="button" class="btn btn-secondary" onclick="closeCreateBaselineModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" id="saveBaselineBtn" onclick="submitCreateBaseline()">Save Snapshot</button>
+        </div>
+    </div>
+</div>
+
 <script>
 // Live State
 let currentProjectId = {{ selected_project.id if selected_project else 1 }};
@@ -767,6 +860,9 @@ let criticalPathIds = new Set();
 let cpmMetrics = {};
 let highlightCriticalPathActive = false;
 let projectMilestones = [];
+let projectBaselines = [];
+let activeBaselineId = null;
+let activeBaselineComparison = null;
 
 // Drag state
 let isDraggingBar = false;
@@ -859,8 +955,142 @@ async function loadGanttData() {
             }
             renderTimeline();
         }
+        await loadBaselines();
     } catch (e) {
         console.error('Failed to load gantt data:', e);
+    }
+}
+
+// Schedule Baseline Management & Variance Analysis (Target 4)
+async function loadBaselines() {
+    try {
+        const resp = await fetch(`/api/v1/project/${currentProjectId}/baselines`);
+        const data = await resp.json();
+        if (data.success) {
+            projectBaselines = data.baselines || [];
+            const sel = document.getElementById('baselineSelector');
+            if (sel) {
+                const prev = sel.value;
+                sel.innerHTML = '<option value="">Baseline: None</option>';
+                projectBaselines.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = `${b.name} (${b.task_count} tasks)`;
+                    if (prev && prev == b.id) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load baselines:', e);
+    }
+}
+
+async function onBaselineSelected(baselineId) {
+    activeBaselineId = baselineId;
+    const banner = document.getElementById('baselineVarianceBanner');
+    const summaryText = document.getElementById('baselineVarianceSummaryText');
+    if (!baselineId) {
+        activeBaselineComparison = null;
+        if (banner) banner.style.display = 'none';
+        renderTimeline();
+        return;
+    }
+
+    try {
+        const resp = await fetch(`/api/v1/project/${currentProjectId}/baselines/${baselineId}/compare`);
+        const data = await resp.json();
+        if (data.success && data.comparison) {
+            activeBaselineComparison = data.comparison;
+            const s = data.comparison.summary;
+            const slipSign = s.project_slippage_days > 0 ? `+${s.project_slippage_days}d slip` : (s.project_slippage_days < 0 ? `${s.project_slippage_days}d ahead` : '0d slip');
+            const slipColor = s.project_slippage_days > 0 ? '#EF4444' : (s.project_slippage_days < 0 ? '#10B981' : '#94A3B8');
+            
+            if (banner && summaryText) {
+                summaryText.innerHTML = `
+                    <span style="font-weight: 700; color: #F59E0B;">Active Baseline: ${data.comparison.baseline.name}</span>
+                    <span style="font-weight: 700; color: ${slipColor};">${slipSign}</span>
+                    <span>•</span>
+                    <span style="color: #F43F5E; font-weight: 600;">${s.delayed_tasks_count} Delayed</span>
+                    <span>•</span>
+                    <span style="color: #10B981; font-weight: 600;">${s.ahead_tasks_count} Ahead</span>
+                    <span>•</span>
+                    <span style="color: var(--text-secondary);">${s.on_track_tasks_count} On-Track</span>
+                    <span>•</span>
+                    <span style="color: var(--text-muted); font-size: 11px;">Max task delay: +${s.max_task_delay_days}d</span>
+                `;
+                banner.style.display = 'flex';
+            }
+            renderTimeline();
+        }
+    } catch (e) {
+        console.error('Failed to compare baseline:', e);
+    }
+}
+
+function clearBaselineSelection() {
+    const sel = document.getElementById('baselineSelector');
+    if (sel) sel.value = '';
+    onBaselineSelected('');
+}
+
+function openCreateBaselineModal() {
+    const m = document.getElementById('createBaselineModal');
+    if (m) {
+        m.style.display = 'flex';
+        m.classList.add('show');
+        const inp = document.getElementById('baselineNameInput');
+        if (inp) {
+            inp.value = `Baseline ${new Date().toISOString().substring(0, 10)}`;
+            inp.focus();
+        }
+    }
+}
+
+function closeCreateBaselineModal() {
+    const m = document.getElementById('createBaselineModal');
+    if (m) {
+        m.style.display = 'none';
+        m.classList.remove('show');
+    }
+}
+
+async function submitCreateBaseline() {
+    const nameInput = document.getElementById('baselineNameInput');
+    const descInput = document.getElementById('baselineDescInput');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const desc = descInput ? descInput.value.trim() : '';
+    if (!name) {
+        alert('Please enter a baseline name');
+        return;
+    }
+
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    try {
+        const resp = await fetch(`/api/v1/project/${currentProjectId}/baselines`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ name, description: desc })
+        });
+        const data = await resp.json();
+        if (data.success) {
+            closeCreateBaselineModal();
+            await loadBaselines();
+            const sel = document.getElementById('baselineSelector');
+            if (sel && data.baseline) {
+                sel.value = data.baseline.id;
+                onBaselineSelected(data.baseline.id);
+            }
+        } else {
+            alert('Failed to save baseline: ' + (data.error || 'Unknown error'));
+        }
+    } catch (e) {
+        alert('Error saving baseline: ' + e.message);
     }
 }
 
@@ -988,6 +1218,37 @@ function renderTimeline() {
         const m = cpmMetrics[issue.id];
         const floatDays = m ? m.total_float : null;
 
+        // Schedule Baseline Ghost Bar & Variance Badge (Target 4)
+        let varianceBadgeHtml = '';
+        if (activeBaselineComparison && activeBaselineComparison.task_variances) {
+            const bTask = activeBaselineComparison.task_variances.find(t => t.id === issue.id);
+            if (bTask) {
+                if (bTask.baseline_start && bTask.baseline_due) {
+                    const bStartD = new Date(bTask.baseline_start);
+                    const bDueD = new Date(bTask.baseline_due);
+                    const bStartOffset = Math.max(0, (bStartD - startDateTimeline) / (1000 * 60 * 60 * 24));
+                    const bDurDays = Math.max(1, (bDueD - bStartD) / (1000 * 60 * 60 * 24));
+                    const bLeft = bStartOffset * dayWidth;
+                    const bWidth = Math.max(dayWidth, bDurDays * dayWidth);
+
+                    const ghostBar = document.createElement('div');
+                    ghostBar.className = 'gantt-baseline-ghost-bar';
+                    ghostBar.style.left = bLeft + 'px';
+                    ghostBar.style.width = bWidth + 'px';
+                    ghostBar.title = `Baseline Snapshot: ${bTask.baseline_start} to ${bTask.baseline_due} (${bTask.baseline_duration}d)`;
+                    track.appendChild(ghostBar);
+                }
+
+                if (bTask.variance_category === 'delayed') {
+                    varianceBadgeHtml = `<span class="variance-badge delayed" title="Delayed by ${bTask.finish_variance_days} days compared to baseline">+${bTask.finish_variance_days}d</span>`;
+                } else if (bTask.variance_category === 'ahead') {
+                    varianceBadgeHtml = `<span class="variance-badge ahead" title="Ahead by ${Math.abs(bTask.finish_variance_days)} days compared to baseline">${bTask.finish_variance_days}d</span>`;
+                } else if (bTask.variance_category === 'on_track') {
+                    varianceBadgeHtml = `<span class="variance-badge on-track" title="On schedule relative to baseline">0d</span>`;
+                }
+            }
+        }
+
         const bar = document.createElement('div');
         bar.className = `gantt-task-bar status-${issue.status || 'todo'} ${isCritical ? 'is-cpm-critical' : ''}`;
         if (highlightCriticalPathActive && isCritical) {
@@ -1013,6 +1274,7 @@ function renderTimeline() {
             <div class="gantt-progress-fill" style="width: ${issue.progress || 0}%;"></div>
             <span class="gantt-task-title">${issue.key}: ${issue.title}</span>
             ${cpmBadgeHtml}
+            ${varianceBadgeHtml}
             ${isConflict ? '<span class="conflict-badge" style="margin-left: 6px;">⚠️ Conflict</span>' : ''}
             <div class="gantt-connector-dot gantt-connector-right" data-action="connect-out" title="Successor connector"></div>
             <div class="gantt-resize-handle gantt-resize-right" data-action="resize-right"></div>

@@ -1094,3 +1094,41 @@ class WorkingCalendar(db.Model):
             'holidays': hols,
             'timezone': self.timezone
         }
+
+
+class ScheduleBaseline(db.Model):
+    """Snapshot of a project schedule at a specific point in time for variance analysis."""
+    __tablename__ = 'schedule_baseline'
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=False, index=True)
+    name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+    snapshot_data = db.Column(db.Text, nullable=False)  # JSON representation of tasks, milestones, dependencies
+
+    project = db.relationship('Project', backref=db.backref('schedule_baselines', lazy=True, cascade='all, delete-orphan'))
+    creator = db.relationship('User', foreign_keys=[created_by])
+
+    def get_snapshot(self):
+        try:
+            return json.loads(self.snapshot_data or '{}')
+        except Exception:
+            return {}
+
+    def to_dict(self):
+        snap = self.get_snapshot()
+        task_count = len(snap.get('tasks', []))
+        milestone_count = len(snap.get('milestones', []))
+        return {
+            'id': self.id,
+            'project_id': self.project_id,
+            'name': self.name,
+            'description': self.description,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'created_by': self.created_by,
+            'creator_name': self.creator.username if self.creator else 'System',
+            'task_count': task_count,
+            'milestone_count': milestone_count
+        }
