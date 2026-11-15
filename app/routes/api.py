@@ -1412,6 +1412,45 @@ def get_velocity_data(project_id):
     })
 
 
+@api_bp.route('/project/<int:project_id>/cpm', methods=['GET'])
+@api_auth_required
+def get_project_cpm(project_id):
+    """Get Critical Path Method (CPM) calculation, total float, and bottlenecks."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    cpm = SchedulingService.calculate_critical_path(project_id)
+    return jsonify(cpm), (200 if cpm['success'] else 400)
+
+
+@api_bp.route('/project/<int:project_id>/auto_schedule/preview', methods=['GET'])
+@api_auth_required
+def preview_project_auto_schedule(project_id):
+    """Preview proposed scheduling shifts before committing."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    preview = SchedulingService.preview_auto_schedule(project_id)
+    return jsonify(preview), (200 if preview['success'] else 400)
+
+
+@api_bp.route('/project/<int:project_id>/auto_schedule/commit', methods=['POST'])
+@api_auth_required
+def commit_project_auto_schedule(project_id):
+    """Commit proposed schedule shifts transactionally."""
+    from app.services.scheduling_service import SchedulingService
+    has_access, project = check_project_access(project_id)
+    if not has_access:
+        return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+    ok, msg, count = SchedulingService.commit_auto_schedule(project_id, updated_by=session.get('user_id'))
+    return jsonify({'success': ok, 'message': msg, 'applied_count': count}), (200 if ok else 400)
+
+
 # ============= ERROR HANDLERS =============
 
 @api_bp.errorhandler(400)

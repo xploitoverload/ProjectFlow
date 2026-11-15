@@ -282,6 +282,17 @@
     color: #ffffff;
 }
 
+.gantt-task-bar.cpm-highlight-pulse {
+    border: 2px solid #EF4444 !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
+    z-index: 6 !important;
+}
+
+.gantt-task-bar.cpm-dimmed {
+    opacity: 0.25 !important;
+    filter: grayscale(60%) !important;
+}
+
 /* Resize Handles */
 .gantt-resize-handle {
     position: absolute;
@@ -514,8 +525,14 @@
                 <button class="gantt-zoom-btn" onclick="setZoomMode('quarter')">Quarter</button>
             </div>
 
+            <!-- Critical Path Toggle -->
+            <button class="btn btn-secondary" id="cpmToggleBtn" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: 8px; border: 1px solid var(--surface-border-color);" onclick="toggleCriticalPath()" title="Highlight Critical Path Method (CPM) tasks and zero-float bottlenecks">
+                <span class="iconify" data-icon="solar:flame-bold" style="width: 15px; height: 15px; color: #EF4444;"></span>
+                Critical Path
+            </button>
+
             <!-- Auto-Schedule Cascade Button -->
-            <button class="btn btn-secondary" id="autoScheduleBtn" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: 8px; border: 1px solid var(--surface-border-color);" onclick="runAutoSchedule()" title="Cascade dates downstream to resolve all dependency conflicts">
+            <button class="btn btn-secondary" id="autoScheduleBtn" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: 8px; border: 1px solid var(--surface-border-color);" onclick="openAutoSchedulePreview()" title="Preview and cascade dates downstream to resolve all dependency conflicts">
                 <span class="iconify" data-icon="solar:magic-stick-3-bold" style="width: 15px; height: 15px; color: #10B981;"></span>
                 Auto-Schedule
             </button>
@@ -662,6 +679,34 @@
     </div>
 </div>
 
+<!-- Auto-Schedule Preview & Shift Analysis Modal -->
+<div id="autoSchedulePreviewModal" class="modal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeAutoScheduleModal()"></div>
+    <div class="modal-content" style="max-width: 720px; max-height: 85vh; display: flex; flex-direction: column;">
+        <div class="modal-header">
+            <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span class="iconify" data-icon="solar:magic-stick-3-bold" style="color: #10B981;"></span>
+                Auto-Schedule Preview & Shift Analysis
+            </h2>
+            <button class="btn-icon" onclick="closeAutoScheduleModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+                <span class="iconify" data-icon="solar:close-circle-bold" style="width: 20px; height: 20px;"></span>
+            </button>
+        </div>
+        <div class="modal-body" style="padding: 16px 20px; overflow-y: auto; flex: 1;">
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 14px; line-height: 1.5;">
+                The scheduling intelligence engine has calculated the earliest topological dates satisfying all predecessor dependencies and inclusive end-date constraints. Review proposed shifts below before committing.
+            </p>
+            <div id="autoScheduleProposalsContainer">
+                <div style="text-align: center; padding: 24px; color: var(--text-secondary);">Calculating schedule preview...</div>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding: 12px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--surface-border-color);">
+            <button type="button" class="btn btn-secondary" onclick="closeAutoScheduleModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmAutoScheduleBtn" onclick="commitAutoSchedulePlan()">Apply Proposed Schedule</button>
+        </div>
+    </div>
+</div>
+
 <script>
 // Live State
 let currentProjectId = {{ selected_project.id if selected_project else 1 }};
@@ -671,6 +716,9 @@ let startDateTimeline = new Date(2026, 10, 1); // Nov 1 2026
 let totalDays = 60; // 2 months view
 let projectIssues = {{ issues_json|tojson if issues_json else '[]' }};
 let projectDependencies = {{ dependencies_json|tojson if dependencies_json else '[]' }};
+let criticalPathIds = new Set();
+let cpmMetrics = {};
+let highlightCriticalPathActive = false;
 
 // Drag state
 let isDraggingBar = false;
@@ -729,12 +777,23 @@ function setZoomMode(mode) {
 
 async function loadGanttData() {
     try {
-        const response = await fetch(`/api/v1/project/${currentProjectId}/gantt_data`);
-        const result = await response.json();
-        if (result.success) {
-            projectIssues = result.issues;
-            projectDependencies = result.dependencies;
+        const [ganttRes, cpmRes] = await Promise.all([
+            fetch(`/api/v1/project/${currentProjectId}/gantt_data`).then(r => r.json()),
+            fetch(`/api/v1/project/${currentProjectId}/cpm`).then(r => r.json()).catch(() => ({ success: false }))
+        ]);
+
+        if (ganttRes.success) {
+            projectIssues = ganttRes.issues;
+            projectDependencies = ganttRes.dependencies;
             
+            if (cpmRes && cpmRes.success) {
+                criticalPathIds = new Set(cpmRes.critical_path_issue_ids || []);
+                cpmMetrics = cpmRes.task_metrics || {};
+            } else {
+                criticalPathIds = new Set();
+                cpmMetrics = {};
+            }
+
             // Adjust timeline start to encompass earliest task
             let earliest = null;
             projectIssues.forEach(iss => {
@@ -846,8 +905,18 @@ function renderTimeline() {
         const barLeft = startOffsetDays * dayWidth;
         const barWidth = Math.max(dayWidth, durationDays * dayWidth);
 
+        // Check Critical Path & Float
+        const isCritical = criticalPathIds.has(issue.id);
+        const m = cpmMetrics[issue.id];
+        const floatDays = m ? m.total_float : null;
+
         const bar = document.createElement('div');
-        bar.className = `gantt-task-bar status-${issue.status || 'todo'}`;
+        bar.className = `gantt-task-bar status-${issue.status || 'todo'} ${isCritical ? 'is-cpm-critical' : ''}`;
+        if (highlightCriticalPathActive && isCritical) {
+            bar.classList.add('cpm-highlight-pulse');
+        } else if (highlightCriticalPathActive && !isCritical) {
+            bar.classList.add('cpm-dimmed');
+        }
         bar.id = `task-bar-${issue.id}`;
         bar.dataset.issueId = issue.id;
         bar.style.left = barLeft + 'px';
@@ -856,11 +925,16 @@ function renderTimeline() {
         // Check if blocked or has conflict
         const isConflict = projectDependencies.some(d => d.target_id === issue.id && d.is_conflict);
 
+        const cpmBadgeHtml = isCritical 
+            ? '<span class="cpm-badge" style="margin-left: 6px; font-size: 9px; padding: 1px 4px; border-radius: 3px; background: rgba(239,68,68,0.25); color: #EF4444; border: 1px solid rgba(239,68,68,0.5); font-weight: 700;">CPM</span>'
+            : (floatDays !== null ? `<span style="font-size: 9px; opacity: 0.7; margin-left: 4px;">(${floatDays}d float)</span>` : '');
+
         bar.innerHTML = `
             <div class="gantt-resize-handle gantt-resize-left" data-action="resize-left"></div>
             <div class="gantt-connector-dot gantt-connector-left" data-action="connect-in" title="Predecessor connector"></div>
             <div class="gantt-progress-fill" style="width: ${issue.progress || 0}%;"></div>
             <span class="gantt-task-title">${issue.key}: ${issue.title}</span>
+            ${cpmBadgeHtml}
             ${isConflict ? '<span class="conflict-badge" style="margin-left: 6px;">⚠️ Conflict</span>' : ''}
             <div class="gantt-connector-dot gantt-connector-right" data-action="connect-out" title="Successor connector"></div>
             <div class="gantt-resize-handle gantt-resize-right" data-action="resize-right"></div>
@@ -1058,52 +1132,134 @@ async function onMouseUp(e) {
     activeIssue = null;
 }
 
-// Auto-Schedule Cascade Action
-async function runAutoSchedule() {
-    if (!currentProjectId || !ganttIssues || ganttIssues.length === 0) return;
-    const btn = document.getElementById('autoScheduleBtn');
+// Critical Path Toggle Action
+function toggleCriticalPath() {
+    highlightCriticalPathActive = !highlightCriticalPathActive;
+    const btn = document.getElementById('cpmToggleBtn');
+    if (btn) {
+        btn.classList.toggle('active', highlightCriticalPathActive);
+        btn.style.background = highlightCriticalPathActive ? 'rgba(239, 68, 68, 0.2)' : '';
+        btn.style.borderColor = highlightCriticalPathActive ? '#EF4444' : '';
+    }
+    renderTimeline();
+}
+
+// Auto-Schedule Preview & Commit Actions
+async function openAutoSchedulePreview() {
+    const modal = document.getElementById('autoSchedulePreviewModal');
+    const container = document.getElementById('autoScheduleProposalsContainer');
+    if (!modal || !container) return;
+    
+    modal.style.display = 'flex';
+    modal.classList.add('show');
+    container.innerHTML = '<div style="text-align: center; padding: 24px; color: var(--text-secondary);">Calculating schedule preview...</div>';
+
+    try {
+        const resp = await fetch(`/api/v1/project/${currentProjectId}/auto_schedule/preview`);
+        const data = await resp.json();
+        if (!data.success) {
+            container.innerHTML = `<div style="color: #EF4444; padding: 12px;">Error: ${data.error || 'Failed to compute preview'}</div>`;
+            return;
+        }
+
+        if (!data.proposals || data.proposals.length === 0) {
+            container.innerHTML = `
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 16px; text-align: center; color: #10B981;">
+                    <span class="iconify" data-icon="solar:check-circle-bold" style="width: 28px; height: 28px; display: block; margin: 0 auto 6px;"></span>
+                    <strong>Zero Conflicts Detected</strong>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-secondary);">All tasks are already topologically aligned with their dependencies and working schedule.</p>
+                </div>
+            `;
+            document.getElementById('confirmAutoScheduleBtn').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('confirmAutoScheduleBtn').style.display = 'inline-block';
+        let html = `
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--surface-border-color); color: var(--text-secondary); text-align: left;">
+                        <th style="padding: 8px 6px;">Task</th>
+                        <th style="padding: 8px 6px;">Current Schedule</th>
+                        <th style="padding: 8px 6px;">Proposed Schedule</th>
+                        <th style="padding: 8px 6px; text-align: center;">Shift</th>
+                        <th style="padding: 8px 6px;">Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        data.proposals.forEach(p => {
+            const shiftBadge = p.shift_days > 0 
+                ? `<span style="color: #F59E0B; font-weight: 600;">+${p.shift_days}d</span>`
+                : (p.shift_days < 0 ? `<span style="color: #3B82F6; font-weight: 600;">${p.shift_days}d</span>` : `<span style="color: var(--text-secondary);">0d</span>`);
+            
+            html += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                    <td style="padding: 10px 6px; font-weight: 600;">
+                        ${p.key}
+                        ${p.is_critical ? '<span style="font-size: 9px; background: rgba(239,68,68,0.2); color: #EF4444; padding: 1px 4px; border-radius: 3px; margin-left: 4px;">CPM</span>' : ''}
+                        <div style="font-size: 11px; font-weight: 400; color: var(--text-secondary);">${p.title}</div>
+                    </td>
+                    <td style="padding: 10px 6px; color: var(--text-secondary);">
+                        ${p.current_start || 'None'} &rarr; ${p.current_due || 'None'}
+                    </td>
+                    <td style="padding: 10px 6px; color: var(--text-primary); font-weight: 500;">
+                        ${p.proposed_start} &rarr; ${p.proposed_due}
+                    </td>
+                    <td style="padding: 10px 6px; text-align: center;">${shiftBadge}</td>
+                    <td style="padding: 10px 6px; color: var(--text-secondary); font-size: 11px;">${p.reason}</td>
+                </tr>
+            `;
+        });
+
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = `<div style="color: #EF4444; padding: 12px;">Failed to load preview: ${e.message}</div>`;
+    }
+}
+
+function closeAutoScheduleModal() {
+    const modal = document.getElementById('autoSchedulePreviewModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
+}
+
+async function commitAutoSchedulePlan() {
+    const btn = document.getElementById('confirmAutoScheduleBtn');
     if (btn) btn.disabled = true;
 
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
     const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
-    let shiftedCount = 0;
     try {
-        for (const iss of ganttIssues) {
-            const res = await fetch(`/api/v1/project/${currentProjectId}/issue/${iss.id}/auto_schedule`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                }
-            });
-            const data = await res.json();
-            if (data.success && data.shifted_issues) {
-                shiftedCount += data.shifted_issues.length;
+        const resp = await fetch(`/api/v1/project/${currentProjectId}/auto_schedule/commit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             }
-        }
-        await loadGanttData();
-        if (shiftedCount > 0) {
+        });
+        const data = await resp.json();
+        if (data.success) {
+            closeAutoScheduleModal();
+            await loadGanttData();
             if (window.notificationManager && typeof window.notificationManager.addNotification === 'function') {
                 window.notificationManager.addNotification({
-                    title: 'Auto-Schedule Complete',
-                    message: `Resolved conflicts and cascaded dates for ${shiftedCount} downstream tasks`,
+                    title: 'Auto-Schedule Applied',
+                    message: data.message || 'Schedule updated successfully',
                     type: 'success',
                     duration: 3500
                 });
             }
         } else {
-            if (window.notificationManager && typeof window.notificationManager.addNotification === 'function') {
-                window.notificationManager.addNotification({
-                    title: 'Schedule Up to Date',
-                    message: 'No conflicts detected; all tasks are topologically aligned.',
-                    type: 'info',
-                    duration: 2500
-                });
-            }
+            alert('Failed to apply schedule: ' + (data.error || 'Unknown error'));
         }
-    } catch (e) {
-        console.error('Auto-schedule failed:', e);
+    } catch (err) {
+        alert('Error applying schedule: ' + err.message);
     } finally {
         if (btn) btn.disabled = false;
     }
