@@ -635,20 +635,43 @@ class IssueService:
                     if s_st and s_due:
                         succ_duration = max(0, (s_due - s_st).days)
 
-                    is_conflict, min_req, _ = check_schedule_constraint(
-                        dep.link_type,
-                        curr.start_date, curr.due_date,
-                        succ.start_date, succ.due_date,
-                        dep.lag_days
-                    )
+                    # Check all incoming dependencies of succ to ensure it satisfies ALL predecessor constraints
+                    all_in_deps = IssueLink.query.filter(
+                        IssueLink.target_issue_id == succ.id,
+                        IssueLink.link_type.in_(IssueLink.DEPENDENCY_TYPES)
+                    ).all()
+                    
+                    max_start_req = None
+                    max_due_req = None
+                    has_any_conflict = False
 
-                    if is_conflict and min_req:
-                        if dep.link_type in ['finish_to_start', 'start_to_start']:
-                            succ.start_date = min_req
-                            succ.due_date = min_req + timedelta(days=succ_duration)
-                        elif dep.link_type == 'finish_to_finish':
-                            succ.due_date = min_req
-                            succ.start_date = max(s_st or min_req, min_req - timedelta(days=succ_duration))
+                    for in_dep in all_in_deps:
+                        p_issue = in_dep.source_issue
+                        if not p_issue:
+                            continue
+                        c_conflict, c_min_req, _ = check_schedule_constraint(
+                            in_dep.link_type,
+                            p_issue.start_date, p_issue.due_date,
+                            succ.start_date, succ.due_date,
+                            in_dep.lag_days
+                        )
+                        if c_conflict:
+                            has_any_conflict = True
+                        if c_min_req:
+                            if in_dep.link_type in ['finish_to_start', 'start_to_start']:
+                                if max_start_req is None or c_min_req > max_start_req:
+                                    max_start_req = c_min_req
+                            elif in_dep.link_type == 'finish_to_finish':
+                                if max_due_req is None or c_min_req > max_due_req:
+                                    max_due_req = c_min_req
+
+                    if has_any_conflict:
+                        if max_start_req:
+                            succ.start_date = max_start_req
+                            succ.due_date = max_start_req + timedelta(days=succ_duration)
+                        if max_due_req and (_to_date(succ.due_date) is None or _to_date(succ.due_date) < max_due_req):
+                            succ.due_date = max_due_req
+                            succ.start_date = max(_to_date(succ.start_date) or max_due_req, max_due_req - timedelta(days=succ_duration))
                         
                         succ.updated_at = datetime.utcnow()
                         shifted_map[succ.id] = succ
