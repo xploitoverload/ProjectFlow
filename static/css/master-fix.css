@@ -1,14 +1,11 @@
-/* ============================================
-   MASTER FIX - ALL ISSUES RESOLVED
-   Single comprehensive fix for all layout,
-   modal, button, dropdown, and form issues
-   ============================================ */
+/* ==========================================================================
+   ProjectFlow - Master Enterprise Theme & Layout Engine
+   Unified token-based styling for Modals, Dropdowns, Buttons, Inputs, and Layout
+   ========================================================================== */
 
-/* ==========================================
-   1. LAYOUT - Sidebar & Content
-   ========================================== */
-
-/* Sidebar fixed on left */
+/* --------------------------------------------------------------------------
+   1. Application Shell & Layout
+   -------------------------------------------------------------------------- */
 .app-sidebar,
 .sidebar {
     position: fixed !important;
@@ -19,11 +16,11 @@
     overflow-y: auto !important;
     overflow-x: hidden !important;
     z-index: 100 !important;
-    background: var(--bg-secondary, #1a1a2e) !important;
-    border-right: 1px solid var(--border-color, #2d2d44) !important;
+    background: var(--bg-surface, #0F121C) !important;
+    border-right: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
+    transition: transform 0.25s ease, background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
-/* Main content area - offset from sidebar */
 .app-main,
 .main-content {
     margin-left: 260px !important;
@@ -31,19 +28,18 @@
     min-height: 100vh !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+    background: var(--bg-app, #0B0E14) !important;
 }
 
-/* App content padding */
 .app-content {
     padding: 24px !important;
-    min-height: calc(100vh - 60px) !important;
+    min-height: calc(100vh - 56px) !important;
+    box-sizing: border-box !important;
 }
 
-/* ==========================================
-   2. MODALS - Centered, Scrollable, Visible
-   ========================================== */
-
-/* Modal backdrop - full screen overlay */
+/* --------------------------------------------------------------------------
+   2. Modals - Enterprise Dialog Architecture
+   -------------------------------------------------------------------------- */
 .modal-backdrop {
     position: fixed !important;
     top: 0 !important;
@@ -52,8 +48,9 @@
     bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: rgba(0, 0, 0, 0.6) !important;
-    backdrop-filter: blur(4px) !important;
+    background: rgba(0, 0, 0, 0.65) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
     z-index: 10000 !important;
     display: none !important;
     align-items: center !important;
@@ -63,168 +60,159 @@
     overflow-y: auto !important;
 }
 
-/* Modal backdrop when active */
 .modal-backdrop.active,
 .modal-backdrop.show {
     display: flex !important;
 }
 
-/* Modal dialog box */
 .modal-backdrop > .modal,
 .modal-dialog {
     position: relative !important;
     width: 100% !important;
-    max-width: 560px !important;
-    max-height: 80vh !important;
+    max-width: 580px !important;
+    max-height: 85vh !important;
     margin: auto !important;
-    background: white !important;
-    border-radius: 12px !important;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
+    background: var(--bg-elevated, #181C28) !important;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1)) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+    color: var(--text-primary, #F8FAFC) !important;
 }
 
-/* Modal header - fixed at top */
 .modal-header {
-    padding: 20px 24px !important;
-    border-bottom: 1px solid #e5e7eb !important;
+    padding: 18px 24px !important;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     flex-shrink: 0 !important;
-    background: white !important;
+    background: var(--bg-elevated, #181C28) !important;
 }
 
 .modal-title {
-    font-size: 18px !important;
+    font-size: 17px !important;
     font-weight: 600 !important;
-    color: #111827 !important;
+    color: var(--text-primary, #F8FAFC) !important;
     margin: 0 !important;
+    letter-spacing: -0.3px !important;
 }
 
 .modal-close {
     width: 32px !important;
     height: 32px !important;
-    display: flex !important;
+    display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
     background: transparent !important;
     cursor: pointer !important;
-    border-radius: 6px !important;
-    color: #6b7280 !important;
+    border-radius: 8px !important;
+    color: var(--text-secondary, #94A3B8) !important;
+    transition: all 0.15s ease !important;
 }
 
 .modal-close:hover {
-    background: #f3f4f6 !important;
-    color: #111827 !important;
+    background: var(--bg-hover, rgba(255, 255, 255, 0.08)) !important;
+    color: var(--text-primary, #F8FAFC) !important;
 }
 
-/* Modal body - scrollable */
 .modal-body {
     padding: 24px !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     flex: 1 1 auto !important;
-    max-height: calc(80vh - 160px) !important;
+    max-height: calc(85vh - 140px) !important;
+    background: var(--bg-elevated, #181C28) !important;
+    color: var(--text-primary, #F8FAFC) !important;
 }
 
-/* Modal footer - ALWAYS visible at bottom */
 .modal-footer {
     padding: 16px 24px !important;
-    border-top: 1px solid #e5e7eb !important;
+    border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
     gap: 12px !important;
     flex-shrink: 0 !important;
-    background: white !important;
+    background: var(--bg-elevated, #181C28) !important;
 }
 
-/* Form inside modal */
-.modal form {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-    overflow: hidden !important;
-}
-
-.modal form .modal-body {
-    flex: 1 1 auto !important;
-    overflow-y: auto !important;
-}
-
-.modal form .modal-footer {
-    flex-shrink: 0 !important;
-}
-
-/* ==========================================
-   3. BUTTONS - All Clickable & Visible
-   ========================================== */
-
-/* All buttons */
+/* --------------------------------------------------------------------------
+   3. Buttons - Disciplined Variants & Elevation
+   -------------------------------------------------------------------------- */
 button,
 .btn,
 [type="submit"],
 [type="button"] {
     cursor: pointer !important;
     pointer-events: auto !important;
-    position: relative !important;
+    font-family: inherit !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Primary button style */
 .btn-primary {
-    background: #2563eb !important;
-    color: white !important;
-    border: none !important;
+    background: #6366F1 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #4F46E5 !important;
     padding: 8px 16px !important;
-    border-radius: 6px !important;
-    font-weight: 500 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
 }
 
 .btn-primary:hover {
-    background: #1d4ed8 !important;
+    background: #4F46E5 !important;
+    border-color: #4338CA !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25) !important;
 }
 
-/* Secondary button */
 .btn-secondary {
-    background: #f3f4f6 !important;
-    color: #374151 !important;
-    border: 1px solid #d1d5db !important;
+    background: var(--btn-secondary-bg, rgba(255, 255, 255, 0.06)) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12)) !important;
     padding: 8px 16px !important;
-    border-radius: 6px !important;
 }
 
-/* Modal footer buttons - MUST be visible */
-.modal-footer button,
-.modal-footer .btn {
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    min-height: 36px !important;
+.btn-secondary:hover {
+    background: var(--btn-secondary-hover, rgba(255, 255, 255, 0.1)) !important;
+    border-color: var(--border-focus, rgba(99, 102, 241, 0.4)) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* ==========================================
-   4. FORM ELEMENTS - Dropdowns & Inputs
-   ========================================== */
-
-/* All select dropdowns */
+/* --------------------------------------------------------------------------
+   4. Form Elements - Dropdowns, Inputs & Selects
+   -------------------------------------------------------------------------- */
 select,
 .form-select {
     width: 100% !important;
     padding: 8px 12px !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 6px !important;
-    background: white !important;
-    color: #111827 !important;
+    border: 1px solid var(--input-border, rgba(255, 255, 255, 0.1)) !important;
+    border-radius: 8px !important;
+    background-color: var(--input-bg, rgba(255, 255, 255, 0.04)) !important;
+    color: var(--text-primary, #F8FAFC) !important;
     cursor: pointer !important;
-    appearance: auto !important;
+    font-size: 13px !important;
+    outline: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-/* Form inputs */
+select option,
+.form-select option {
+    background-color: var(--bg-elevated, #181C28) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+}
+
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -235,13 +223,29 @@ textarea,
 .form-textarea {
     width: 100% !important;
     padding: 8px 12px !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 6px !important;
-    background: white !important;
-    color: #111827 !important;
+    border: 1px solid var(--input-border, rgba(255, 255, 255, 0.1)) !important;
+    border-radius: 8px !important;
+    background-color: var(--input-bg, rgba(255, 255, 255, 0.04)) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+    font-size: 13px !important;
+    outline: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-/* Form groups */
+select:focus,
+.form-select:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+.form-input:focus,
+.form-textarea:focus {
+    border-color: #6366F1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+
 .form-group {
     margin-bottom: 16px !important;
 }
@@ -249,127 +253,97 @@ textarea,
 .form-label {
     display: block !important;
     margin-bottom: 6px !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
-    color: #374151 !important;
+    color: var(--text-secondary, #94A3B8) !important;
 }
 
-/* Grid layouts in forms */
-.grid {
-    display: grid !important;
-}
-
-.grid-cols-2 {
-    grid-template-columns: repeat(2, 1fr) !important;
-}
-
-.gap-4 {
-    gap: 16px !important;
-}
-
-/* ==========================================
-   5. DROPDOWNS - Header Create Menu
-   ========================================== */
-
-/* Create button wrapper */
-.create-btn-wrapper {
-    position: relative !important;
-    z-index: 1000 !important;
-}
-
-/* Create dropdown menu */
-#createDropdown,
-.create-dropdown {
+/* --------------------------------------------------------------------------
+   5. Dropdowns & Menus
+   -------------------------------------------------------------------------- */
+.dropdown-menu,
+.create-dropdown,
+#createDropdown {
     position: absolute !important;
-    top: 100% !important;
-    right: 0 !important;
-    margin-top: 8px !important;
-    min-width: 320px !important;
-    max-height: 500px !important;
-    overflow-y: auto !important;
-    background: white !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 8px !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+    background: var(--bg-elevated, #181C28) !important;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1)) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+    color: var(--text-primary, #F8FAFC) !important;
     z-index: 10500 !important;
-    display: none !important;
 }
 
-#createDropdown.show,
-#createDropdown.active {
-    display: block !important;
+.dropdown-item {
+    color: var(--text-primary, #F8FAFC) !important;
+    padding: 8px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
+    border-radius: 6px !important;
+    transition: background-color 0.15s ease !important;
 }
 
-/* ==========================================
-   6. HEADER - Navigation Bar
-   ========================================== */
+.dropdown-item:hover {
+    background: var(--bg-hover, rgba(255, 255, 255, 0.06)) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+}
 
+/* --------------------------------------------------------------------------
+   6. Header & Navigation Bar
+   -------------------------------------------------------------------------- */
 .app-header {
     position: sticky !important;
     top: 0 !important;
     z-index: 90 !important;
-    background: var(--bg-primary, white) !important;
-    border-bottom: 1px solid var(--border-color, #e5e7eb) !important;
-    padding: 12px 24px !important;
+    background: var(--bg-surface, #0F121C) !important;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
+    padding: 0 24px !important;
+    height: 56px !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
-
-.header-right {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-}
-
-.header-icon-btn {
-    width: 36px !important;
-    height: 36px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: none !important;
-    background: transparent !important;
-    cursor: pointer !important;
-    border-radius: 6px !important;
-}
-
-.header-icon-btn:hover {
-    background: var(--bg-hover, #f3f4f6) !important;
-}
-
-/* ==========================================
-   7. SIDEBAR NAVIGATION
-   ========================================== */
 
 .sidebar-nav-item {
     display: flex !important;
     align-items: center !important;
     gap: 12px !important;
-    padding: 8px 16px !important;
-    color: var(--text-secondary, #9ca3af) !important;
+    padding: 8px 14px !important;
+    color: var(--text-secondary, #94A3B8) !important;
     text-decoration: none !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
     cursor: pointer !important;
-    transition: all 0.15s !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: all 0.15s ease !important;
 }
 
-.sidebar-nav-item:hover,
+.sidebar-nav-item:hover {
+    background: var(--bg-hover, rgba(255, 255, 255, 0.05)) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+}
+
 .sidebar-nav-item.active {
-    background: var(--bg-hover, rgba(255,255,255,0.1)) !important;
-    color: var(--text-primary, white) !important;
+    background: rgba(99, 102, 241, 0.12) !important;
+    color: #818CF8 !important;
+    font-weight: 600 !important;
 }
 
-/* ==========================================
-   8. CARDS & STATS
-   ========================================== */
-
+/* --------------------------------------------------------------------------
+   7. Cards & Containers
+   -------------------------------------------------------------------------- */
 .card {
-    background: var(--bg-primary, white) !important;
-    border: 1px solid var(--border-color, #e5e7eb) !important;
+    background: var(--bg-surface, #12151E) !important;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
     border-radius: 12px !important;
-    overflow: visible !important;
+    overflow: hidden !important;
+    color: var(--text-primary, #F8FAFC) !important;
 }
 
 .card-header {
     padding: 16px 20px !important;
-    border-bottom: 1px solid var(--border-color, #e5e7eb) !important;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
+    background: transparent !important;
 }
 
 .card-body {
@@ -377,46 +351,46 @@ textarea,
 }
 
 .stat-card {
-    background: var(--bg-primary, white) !important;
-    border: 1px solid var(--border-color, #e5e7eb) !important;
+    background: var(--bg-surface, #12151E) !important;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
     border-radius: 12px !important;
     padding: 20px !important;
+    color: var(--text-primary, #F8FAFC) !important;
 }
 
-/* ==========================================
-   9. TABLES
-   ========================================== */
-
+/* --------------------------------------------------------------------------
+   8. Tables
+   -------------------------------------------------------------------------- */
 .table {
     width: 100% !important;
     border-collapse: collapse !important;
 }
 
-.table th,
+.table th {
+    padding: 12px 16px !important;
+    text-align: left !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    color: var(--text-secondary, #94A3B8) !important;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
+}
+
 .table td {
     padding: 12px 16px !important;
     text-align: left !important;
-    border-bottom: 1px solid var(--border-color, #e5e7eb) !important;
+    font-size: 13px !important;
+    color: var(--text-primary, #F8FAFC) !important;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06)) !important;
 }
 
-/* ==========================================
-   10. SCROLLING FIXES
-   ========================================== */
-
-/* Prevent body scroll when modal open */
-body.modal-open {
-    overflow: hidden !important;
-}
-
-/* Smooth scrolling */
-html {
-    scroll-behavior: smooth !important;
-}
-
-/* Custom scrollbar */
+/* --------------------------------------------------------------------------
+   9. Scrollbars & Utilities
+   -------------------------------------------------------------------------- */
 ::-webkit-scrollbar {
-    width: 8px !important;
-    height: 8px !important;
+    width: 6px !important;
+    height: 6px !important;
 }
 
 ::-webkit-scrollbar-track {
@@ -424,94 +398,17 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #d1d5db !important;
-    border-radius: 4px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-radius: 3px !important;
+}
+
+body[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15) !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af !important;
+    background: rgba(255, 255, 255, 0.25) !important;
 }
-
-/* ==========================================
-   11. RESPONSIVE - Mobile Fixes
-   ========================================== */
-
-@media (max-width: 768px) {
-    .app-sidebar,
-    .sidebar {
-        transform: translateX(-100%) !important;
-        z-index: 200 !important;
-    }
-    
-    .app-sidebar.open,
-    .sidebar.open {
-        transform: translateX(0) !important;
-    }
-    
-    .app-main,
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-    }
-    
-    .modal-backdrop > .modal {
-        max-width: 95% !important;
-        max-height: 90vh !important;
-    }
-    
-    .grid-cols-2 {
-        grid-template-columns: 1fr !important;
-    }
-}
-
-/* ==========================================
-   12. DARK MODE SUPPORT
-   ========================================== */
-
-[data-theme="dark"] .modal-backdrop > .modal,
-[data-theme="dark"] .modal-header,
-[data-theme="dark"] .modal-body,
-[data-theme="dark"] .modal-footer {
-    background: #1f2937 !important;
-    color: #f9fafb !important;
-}
-
-[data-theme="dark"] .modal-header,
-[data-theme="dark"] .modal-footer {
-    border-color: #374151 !important;
-}
-
-[data-theme="dark"] input,
-[data-theme="dark"] select,
-[data-theme="dark"] textarea {
-    background: #374151 !important;
-    border-color: #4b5563 !important;
-    color: #f9fafb !important;
-}
-
-[data-theme="dark"] .btn-secondary {
-    background: #374151 !important;
-    color: #f9fafb !important;
-    border-color: #4b5563 !important;
-}
-
-/* ==========================================
-   13. Z-INDEX HIERARCHY
-   ========================================== */
-/*
-   Base content: 1
-   Sidebar: 100
-   Header: 90
-   Dropdown menus: 1000
-   Modal backdrop: 10000
-   Modal dialog: 10001
-   Create dropdown: 10500
-   Tooltips: 11000
-*/
-
-/* ==========================================
-   14. UTILITY CLASSES
-   ========================================== */
 
 .flex { display: flex !important; }
 .flex-col { flex-direction: column !important; }
