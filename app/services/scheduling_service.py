@@ -377,3 +377,145 @@ class SchedulingService:
         except Exception as e:
             db.session.rollback()
             return False, f'Error committing schedule: {str(e)}', 0
+
+    # --------------------------------------------------------------------------
+    # Milestone Management
+    # --------------------------------------------------------------------------
+    @staticmethod
+    def create_milestone(project_id, name, target_date, description=None, owner_id=None, created_by=None):
+        """Create a delivery milestone."""
+        from app.models import Milestone, Project, db
+        try:
+            project = Project.query.get(project_id)
+            if not project:
+                return False, None, 'Project not found'
+            
+            t_date = to_date(target_date)
+            if not t_date:
+                return False, None, 'Valid target date required'
+
+            if not name or not name.strip():
+                return False, None, 'Milestone name is required'
+
+            milestone = Milestone(
+                project_id=project_id,
+                name=name.strip(),
+                description=description.strip() if description else None,
+                target_date=t_date,
+                owner_id=int(owner_id) if owner_id else None
+            )
+            db.session.add(milestone)
+            db.session.commit()
+
+            if created_by:
+                log_security_event(
+                    'MILESTONE_CREATED',
+                    user_id=created_by,
+                    details=f'Created milestone {milestone.name} for project {project.key}',
+                    severity='INFO'
+                )
+
+            return True, milestone, 'Milestone created successfully'
+        except Exception as e:
+            db.session.rollback()
+            return False, None, f'Error creating milestone: {str(e)}'
+
+    @staticmethod
+    def update_milestone(milestone_id, data, updated_by=None):
+        """Update an existing milestone."""
+        from app.models import Milestone, db
+        try:
+            milestone = Milestone.query.get(milestone_id)
+            if not milestone:
+                return False, None, 'Milestone not found'
+
+            if 'name' in data and data['name']:
+                milestone.name = data['name'].strip()
+            if 'description' in data:
+                milestone.description = data['description'].strip() if data['description'] else None
+            if 'target_date' in data and data['target_date']:
+                t_date = to_date(data['target_date'])
+                if t_date:
+                    milestone.target_date = t_date
+            if 'status' in data and data['status'] in ['open', 'completed', 'missed']:
+                milestone.status = data['status']
+                if data['status'] == 'completed':
+                    milestone.completed_at = datetime.utcnow()
+                else:
+                    milestone.completed_at = None
+            if 'owner_id' in data:
+                milestone.owner_id = int(data['owner_id']) if data['owner_id'] else None
+
+            db.session.commit()
+            return True, milestone, 'Milestone updated successfully'
+        except Exception as e:
+            db.session.rollback()
+            return False, None, f'Error updating milestone: {str(e)}'
+
+    @staticmethod
+    def delete_milestone(milestone_id, deleted_by=None):
+        """Delete a milestone."""
+        from app.models import Milestone, db
+        try:
+            milestone = Milestone.query.get(milestone_id)
+            if not milestone:
+                return False, 'Milestone not found'
+            db.session.delete(milestone)
+            db.session.commit()
+            return True, 'Milestone deleted successfully'
+        except Exception as e:
+            db.session.rollback()
+            return False, f'Error deleting milestone: {str(e)}'
+
+    @staticmethod
+    def get_project_milestones(project_id):
+        """Get all milestones for a project ordered by target date."""
+        from app.models import Milestone
+        return Milestone.query.filter_by(project_id=project_id).order_by(Milestone.target_date.asc()).all()
+
+    # --------------------------------------------------------------------------
+    # Working Calendar Management
+    # --------------------------------------------------------------------------
+    @staticmethod
+    def get_or_create_calendar(project_id):
+        """Get or initialize the project working calendar."""
+        from app.models import WorkingCalendar, Project, db
+        cal = WorkingCalendar.query.filter_by(project_id=project_id).first()
+        if not cal:
+            cal = WorkingCalendar(
+                project_id=project_id,
+                name='Project Default Calendar',
+                working_days='0,1,2,3,4',  # Mon-Fri
+                hours_per_day=8.0,
+                holidays_json='[]'
+            )
+            db.session.add(cal)
+            db.session.commit()
+        return cal
+
+    @staticmethod
+    def update_calendar(project_id, data, updated_by=None):
+        """Update working days, daily hours, and holiday exceptions."""
+        from app.models import WorkingCalendar, db
+        try:
+            cal = SchedulingService.get_or_create_calendar(project_id)
+            if 'name' in data and data['name']:
+                cal.name = data['name'].strip()
+            if 'working_days' in data:
+                cal.working_days = str(data['working_days'])
+            if 'hours_per_day' in data:
+                cal.hours_per_day = float(data['hours_per_day'])
+            if 'holidays' in data:
+                hols = data['holidays']
+                if isinstance(hols, list):
+                    cal.holidays_json = json.dumps(hols)
+                elif isinstance(hols, str):
+                    cal.holidays_json = hols
+            if 'timezone' in data:
+                cal.timezone = str(data['timezone'])
+
+            db.session.commit()
+            return True, cal, 'Calendar updated successfully'
+        except Exception as e:
+            db.session.rollback()
+            return False, None, f'Error updating calendar: {str(e)}'

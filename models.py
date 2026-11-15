@@ -1,12 +1,13 @@
 # models.py - Complete Jira-style Database Models with Ring 0 Hardened Security
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import datetime, timezone
+from datetime import datetime, date, timedelta, timezone
 from cryptography.fernet import Fernet
 from werkzeug.security import generate_password_hash, check_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import hashlib
+import json
 import os
 
 db = SQLAlchemy()
@@ -973,4 +974,123 @@ class FacialIDData(db.Model):
             'device_info': self.device_info,
             'camera_type': self.camera_type,
             'capture_quality': self.capture_quality,
+        }
+
+
+# ==============================================================================
+# Phase 3: Project Intelligence, Working Calendars, Milestones & Baselines
+# ==============================================================================
+
+class Milestone(db.Model):
+    """Milestone representing key delivery points, target deadlines, and checkpoints."""
+    __tablename__ = 'milestone'
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=False, index=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    target_date = db.Column(db.Date, nullable=False, index=True)
+    status = db.Column(db.String(20), default='open', index=True)  # open, completed, missed
+    completed_at = db.Column(db.DateTime, nullable=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    project = db.relationship('Project', backref=db.backref('milestones', lazy='dynamic', cascade='all, delete-orphan'))
+    owner = db.relationship('User', foreign_keys=[owner_id])
+
+    @property
+    def is_overdue(self):
+        if self.status == 'completed':
+            return False
+        return self.target_date < date.today()
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'project_id': self.project_id,
+            'name': self.name,
+            'description': self.description,
+            'target_date': self.target_date.isoformat() if self.target_date else None,
+            'status': self.status,
+            'is_overdue': self.is_overdue,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'owner_id': self.owner_id,
+            'owner_name': self.owner.username if self.owner else 'Unassigned',
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
+class WorkingCalendar(db.Model):
+    """Working calendar defining working days, daily hours, and holiday exceptions."""
+    __tablename__ = 'working_calendar'
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=True, index=True)
+    name = db.Column(db.String(100), nullable=False, default='Standard Calendar')
+    working_days = db.Column(db.String(50), default='0,1,2,3,4')  # 0=Monday .. 6=Sunday
+    hours_per_day = db.Column(db.Float, default=8.0)
+    holidays_json = db.Column(db.Text, default='[]')  # JSON array of "YYYY-MM-DD"
+    timezone = db.Column(db.String(50), default='UTC')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    project = db.relationship('Project', backref=db.backref('working_calendar', uselist=False))
+
+    def is_working_day(self, check_date):
+        d = check_date if isinstance(check_date, date) else (check_date.date() if isinstance(check_date, datetime) else None)
+        if not d:
+            return False
+        valid_days = [int(x.strip()) for x in self.working_days.split(',') if x.strip().isdigit()]
+        if d.weekday() not in valid_days:
+            return False
+        try:
+            hols = json.loads(self.holidays_json or '[]')
+        except Exception:
+            hols = []
+        if d.isoformat() in hols:
+            return False
+        return True
+
+    def add_working_days(self, start_d, days):
+        """Add working days to a start date, skipping non-working days and holidays."""
+        curr = start_d if isinstance(start_d, date) else (start_d.date() if isinstance(start_d, datetime) else None)
+        if not curr:
+            return None
+        days = int(days)
+        if days == 0:
+            return curr
+        step = 1 if days > 0 else -1
+        remaining = abs(days)
+        while remaining > 0:
+            curr += timedelta(days=step)
+            if self.is_working_day(curr):
+                remaining -= 1
+        return curr
+
+    def working_days_between(self, start_d, end_d):
+        """Count working days between start_d and end_d inclusive."""
+        s = start_d if isinstance(start_d, date) else (start_d.date() if isinstance(start_d, datetime) else None)
+        e = end_d if isinstance(end_d, date) else (end_d.date() if isinstance(end_d, datetime) else None)
+        if not s or not e or s > e:
+            return 0
+        cnt = 0
+        curr = s
+        while curr <= e:
+            if self.is_working_day(curr):
+                cnt += 1
+            curr += timedelta(days=1)
+        return cnt
+
+    def to_dict(self):
+        try:
+            hols = json.loads(self.holidays_json or '[]')
+        except Exception:
+            hols = []
+        return {
+            'id': self.id,
+            'project_id': self.project_id,
+            'name': self.name,
+            'working_days': self.working_days,
+            'hours_per_day': self.hours_per_day,
+            'holidays': hols,
+            'timezone': self.timezone
         }
