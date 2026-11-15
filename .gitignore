@@ -60,8 +60,10 @@ virtualenv/
 .spyproject
 .spyderproject
 
-# Testing
-# -------
+# Testing (Local Only)
+# --------------------
+tests/
+pytest.ini
 .pytest_cache/
 .coverage
 coverage.xml
@@ -71,6 +73,14 @@ htmlcov/
 .nox/
 .hypothesis/
 nosetests.xml
+
+# Development Scratch & Local Scripts
+# -----------------------------------
+scripts/
+notes/
+scratch/
+test_*.py
+*.scratch.*
 
 # Database Files
 # --------------
