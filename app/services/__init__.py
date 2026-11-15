@@ -7,6 +7,8 @@ from .project_service import ProjectService
 from .issue_service import IssueService
 from .report_service import ReportService
 from .audit_service import AuditService
+from .scheduling_service import SchedulingService
+from .resource_service import ResourceService
 
 __all__ = [
     'AuthService',
@@ -14,5 +16,7 @@ __all__ = [
     'ProjectService',
     'IssueService',
     'ReportService',
-    'AuditService'
+    'AuditService',
+    'SchedulingService',
+    'ResourceService'
 ]
