@@ -210,6 +210,12 @@ def rate_limit(key, max_requests, window_seconds):
     Check if rate limit is exceeded.
     Returns True if request should be allowed.
     """
+    from flask import current_app
+    if current_app and current_app.config.get('ENV') == 'development' and not current_app.config.get('TESTING'):
+        # In development mode, relax localhost rate limits to prevent developer lockout
+        if '127.0.0.1' in key or 'localhost' in key:
+            max_requests = max(max_requests, 100)
+
     now = datetime.utcnow()
     window_key = f"{key}:{now.strftime('%Y%m%d%H%M')}"
     

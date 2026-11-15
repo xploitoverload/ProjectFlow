@@ -100,7 +100,10 @@ def login_required(f):
         is_valid, message = _check_session_valid()
         
         if not is_valid:
-            flash(message or 'Please log in to continue', 'warning')
+            if message == 'Session expired':
+                flash('Your session has expired. Please sign in again.', 'warning')
+            elif message == 'Invalid session':
+                flash('Your session is invalid. Please sign in again.', 'warning')
             
             # Store the original URL for redirect after login
             # Use request.full_path to include query string, starts with /
