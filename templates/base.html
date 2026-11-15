@@ -310,7 +310,8 @@
         </main>
     </div>
 
-    <!-- Notification Panel -->
+    <!-- Notification Panel Backdrop & Drawer -->
+    <div class="notification-drawer-backdrop" id="notificationBackdrop"></div>
     <div class="notification-panel" id="notificationPanel">
         <div class="notification-panel-header">
             <h3 class="notification-panel-title">Notifications</h3>
@@ -365,30 +366,43 @@
                 console.log('Base: Theme toggle button initialized');
             }
 
-            // Notification Button
+            // Slide-Over Notification Drawer
             const notificationBtn = document.getElementById('notificationBtn');
             const notificationPanel = document.getElementById('notificationPanel');
+            const notificationBackdrop = document.getElementById('notificationBackdrop');
             const closeNotifications = document.getElementById('closeNotifications');
             
-            if (notificationBtn && notificationPanel) {
-                notificationBtn.addEventListener('click', function() {
-                    notificationPanel.classList.toggle('show');
-                });
-                console.log('Base: Notification button initialized');
+            function toggleNotifications() {
+                if (!notificationPanel) return;
+                const isOpen = notificationPanel.classList.toggle('show');
+                if (notificationBackdrop) {
+                    notificationBackdrop.classList.toggle('show', isOpen);
+                }
+            }
+
+            function closeNotificationsPanel() {
+                if (notificationPanel) notificationPanel.classList.remove('show');
+                if (notificationBackdrop) notificationBackdrop.classList.remove('show');
             }
             
-            if (closeNotifications && notificationPanel) {
-                closeNotifications.addEventListener('click', function() {
-                    notificationPanel.classList.remove('show');
-                });
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', toggleNotifications);
+            }
+            
+            if (closeNotifications) {
+                closeNotifications.addEventListener('click', closeNotificationsPanel);
+            }
+
+            if (notificationBackdrop) {
+                notificationBackdrop.addEventListener('click', closeNotificationsPanel);
             }
 
             // Sidebar Notifications
             const sidebarNotifications = document.getElementById('sidebarNotifications');
-            if (sidebarNotifications && notificationPanel) {
+            if (sidebarNotifications) {
                 sidebarNotifications.addEventListener('click', function(e) {
                     e.preventDefault();
-                    notificationPanel.classList.toggle('show');
+                    toggleNotifications();
                 });
             }
 

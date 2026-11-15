@@ -2,6 +2,14 @@
 
 {% block title %}Advanced Search - ProjectFlow{% endblock %}
 
+{% block breadcrumb %}
+<div class="header-breadcrumb">
+    <a href="{{ url_for('main.dashboard') }}">Home</a>
+    <span class="iconify header-breadcrumb-separator" data-icon="solar:alt-arrow-right-linear" style="width: 14px; height: 14px;"></span>
+    <span class="header-breadcrumb-current">Filters &amp; Search</span>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="page-container">
     <div id="searchContainer">
