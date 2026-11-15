@@ -52,12 +52,14 @@ body {
 }
 
 .landing-nav-container {
-  max-width: 1280px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 clamp(1.25rem, 3.5vw, 2.5rem);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .landing-logo {
@@ -181,12 +183,14 @@ body {
   padding-bottom: 80px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: 3.5rem;
   align-items: center;
-  max-width: 1280px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding-left: 2rem;
-  padding-right: 2rem;
+  padding-left: clamp(1.25rem, 3.5vw, 2.5rem);
+  padding-right: clamp(1.25rem, 3.5vw, 2.5rem);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .landing-hero-content h1 {
@@ -375,16 +379,24 @@ body {
   font-size: 1.125rem;
 }
 
+.landing-features {
+  padding: 5rem clamp(1.25rem, 3.5vw, 2.5rem);
+  max-width: 1180px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+}
+
 .landing-features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  max-width: 1280px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .landing-feature-card {
-  padding: 2rem;
+  padding: 1.75rem;
   background: var(--dark-bg);
   border: 1px solid var(--dark-border);
   border-radius: 0.75rem;
@@ -426,9 +438,11 @@ body {
    ============================================ */
 
 .landing-how {
-  padding: 5rem 2rem;
-  max-width: 1280px;
+  padding: 5rem clamp(1.25rem, 3.5vw, 2.5rem);
+  max-width: 1180px;
   margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .landing-steps {
@@ -501,20 +515,22 @@ body {
 .landing-footer {
   background: var(--dark-surface);
   border-top: 1px solid var(--dark-border);
-  padding: 3rem 2rem 1.5rem;
+  padding: 3rem clamp(1.25rem, 3.5vw, 2.5rem) 1.5rem;
 }
 
 .landing-footer-content {
-  max-width: 1280px;
+  max-width: 1180px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr repeat(3, 1fr);
-  gap: 3rem;
+  grid-template-columns: 1.2fr repeat(3, 1fr);
+  gap: 2.5rem;
   margin-bottom: 2rem;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .landing-footer-brand {
-  max-width: 200px;
+  max-width: 240px;
 }
 
 .landing-footer-brand p {
@@ -556,21 +572,31 @@ body {
 @media (max-width: 768px) {
   .landing-hero {
     grid-template-columns: 1fr;
-    padding-top: 100px;
-    padding-bottom: 60px;
+    padding-top: 90px;
+    padding-bottom: 50px;
     gap: 2rem;
   }
 
   .landing-hero-content h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
   .landing-hero-actions {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .landing-mockup {
+    transform: none !important;
+    max-width: 100%;
   }
 
   .landing-nav-links {
     display: none;
+  }
+
+  .landing-nav-actions {
+    gap: 0.5rem;
   }
 
   .landing-logo {

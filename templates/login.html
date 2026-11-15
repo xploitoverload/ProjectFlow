@@ -49,8 +49,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            padding: 1.5rem 1rem;
             position: relative;
+            overflow-y: auto;
+            max-height: 100vh;
         }
 
         .auth-left::before {
@@ -72,8 +74,9 @@
             background: var(--dark-surface);
             border: 1px solid var(--dark-border);
             border-radius: 0.75rem;
-            padding: 2.5rem;
+            padding: 1.6rem 2rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: auto 0;
         }
 
         .auth-logo {
@@ -81,12 +84,12 @@
             align-items: center;
             justify-content: center;
             gap: 0.75rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.85rem;
         }
 
         .auth-logo-icon {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, #0284c7 0%, #9333ea 100%);
             border-radius: 0.5rem;
             display: flex;
@@ -96,29 +99,29 @@
         }
 
         .auth-logo-text {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: white;
         }
 
         .auth-title {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
             text-align: center;
         }
 
         .auth-subtitle {
-            font-size: 0.95rem;
+            font-size: 0.875rem;
             color: var(--dark-text-muted);
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.15rem;
         }
 
         .auth-form {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 0.95rem;
         }
 
         .form-group {
@@ -127,21 +130,21 @@
 
         label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.35rem;
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.875rem;
         }
 
         input[type="text"],
         input[type="password"] {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.65rem 0.85rem;
             background: var(--dark-bg);
             color: var(--dark-text);
             border: 1px solid var(--dark-border);
             border-radius: 0.5rem;
             font-family: inherit;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transition: all 0.2s ease;
         }
 
@@ -231,20 +234,21 @@
         }
 
         .btn-lg {
-            padding: 0.85rem 1.5rem;
+            padding: 0.68rem 1.25rem;
+            font-size: 0.9rem;
         }
 
         .auth-footer {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
+            margin-top: 1rem;
+            padding-top: 0.85rem;
             border-top: 1px solid var(--dark-border);
             text-align: center;
         }
 
         .auth-footer p {
             color: var(--dark-text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
         }
 
         .auth-footer-badges {
@@ -523,13 +527,13 @@
 
                     <!-- Facial Login for Admins -->
                     <!-- Note: Facial login is available after admin enrollment -->
-                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--dark-border);">
-                        <p style="font-size: 0.85rem; color: var(--dark-text-muted); margin-bottom: 0.75rem;">Admin access:</p>
-                        <a href="{{ url_for('admin_secure.facial_login') }}" class="btn btn-secondary" style="width: 100%; justify-content: center; text-decoration: none;">
-                            <span class="iconify" data-icon="solar:face-scan-bold" style="width: 18px; height: 18px;"></span>
+                    <div style="margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--dark-border);">
+                        <p style="font-size: 0.8rem; color: var(--dark-text-muted); margin-bottom: 0.5rem;">Admin access:</p>
+                        <a href="{{ url_for('admin_secure.facial_login') }}" class="btn btn-secondary" style="width: 100%; justify-content: center; text-decoration: none; padding: 0.55rem 1rem; font-size: 0.85rem;">
+                            <span class="iconify" data-icon="solar:face-scan-bold" style="width: 16px; height: 16px;"></span>
                             Sign in with Facial ID
                         </a>
-                        <p style="font-size: 0.75rem; color: var(--dark-text-muted); margin-top: 0.5rem;">Use your enrolled face to login securely.</p>
+                        <p style="font-size: 0.72rem; color: var(--dark-text-muted); margin-top: 0.35rem;">Use your enrolled face to login securely.</p>
                     </div>
                 </form>
 
