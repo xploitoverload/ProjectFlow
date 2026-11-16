@@ -15,6 +15,7 @@ import hmac
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, InvalidHash
 import logging
+from app.crypto import crypto_manager
 
 # Initialize Argon2 password hasher with secure parameters
 ph = PasswordHasher(
@@ -55,37 +56,22 @@ def validate_csrf_token(token):
 
 def hash_password(password):
     """
-    Hash password using Argon2id (winner of Password Hashing Competition).
-    More secure than bcrypt and scrypt.
+    Hash password using active pluggable cryptographic provider (defaults to Argon2id).
+    Supports user-customized cryptographic algorithms via config or CryptoManager.
     """
-    return ph.hash(password)
+    return crypto_manager.hash_password(password)
 
 
 def verify_password(stored_hash, password):
-    """Verify password against both Argon2 and PBKDF2 hashes."""
-    # Try Argon2 first
-    try:
-        ph.verify(stored_hash, password)
-        # Check if rehash is needed (parameters may have changed)
-        if ph.check_needs_rehash(stored_hash):
-            return True, hash_password(password)
-        return True, None
-    except (VerifyMismatchError, InvalidHash):
-        pass
+    """
+    Verify password against stored hash using pluggable cryptographic providers.
+    Supports Argon2id, PBKDF2, Scrypt, Bcrypt, and user-defined custom algorithms.
+    Automatically flags and computes rehash if password needs algorithm upgrade.
     
-    # Fall back to PBKDF2 (werkzeug format)
-    if stored_hash.startswith('pbkdf2:'):
-        try:
-            from werkzeug.security import check_password_hash
-            if check_password_hash(stored_hash, password):
-                # Rehash with Argon2
-                return True, hash_password(password)
-            return False, None
-        except (ValueError, TypeError, Exception) as e:
-            logging.getLogger(__name__).debug("PBKDF2 verification exception: %s", e)
-            return False, None
-    
-    return False, None
+    Returns:
+        (is_valid: bool, new_hash_if_rehash_needed: Optional[str])
+    """
+    return crypto_manager.verify_password(stored_hash, password)
 
 
 def sanitize_input(text, allow_html=False):

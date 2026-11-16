@@ -418,10 +418,9 @@ class BiometricEngine:
             db.session.add(audit)
             db.session.commit()
 
-            # Establish authenticated session
-            session['user_id'] = best_user.id
-            session['username'] = best_user.username
-            session['role'] = best_user.role
+            # Establish authenticated session with cryptographic fingerprinting
+            from app.services.auth_service import AuthService
+            AuthService.create_session(best_user)
             session['biometric_authenticated'] = True
             session['biometric_auth_time'] = time.time()
 

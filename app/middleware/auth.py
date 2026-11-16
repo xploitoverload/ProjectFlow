@@ -60,10 +60,52 @@ PERMISSIONS = {
 
 
 def _check_session_valid():
-    """Check if session is valid and not expired."""
+    """Check if session is valid, active, and not expired or hijacked."""
     if 'user_id' not in session:
         return False, 'No active session'
     
+    # Check if session token was invalidated
+    session_token = session.get('session_token')
+    if session_token:
+        try:
+            from app.security.session_security import _invalidated_sessions
+            if session_token in _invalidated_sessions:
+                session.clear()
+                return False, 'Session has been invalidated'
+        except Exception:
+            pass
+    
+    # Verify user exists in database and is currently active
+    try:
+        from app.models import User
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_active:
+            session.clear()
+            return False, 'Account is inactive or disabled'
+        # Keep session role and team synchronized with DB
+        session['role'] = user.role
+        session['team_id'] = user.team_id
+    except Exception:
+        pass
+
+    # Check session fingerprint (anti-hijacking)
+    stored_fingerprint = session.get('fingerprint')
+    if stored_fingerprint:
+        try:
+            from app.services.auth_service import AuthService
+            current_fp = AuthService._generate_fingerprint()
+            if stored_fingerprint != current_fp:
+                log_security_event(
+                    'SESSION_HIJACK_ATTEMPT',
+                    user_id=session.get('user_id'),
+                    details='Session fingerprint mismatch across requests',
+                    severity='CRITICAL'
+                )
+                session.clear()
+                return False, 'Session security validation failed'
+        except Exception:
+            pass
+
     # Check session timeout (configurable, default 30 minutes)
     last_activity = session.get('last_activity')
     timeout_minutes = current_app.config.get('SESSION_TIMEOUT_MINUTES', 30)

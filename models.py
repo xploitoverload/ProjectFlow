@@ -9,6 +9,7 @@ from argon2.exceptions import VerifyMismatchError
 import hashlib
 import json
 import os
+from app.crypto import crypto_manager
 
 db = SQLAlchemy()
 _hasher = PasswordHasher()
@@ -32,18 +33,21 @@ def get_encryption_key():
     return b'SSPcxXLWjHXEAw4EvOOkBQ9bxocTd8m1O-0VaHe8bRc='
 
 ENCRYPTION_KEY = get_encryption_key()
+crypto_manager.set_master_key(ENCRYPTION_KEY)
 cipher = Fernet(ENCRYPTION_KEY)
 
 def encrypt_field(data):
+    """Encrypt field data using active authenticated cipher (AES-256-GCM / ChaCha20 / Fernet)."""
     if data is None:
         return None
-    return cipher.encrypt(data.encode()).decode()
+    return crypto_manager.encrypt(data, key=ENCRYPTION_KEY)
 
 def decrypt_field(data):
+    """Decrypt field data with transparent multi-cipher auto-detection."""
     if data is None:
         return None
     try:
-        return cipher.decrypt(data.encode()).decode()
+        return crypto_manager.decrypt(data, key=ENCRYPTION_KEY)
     except (ValueError, TypeError, Exception):
         return None
 
@@ -119,29 +123,24 @@ class User(UserMixin, db.Model):
             return f'{days}d ago'
     
     def set_password(self, password):
-        """Hash password using memory-hard Argon2id (OWASP standard)"""
-        self.password = _hasher.hash(password)
+        """Hash password using active pluggable cryptographic provider (defaults to Argon2id)."""
+        self.password = crypto_manager.hash_password(password)
     
     def check_password(self, password):
-        """Verify password with Argon2id; supports transparent migration from legacy PBKDF2"""
+        """
+        Verify password against pluggable cryptographic providers (Argon2id, PBKDF2, Scrypt, Bcrypt, Custom).
+        Transparently migrates/rehashes outdated or legacy hashes to active algorithm on success.
+        """
         if not self.password:
             return False
-        if self.password.startswith('$argon2'):
+        is_valid, new_hash = crypto_manager.verify_password(self.password, password)
+        if is_valid and new_hash:
             try:
-                return _hasher.verify(self.password, password)
-            except VerifyMismatchError:
-                return False
-            except Exception:
-                return False
-        # Fallback verification for legacy hashes
-        legacy_valid = check_password_hash(self.password, password)
-        if legacy_valid:
-            try:
-                self.password = _hasher.hash(password)
+                self.password = new_hash
                 db.session.commit()
             except Exception:
                 pass
-        return legacy_valid
+        return is_valid
     
     @classmethod
     def find_by_email(cls, email):

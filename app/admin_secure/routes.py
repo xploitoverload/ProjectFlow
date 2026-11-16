@@ -954,7 +954,8 @@ def create_secure_admin_blueprint(hidden_token: str):
         if success and result.get('user'):
             user_obj = User.query.get(result['user']['id'])
             if user_obj:
-                login_user(user_obj, remember=True)
+                from app.services.auth_service import AuthService
+                AuthService.create_session(user_obj)
                 session['facial_verified'] = True
                 session['2fa_verified'] = datetime.utcnow().timestamp()
                 result['redirect'] = '/'
