@@ -1509,7 +1509,7 @@ function renderSvgDependencies() {
         path.setAttribute('id', `dep-path-${dep.id}`);
 
         path.addEventListener('click', () => {
-            if (confirm(`Remove dependency: ${dep.source_key} ➔ ${dep.target_key} (${dep.label || dep.link_type})?`)) {
+            if (confirm(`Remove dependency: ${dep.source_key} -> ${dep.target_key} (${dep.label || dep.link_type})?`)) {
                 deleteDependency(dep.id);
             }
         });
@@ -1577,7 +1577,7 @@ function onMouseMove(e) {
     tooltip.style.display = 'block';
     tooltip.style.left = (e.clientX + 14) + 'px';
     tooltip.style.top = (e.clientY + 14) + 'px';
-    tooltip.innerHTML = `<strong>${activeIssue.key}</strong>: ${fmt(newStartDate)} ➔ ${fmt(newDueDate)} (${newDuration}d)`;
+    tooltip.innerHTML = `<strong>${activeIssue.key}</strong>: ${fmt(newStartDate)} -> ${fmt(newDueDate)} (${newDuration}d)`;
 
     renderSvgDependencies();
 }
