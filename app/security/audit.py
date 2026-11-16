@@ -145,13 +145,21 @@ class AuditLogger:
                 'details': event.get('details', {})
             }
             
+            from datetime import timezone
+            last_entry = AuditLog.query.order_by(AuditLog.id.desc()).first()
+            prev_hash = last_entry.record_hash if (last_entry and last_entry.record_hash) else ("0" * 64)
+            now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+
             log_entry = AuditLog(
                 user_id=event.get('user_id'),
                 action=action,
-                ip_address=event.get('ip_address')
+                ip_address=event.get('ip_address'),
+                timestamp=now_utc,
+                prev_hash=prev_hash
             )
             # Use the details setter which will encrypt it
             log_entry.details = json.dumps(details_dict)
+            log_entry.record_hash = log_entry.compute_hash(prev_hash)
             
             db.session.add(log_entry)
             db.session.commit()

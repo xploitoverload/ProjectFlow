@@ -334,6 +334,8 @@ def api_auth_required(f):
             from app.services.auth_service import AuthService
             user = AuthService.verify_bearer_token(token)
             if user:
+                from flask_login import login_user
+                login_user(user)
                 g.current_user = user
                 session['user_id'] = user.id
                 session['role'] = user.role
