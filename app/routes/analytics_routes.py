@@ -1,26 +1,35 @@
 """Advanced Analytics Routes - Dashboard and analytics endpoints"""
 
-from flask import Blueprint, request, jsonify, render_template, current_app
+from flask import Blueprint, request, jsonify, render_template, current_app, session
 from functools import wraps
 from datetime import datetime, timedelta
 import logging
 
 from app.analytics.dashboard import analytics_dashboard
+from app.middleware.auth import api_auth_required
 
 logger = logging.getLogger(__name__)
 
 analytics_bp = Blueprint('analytics', __name__, url_prefix='/api/v1/analytics')
 
 
-def require_auth(f):
-    """Require authentication"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        token = request.headers.get('Authorization', '')
-        if not token:
-            return jsonify({'error': 'Unauthorized'}), 401
-        return f(*args, **kwargs)
-    return decorated_function
+def check_analytics_project_access(project_id):
+    """Verify current authenticated user has authorization to access the target project."""
+    from app.models import User
+    from app.services import ProjectService
+    
+    user = User.query.get(session.get('user_id'))
+    if not user:
+        return False, None
+    
+    project = ProjectService.get_project_by_id(project_id)
+    if not project:
+        return False, None
+    
+    if ProjectService.user_has_access(user, project):
+        return True, project
+    
+    return False, None
 
 
 # ============================================================================
@@ -28,20 +37,22 @@ def require_auth(f):
 # ============================================================================
 
 @analytics_bp.route('/dashboard/<project_id>', methods=['GET'])
-@require_auth
+@api_auth_required
 def get_project_dashboard(project_id):
-    """Get analytics dashboard for a project"""
+    """Get analytics dashboard for a project with authorization enforcement."""
     try:
-        # In real implementation, fetch from database
+        has_access, project_obj = check_analytics_project_access(project_id)
+        if not has_access:
+            return jsonify({'error': 'Unauthorized or project not found', 'code': 'FORBIDDEN'}), 403
+        
         project = {
-            'id': project_id,
-            'name': f'Project {project_id}',
-            'issues': [],  # Would come from database
+            'id': project_obj.id,
+            'name': project_obj.name,
+            'issues': [i.to_dict() if hasattr(i, 'to_dict') else {'id': i.id, 'title': i.title} for i in getattr(project_obj, 'issues', [])],
             'estimated_completion': (datetime.now() + timedelta(days=30)).isoformat(),
         }
         
-        team_members = []  # Would come from database
-        
+        team_members = []
         dashboard = analytics_dashboard.generate_dashboard(project, team_members)
         
         return jsonify({
@@ -54,15 +65,18 @@ def get_project_dashboard(project_id):
 
 
 @analytics_bp.route('/summary/<project_id>', methods=['GET'])
-@require_auth
+@api_auth_required
 def get_executive_summary(project_id):
-    """Get executive summary"""
+    """Get executive summary with authorization enforcement."""
     try:
-        # In real implementation, fetch from database
+        has_access, project_obj = check_analytics_project_access(project_id)
+        if not has_access:
+            return jsonify({'error': 'Unauthorized or project not found', 'code': 'FORBIDDEN'}), 403
+        
         project = {
-            'id': project_id,
-            'name': f'Project {project_id}',
-            'issues': [],
+            'id': project_obj.id,
+            'name': project_obj.name,
+            'issues': [i.to_dict() if hasattr(i, 'to_dict') else {'id': i.id, 'title': i.title} for i in getattr(project_obj, 'issues', [])],
         }
         
         summary = analytics_dashboard.generate_executive_summary(project)
@@ -81,15 +95,18 @@ def get_executive_summary(project_id):
 # ============================================================================
 
 @analytics_bp.route('/metrics/project/<project_id>', methods=['GET'])
-@require_auth
+@api_auth_required
 def get_project_metrics(project_id):
-    """Get all project metrics"""
+    """Get all project metrics with authorization enforcement."""
     try:
-        # In real implementation, fetch from database
+        has_access, project_obj = check_analytics_project_access(project_id)
+        if not has_access:
+            return jsonify({'error': 'Unauthorized or project not found', 'code': 'FORBIDDEN'}), 403
+        
         project = {
-            'id': project_id,
-            'name': f'Project {project_id}',
-            'issues': [],
+            'id': project_obj.id,
+            'name': project_obj.name,
+            'issues': [i.to_dict() if hasattr(i, 'to_dict') else {'id': i.id, 'title': i.title} for i in getattr(project_obj, 'issues', [])],
         }
         
         health_metrics = analytics_dashboard.project_analytics.calculate_project_health(project)
@@ -108,13 +125,16 @@ def get_project_metrics(project_id):
 
 
 @analytics_bp.route('/metrics/team/<project_id>', methods=['GET'])
-@require_auth
+@api_auth_required
 def get_team_metrics(project_id):
-    """Get team productivity metrics"""
+    """Get team productivity metrics with authorization enforcement."""
     try:
-        # In real implementation, fetch from database
+        has_access, project_obj = check_analytics_project_access(project_id)
+        if not has_access:
+            return jsonify({'error': 'Unauthorized or project not found', 'code': 'FORBIDDEN'}), 403
+        
         team_members = []
-        issues = []
+        issues = getattr(project_obj, 'issues', [])
         
         metrics = analytics_dashboard.project_analytics.calculate_team_productivity(
             team_members, issues
@@ -134,12 +154,15 @@ def get_team_metrics(project_id):
 
 
 @analytics_bp.route('/metrics/issues/<project_id>', methods=['GET'])
-@require_auth
+@api_auth_required
 def get_issue_metrics(project_id):
-    """Get issue resolution metrics"""
+    """Get issue resolution metrics with authorization enforcement."""
     try:
-        # In real implementation, fetch from database
-        issues = []
+        has_access, project_obj = check_analytics_project_access(project_id)
+        if not has_access:
+            return jsonify({'error': 'Unauthorized or project not found', 'code': 'FORBIDDEN'}), 403
+        
+        issues = getattr(project_obj, 'issues', [])
         
         metrics = analytics_dashboard.project_analytics.calculate_issue_resolution_metrics(issues)
         
@@ -161,12 +184,15 @@ def get_issue_metrics(project_id):
 # ============================================================================
 
 @analytics_bp.route('/trends/bottlenecks/<project_id>', methods=['GET'])
-@require_auth
+@api_auth_required
 def get_bottlenecks(project_id):
-    """Get bottleneck analysis"""
+    """Get bottleneck analysis with authorization enforcement."""
     try:
-        # In real implementation, fetch from database
-        issues = []
+        has_access, project_obj = check_analytics_project_access(project_id)
+        if not has_access:
+            return jsonify({'error': 'Unauthorized or project not found', 'code': 'FORBIDDEN'}), 403
+        
+        issues = getattr(project_obj, 'issues', [])
         
         bottlenecks = analytics_dashboard.trend_analysis.identify_bottlenecks(issues)
         
@@ -180,15 +206,19 @@ def get_bottlenecks(project_id):
 
 
 @analytics_bp.route('/trends/forecast/<project_id>', methods=['GET'])
-@require_auth
+@api_auth_required
 def get_forecast(project_id):
-    """Get project forecast"""
+    """Get project forecast with authorization enforcement."""
     try:
+        has_access, project_obj = check_analytics_project_access(project_id)
+        if not has_access:
+            return jsonify({'error': 'Unauthorized or project not found', 'code': 'FORBIDDEN'}), 403
+        
         metric_type = request.args.get('metric', 'completion')
         
         forecast = {
             'metric_type': metric_type,
-            'forecast': [],  # Would calculate from ML models
+            'forecast': [],
             'confidence': 'high',
             'timestamp': datetime.now().isoformat(),
         }
@@ -207,7 +237,7 @@ def get_forecast(project_id):
 # ============================================================================
 
 @analytics_bp.route('/benchmark/compare', methods=['POST'])
-@require_auth
+@api_auth_required
 def compare_benchmark():
     """Compare metrics to industry benchmark"""
     try:
@@ -232,7 +262,7 @@ def compare_benchmark():
 
 
 @analytics_bp.route('/benchmark/list', methods=['GET'])
-@require_auth
+@api_auth_required
 def list_benchmarks():
     """List all available benchmarks"""
     try:

@@ -60,11 +60,11 @@ def login():
             
             flash(f'Welcome back, {user.username}!', 'success')
             
-            # Redirect to next URL or dashboard
+            # Redirect to next URL or dashboard safely
+            from app.security.validation import get_safe_redirect_url
             next_url = request.args.get('next')
-            if next_url and next_url.startswith('/'):
-                return redirect(next_url)
-            return redirect(url_for('main.dashboard'))
+            safe_url = get_safe_redirect_url(next_url, url_for('main.dashboard'))
+            return redirect(safe_url)
         else:
             flash(message, 'error')
             return redirect(url_for('auth.login'))
