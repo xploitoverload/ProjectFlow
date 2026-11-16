@@ -672,6 +672,147 @@
                 font-size: 1.35rem;
             }
         }
+
+        /* Biometric HUD Modal */
+        .biometric-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 8, 12, 0.88);
+            backdrop-filter: blur(16px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .biometric-modal-overlay.active {
+            display: flex;
+        }
+
+        .biometric-modal-container {
+            width: 100%;
+            max-width: 680px;
+            background: #0c1017;
+            border: 1px solid rgba(255, 23, 68, 0.35);
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 23, 68, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .biometric-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-bottom: 1px solid #1e293b;
+            background: rgba(18, 24, 36, 0.6);
+        }
+
+        .biometric-modal-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            color: #ffffff;
+        }
+
+        .biometric-modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .biometric-modal-close:hover {
+            color: #ff1744;
+        }
+
+        .biometric-modal-body {
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-camera-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #020408;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+        }
+
+        .modal-camera-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .modal-camera-box canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .modal-telemetry-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-top: 4px;
+        }
+
+        .btn-modal-action {
+            background: linear-gradient(135deg, #ff1744 0%, #b7092b 100%);
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(255, 23, 68, 0.3);
+        }
+
+        .link-fullscreen-gate {
+            color: #00f3ff;
+            text-decoration: none;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .link-fullscreen-gate:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -782,7 +923,7 @@
                     <span>Hardware Biometrics</span>
                 </div>
 
-                <a href="{{ url_for('admin_secure.facial_login') }}" class="btn-biometric">
+                <button type="button" class="btn-biometric" onclick="openBiometricModal()">
                     <span class="radar-scan-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--crimson);">
                             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
@@ -790,7 +931,7 @@
                         </svg>
                     </span>
                     Sign in with Biometric Facial ID
-                </a>
+                </button>
             </form>
 
             <!-- Security Badges Footer -->
@@ -891,5 +1032,82 @@
             </div>
         </div>
     </div>
+
+    <!-- Cyberhound Neural Biometric HUD Modal -->
+    <div id="biometricModal" class="biometric-modal-overlay">
+        <div class="biometric-modal-container">
+            <div class="biometric-modal-header">
+                <div class="biometric-modal-title">
+                    <img src="{{ url_for('static', filename='images/cyberhound_orbital_symbol_trans.png') }}" alt="" style="width: 20px; height: 20px; object-fit: contain;">
+                    <span>Ring-0 Biometric Facial Scanner</span>
+                </div>
+                <button type="button" class="biometric-modal-close" onclick="closeBiometricModal()">&times;</button>
+            </div>
+            <div class="biometric-modal-body">
+                <div class="modal-camera-box">
+                    <video id="modalHudVideo" autoplay playsinline muted></video>
+                    <canvas id="modalHudCanvas"></canvas>
+                </div>
+                <div class="modal-telemetry-bar">
+                    <div id="modalHudStatusText" class="hud-status-badge status-cyan">
+                        INITIALIZING OPTICAL SENSORS...
+                    </div>
+                    <div id="modalHudMetricsText" style="color: #64748b; font-size: 11px;">
+                        RESOLUTION: 1280x720 HD | 128-D TENSOR
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <a href="/biometric-gate" class="link-fullscreen-gate" target="_blank">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <polyline points="9 21 3 21 3 15"></polyline>
+                            <line x1="21" y1="3" x2="14" y2="10"></line>
+                            <line x1="3" y1="21" x2="10" y2="14"></line>
+                        </svg>
+                        Open Full-Screen Biometric Portal
+                    </a>
+                    <button type="button" class="btn-modal-action" onclick="modalHud && modalHud.triggerVerification()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        Manual Scan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/cyberhound-biometric-hud.js') }}"></script>
+    <script>
+        let modalHud = null;
+        function openBiometricModal() {
+            const overlay = document.getElementById('biometricModal');
+            overlay.classList.add('active');
+            if (!modalHud) {
+                modalHud = new CyberhoundBiometricHUD({
+                    videoElement: document.getElementById('modalHudVideo'),
+                    canvasElement: document.getElementById('modalHudCanvas'),
+                    statusElement: document.getElementById('modalHudStatusText'),
+                    metricsElement: document.getElementById('modalHudMetricsText'),
+                    onSuccess: () => {
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1200);
+                    }
+                });
+            }
+            modalHud.init();
+        }
+
+        function closeBiometricModal() {
+            const overlay = document.getElementById('biometricModal');
+            overlay.classList.remove('active');
+            if (modalHud) {
+                modalHud.stop();
+                modalHud = null;
+            }
+        }
+    </script>
 </body>
 </html>

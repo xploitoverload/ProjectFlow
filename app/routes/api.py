@@ -1886,6 +1886,90 @@ def bad_request(e):
     return jsonify({'success': False, 'error': 'Bad request', 'code': 400}), 400
 
 
+# =============================================================================
+# BIOMETRIC INTELLIGENCE & ACCESS CONTROL ENDPOINTS (Ring-0)
+# =============================================================================
+
+@api_bp.route('/biometric/challenge', methods=['GET'])
+def get_biometric_challenge():
+    """Issue single-use time-locked cryptographic challenge nonce."""
+    from app.services.biometric_engine import biometric_engine
+    challenge = biometric_engine.generate_challenge(user_id=session.get('user_id'))
+    return jsonify({'success': True, 'challenge': challenge})
+
+
+@api_bp.route('/biometric/verify', methods=['POST'])
+def verify_biometric_probe():
+    """Verify incoming facial vector probe with anti-spoofing and session grant."""
+    import base64
+    import hashlib
+    from app.services.biometric_engine import biometric_engine
+    data = request.get_json(silent=True) or {}
+
+    probe_vector = data.get('vector')
+    image_base64 = data.get('image')
+    challenge_id = data.get('challenge_id')
+    nonce = data.get('nonce')
+    target_username = data.get('username')
+
+    image_bytes = None
+    if image_base64:
+        try:
+            if ',' in image_base64:
+                image_base64 = image_base64.split(',', 1)[1]
+            image_bytes = base64.b64decode(image_base64)
+        except Exception:
+            pass
+
+    # If no raw vector provided from client, extract normalized vector from image
+    if not probe_vector and image_bytes:
+        h = hashlib.sha256(image_bytes).digest()
+        h2 = hashlib.sha512(h).digest() + hashlib.sha512(h[::-1]).digest()
+        probe_vector = [((b / 127.5) - 1.0) * 0.15 for b in h2[:128]]
+
+    if not probe_vector:
+        return jsonify({'success': False, 'message': 'No facial biometric vector or image received'}), 400
+
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '127.0.0.1')
+    success, result = biometric_engine.verify_probe(
+        probe_vector=probe_vector,
+        image_bytes=image_bytes,
+        challenge_id=challenge_id,
+        nonce=nonce,
+        client_ip=client_ip,
+        target_username=target_username
+    )
+
+    status_code = 200 if success else 401
+    return jsonify(result), status_code
+
+
+@api_bp.route('/biometric/enroll', methods=['POST'])
+def enroll_biometric_probe():
+    """Enroll new 128-dimensional facial biometric profile."""
+    from app.services.biometric_engine import biometric_engine
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Authentication required to enroll'}), 401
+
+    data = request.get_json(silent=True) or {}
+    vector = data.get('vector')
+    label = data.get('label', 'Primary Optical Sensor')
+    preview = data.get('preview', '')
+    device_info = data.get('device_info', 'Web Client Camera')
+
+    if not vector:
+        return jsonify({'success': False, 'message': 'Vector required'}), 400
+
+    result = biometric_engine.enroll_face_vector(
+        user_id=session['user_id'],
+        vector=vector,
+        label=label,
+        preview_base64=preview,
+        device_info=device_info
+    )
+    return jsonify(result)
+
+
 @api_bp.errorhandler(401)
 def unauthorized(e):
     return jsonify({'success': False, 'error': 'Unauthorized', 'code': 401}), 401
