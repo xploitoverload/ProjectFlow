@@ -1,15 +1,27 @@
-"""Push Notifications API routes."""
+"""Push Notifications API routes with Ring-0 Authorization & IDOR Protection."""
 
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, session
 from app.notifications import (
     push_service, subscription_manager,
     notification_engine, NotificationType
 )
+from app.middleware import api_auth_required
 import logging
 
 logger = logging.getLogger(__name__)
 
 notifications_bp = Blueprint('notifications', __name__, url_prefix='/api/v1/notifications')
+
+
+def _check_user_authorization(target_user_id: str) -> bool:
+    """Ensure caller can only access their own notifications unless admin/super_admin."""
+    curr_user_id = session.get('user_id')
+    curr_role = session.get('role')
+    if not curr_user_id:
+        return False
+    if curr_role in ['admin', 'super_admin']:
+        return True
+    return str(curr_user_id) == str(target_user_id)
 
 
 @notifications_bp.route('/vapid-key', methods=['GET'])
@@ -24,15 +36,19 @@ def get_vapid_key():
 
 
 @notifications_bp.route('/subscribe', methods=['POST'])
+@api_auth_required
 def subscribe_push():
     """Subscribe to push notifications."""
     try:
-        data = request.json
-        user_id = data.get('user_id')
+        data = request.json or {}
+        user_id = data.get('user_id') or session.get('user_id')
         endpoint = data.get('endpoint')
         auth = data.get('auth')
         p256dh = data.get('p256dh')
         
+        if not _check_user_authorization(user_id):
+            return jsonify({'error': 'Unauthorized user subscription'}), 403
+
         if not all([user_id, endpoint, auth, p256dh]):
             return jsonify({'error': 'Missing subscription data'}), 400
         
@@ -48,10 +64,11 @@ def subscribe_push():
 
 
 @notifications_bp.route('/unsubscribe', methods=['POST'])
+@api_auth_required
 def unsubscribe_push():
     """Unsubscribe from push notifications."""
     try:
-        data = request.json
+        data = request.json or {}
         endpoint = data.get('endpoint')
         
         if not endpoint:
@@ -70,10 +87,11 @@ def unsubscribe_push():
 
 
 @notifications_bp.route('/subscribe-topic', methods=['POST'])
+@api_auth_required
 def subscribe_to_topic():
     """Subscribe to a topic."""
     try:
-        data = request.json
+        data = request.json or {}
         subscription_id = data.get('subscription_id')
         topic = data.get('topic')
         
@@ -92,15 +110,21 @@ def subscribe_to_topic():
 
 
 @notifications_bp.route('/send', methods=['POST'])
+@api_auth_required
 def send_notification():
     """Send a notification."""
     try:
-        data = request.json
+        data = request.json or {}
         user_id = data.get('user_id')
         title = data.get('title')
         body = data.get('body')
         icon = data.get('icon')
         
+        # Only admins/managers can send arbitrary notifications to other users
+        curr_role = session.get('role')
+        if not _check_user_authorization(user_id) and curr_role not in ['admin', 'super_admin', 'manager']:
+            return jsonify({'error': 'Insufficient privileges to dispatch notifications to third-party users'}), 403
+
         if not all([user_id, title, body, icon]):
             return jsonify({'error': 'Missing required fields'}), 400
         
@@ -133,8 +157,11 @@ def send_notification():
 
 
 @notifications_bp.route('/user/<user_id>/notifications', methods=['GET'])
+@api_auth_required
 def get_user_notifications(user_id):
     """Get user notifications."""
+    if not _check_user_authorization(user_id):
+        return jsonify({'error': 'Forbidden access to user notifications'}), 403
     try:
         unread_only = request.args.get('unread_only', 'false').lower() == 'true'
         notifications = notification_engine.get_user_notifications(user_id, unread_only)
@@ -161,6 +188,7 @@ def get_user_notifications(user_id):
 
 
 @notifications_bp.route('/notification/<notification_id>/read', methods=['POST'])
+@api_auth_required
 def mark_notification_read(notification_id):
     """Mark notification as read."""
     try:
@@ -176,8 +204,11 @@ def mark_notification_read(notification_id):
 
 
 @notifications_bp.route('/user/<user_id>/preferences', methods=['GET'])
+@api_auth_required
 def get_preferences(user_id):
     """Get user notification preferences."""
+    if not _check_user_authorization(user_id):
+        return jsonify({'error': 'Forbidden access to user notification preferences'}), 403
     try:
         prefs = notification_engine.get_user_preferences(user_id)
         
@@ -195,10 +226,13 @@ def get_preferences(user_id):
 
 
 @notifications_bp.route('/user/<user_id>/preferences', methods=['PUT'])
+@api_auth_required
 def update_preferences(user_id):
     """Update user notification preferences."""
+    if not _check_user_authorization(user_id):
+        return jsonify({'error': 'Forbidden access to update user preferences'}), 403
     try:
-        data = request.json
+        data = request.json or {}
         prefs = notification_engine.get_user_preferences(user_id)
         
         if 'enabled' in data:
@@ -220,10 +254,13 @@ def update_preferences(user_id):
 
 
 @notifications_bp.route('/user/<user_id>/mute', methods=['POST'])
+@api_auth_required
 def mute_notifications(user_id):
     """Mute notifications for a user."""
+    if not _check_user_authorization(user_id):
+        return jsonify({'error': 'Forbidden access to mute notifications'}), 403
     try:
-        data = request.json
+        data = request.json or {}
         minutes = data.get('minutes', 60)
         
         notification_engine.mute_notifications(user_id, minutes)
@@ -239,8 +276,11 @@ def mute_notifications(user_id):
 
 
 @notifications_bp.route('/user/<user_id>/unmute', methods=['POST'])
+@api_auth_required
 def unmute_notifications(user_id):
     """Unmute notifications for a user."""
+    if not _check_user_authorization(user_id):
+        return jsonify({'error': 'Forbidden access to unmute notifications'}), 403
     try:
         notification_engine.unmute_notifications(user_id)
         
@@ -254,6 +294,7 @@ def unmute_notifications(user_id):
 
 
 @notifications_bp.route('/stats', methods=['GET'])
+@api_auth_required
 def get_stats():
     """Get notification statistics."""
     try:

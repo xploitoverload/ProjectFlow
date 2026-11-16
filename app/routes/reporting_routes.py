@@ -1,12 +1,13 @@
-"""Advanced Reporting API routes."""
+"""Advanced Reporting API routes with Ring-0 Authorization."""
 
-from flask import Blueprint, request, jsonify, current_app, send_file
+from flask import Blueprint, request, jsonify, current_app, send_file, session
 from app.reporting import (
     report_engine, report_builder,
     report_scheduler, export_manager,
     ReportConfig, ReportType, CustomReportConfig, Column, Filter,
     Schedule, ScheduleFrequency, DeliveryMethod
 )
+from app.middleware import api_auth_required
 import logging
 import io
 
@@ -16,6 +17,7 @@ reporting_bp = Blueprint('reporting', __name__, url_prefix='/api/v1/reporting')
 
 
 @reporting_bp.route('/templates', methods=['GET'])
+@api_auth_required
 def get_templates():
     """Get available report templates."""
     try:
@@ -35,15 +37,16 @@ def get_templates():
 
 
 @reporting_bp.route('/create', methods=['POST'])
+@api_auth_required
 def create_report():
     """Create a new report."""
     try:
-        data = request.json
+        data = request.json or {}
         report_type = data.get('report_type')
         days = data.get('days', 30)
-        created_by = data.get('created_by')
+        created_by = data.get('created_by') or session.get('username') or f"user_{session.get('user_id')}"
         
-        if not all([report_type, created_by]):
+        if not report_type:
             return jsonify({'error': 'Missing required fields'}), 400
         
         # Create config
@@ -67,6 +70,7 @@ def create_report():
 
 
 @reporting_bp.route('/<report_id>', methods=['GET'])
+@api_auth_required
 def get_report(report_id):
     """Get report by ID."""
     try:
@@ -89,6 +93,7 @@ def get_report(report_id):
 
 
 @reporting_bp.route('/list', methods=['GET'])
+@api_auth_required
 def list_reports():
     """List all reports."""
     try:
@@ -114,6 +119,7 @@ def list_reports():
 
 
 @reporting_bp.route('/<report_id>', methods=['DELETE'])
+@api_auth_required
 def delete_report(report_id):
     """Delete a report."""
     try:
@@ -128,10 +134,11 @@ def delete_report(report_id):
 
 
 @reporting_bp.route('/custom/create', methods=['POST'])
+@api_auth_required
 def create_custom_report():
     """Create custom report configuration."""
     try:
-        data = request.json
+        data = request.json or {}
         name = data.get('name')
         description = data.get('description')
         data_source = data.get('data_source')
@@ -157,6 +164,7 @@ def create_custom_report():
 
 
 @reporting_bp.route('/custom/<config_id>/preview', methods=['GET'])
+@api_auth_required
 def preview_custom_report(config_id):
     """Get preview of custom report."""
     try:
@@ -168,6 +176,7 @@ def preview_custom_report(config_id):
 
 
 @reporting_bp.route('/<report_id>/export', methods=['GET'])
+@api_auth_required
 def export_report(report_id):
     """Export report in specified format."""
     try:
@@ -227,10 +236,11 @@ def export_report(report_id):
 
 
 @reporting_bp.route('/schedule/create', methods=['POST'])
+@api_auth_required
 def create_schedule():
     """Create report schedule."""
     try:
-        data = request.json
+        data = request.json or {}
         report_config_id = data.get('report_config_id')
         frequency = data.get('frequency')
         
@@ -262,6 +272,7 @@ def create_schedule():
 
 
 @reporting_bp.route('/schedule/<schedule_id>/enable', methods=['POST'])
+@api_auth_required
 def enable_schedule(schedule_id):
     """Enable a schedule."""
     try:
@@ -276,6 +287,7 @@ def enable_schedule(schedule_id):
 
 
 @reporting_bp.route('/schedule/<schedule_id>/disable', methods=['POST'])
+@api_auth_required
 def disable_schedule(schedule_id):
     """Disable a schedule."""
     try:
@@ -290,6 +302,7 @@ def disable_schedule(schedule_id):
 
 
 @reporting_bp.route('/stats', methods=['GET'])
+@api_auth_required
 def get_stats():
     """Get reporting statistics."""
     try:

@@ -89,6 +89,12 @@ class Config:
     
     # Biometric & Secure Admin Vault Token
     HIDDEN_ADMIN_TOKEN = os.environ.get('HIDDEN_ADMIN_TOKEN', 'vault-sec-0x7f88')
+    
+    # Pluggable Cryptographic Subsystem Architecture
+    # Choose between 'argon2id', 'pbkdf2_sha512', 'scrypt', 'bcrypt', or custom dotted class path
+    CRYPTO_PASSWORD_HASHER = os.environ.get('CRYPTO_PASSWORD_HASHER', 'argon2id')
+    # Choose between 'aes_256_gcm', 'chacha20_poly1305', 'fernet', or custom dotted class path
+    CRYPTO_FIELD_CIPHER = os.environ.get('CRYPTO_FIELD_CIPHER', 'aes_256_gcm')
 
 
 class DevelopmentConfig(Config):

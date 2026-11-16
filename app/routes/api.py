@@ -1945,8 +1945,9 @@ def verify_biometric_probe():
 
 
 @api_bp.route('/biometric/enroll', methods=['POST'])
+@api_auth_required
 def enroll_biometric_probe():
-    """Enroll new 128-dimensional facial biometric profile."""
+    """Enroll new 128-dimensional facial biometric profile with cryptographic session validation."""
     from app.services.biometric_engine import biometric_engine
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': 'Authentication required to enroll'}), 401

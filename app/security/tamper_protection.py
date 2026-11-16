@@ -58,36 +58,48 @@ class TamperProtection:
         return self.sign_data(request_str), timestamp
     
     def verify_request_integrity(self):
-        """Middleware to verify request integrity"""
+        """Middleware to verify request integrity and prevent tampering."""
+        from flask import jsonify
         if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             try:
-                # Check timestamp (5 minute window)
+                # Check timestamp (5 minute replay attack prevention window)
                 timestamp_str = request.headers.get('X-Request-Timestamp')
                 if timestamp_str:
-                    request_time = datetime.fromisoformat(timestamp_str)
-                    if datetime.utcnow() - request_time > timedelta(minutes=5):
-                        logger.warning(f"Expired request timestamp from {request.remote_addr}")
-                        return None
+                    try:
+                        request_time = datetime.fromisoformat(timestamp_str)
+                        if abs((datetime.utcnow() - request_time).total_seconds()) > 300:
+                            logger.warning(f"Expired/replayed request timestamp from {request.remote_addr}")
+                            return jsonify({
+                                'error': 'Request timestamp expired or out of allowed clock skew window',
+                                'code': 'REQUEST_TIMESTAMP_EXPIRED'
+                            }), 401
+                    except (ValueError, TypeError):
+                        logger.warning(f"Malformed request timestamp from {request.remote_addr}")
+                        return jsonify({'error': 'Malformed X-Request-Timestamp header', 'code': 'INVALID_TIMESTAMP'}), 400
                 
-                # Verify request signature
+                # Verify request signature if provided
                 signature = request.headers.get('X-Request-Signature')
                 if signature:
                     try:
-                        data = request.get_json() or {}
+                        data = request.get_json(silent=True) or {}
                         endpoint = request.endpoint or request.path
                         
-                        if not self.verify_signature(
-                            f"{request.method}:{endpoint}:{json.dumps(data)}",
-                            signature
-                        ):
-                            logger.warning(f"Tampered request detected from {request.remote_addr}")
-                            return None
+                        expected_data = f"{request.method}:{endpoint}:{json.dumps(data, sort_keys=True)}"
+                        if not self.verify_signature(expected_data, signature):
+                            # Try without sort_keys fallback
+                            if not self.verify_signature(f"{request.method}:{endpoint}:{json.dumps(data)}", signature):
+                                logger.warning(f"Tampered request detected from {request.remote_addr}")
+                                return jsonify({
+                                    'error': 'Cryptographic request signature validation failed. Data tampering detected.',
+                                    'code': 'REQUEST_TAMPERED'
+                                }), 403
                     except Exception as e:
                         logger.error(f"Signature verification error: {e}")
-                        return None
+                        return jsonify({'error': 'Error verifying request signature', 'code': 'SIG_VERIFY_ERROR'}), 400
             except Exception as e:
                 logger.error(f"Request integrity check error: {e}")
-                return None
+                return jsonify({'error': 'Request integrity verification failure', 'code': 'INTEGRITY_CHECK_FAILED'}), 500
+        return None
 
 class RequestValidator:
     """Validate and sanitize request data"""
