@@ -9,9 +9,8 @@ from argon2.exceptions import VerifyMismatchError
 import hashlib
 import json
 import os
-from app.crypto import crypto_manager
-
 db = SQLAlchemy()
+from app.crypto import crypto_manager
 _hasher = PasswordHasher()
 
 # Encryption key management
