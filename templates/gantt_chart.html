@@ -651,11 +651,9 @@
                     <span class="iconify" data-icon="solar:chart-square-bold" style="width: 20px; height: 20px;"></span>
                 </div>
                 <div>
-                    <h1 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2;">
-                        Roadmap & Timeline
+                    <h1 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2;"> Roadmap & Timeline
                     </h1>
-                    <p style="color: var(--text-secondary); margin: 2px 0 0; font-size: 12px;">
-                        Interactive schedule, FS/SS/FF dependency linking & conflict detection
+                    <p style="color: var(--text-secondary); margin: 2px 0 0; font-size: 12px;"> Interactive schedule, FS/SS/FF dependency linking & conflict detection
                     </p>
                 </div>
             </div>
@@ -663,12 +661,10 @@
             <!-- Tabs: Timeline vs Graph -->
             <div class="gantt-tabs-container">
                 <button class="gantt-tab-btn active" id="tabTimeline" onclick="switchView('timeline')">
-                    <span class="iconify" data-icon="solar:calendar-date-bold" style="width: 14px; height: 14px;"></span>
-                    Timeline
+                    <span class="iconify" data-icon="solar:calendar-date-bold" style="width: 14px; height: 14px;"></span> Timeline
                 </button>
                 <button class="gantt-tab-btn" id="tabGraph" onclick="switchView('graph')">
-                    <span class="iconify" data-icon="solar:diagram-up-bold" style="width: 14px; height: 14px;"></span>
-                    Dependency Graph
+                    <span class="iconify" data-icon="solar:diagram-up-bold" style="width: 14px; height: 14px;"></span> Dependency Graph
                 </button>
             </div>
         </div>
@@ -694,8 +690,7 @@
 
             <!-- Critical Path Toggle -->
             <button class="btn btn-secondary" id="cpmToggleBtn" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: 8px; border: 1px solid var(--surface-border-color);" onclick="toggleCriticalPath()" title="Highlight Critical Path Method (CPM) tasks and zero-float bottlenecks">
-                <span class="iconify" data-icon="solar:flame-bold" style="width: 15px; height: 15px; color: #EF4444;"></span>
-                Critical Path
+                <span class="iconify" data-icon="solar:flame-bold" style="width: 15px; height: 15px; color: #EF4444;"></span> Critical Path
             </button>
 
             <!-- Dependency Lines Toggle -->
@@ -706,8 +701,7 @@
 
             <!-- Auto-Schedule Cascade Button -->
             <button class="btn btn-secondary" id="autoScheduleBtn" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: 8px; border: 1px solid var(--surface-border-color);" onclick="openAutoSchedulePreview()" title="Preview and cascade dates downstream to resolve all dependency conflicts">
-                <span class="iconify" data-icon="solar:magic-stick-3-bold" style="width: 15px; height: 15px; color: #10B981;"></span>
-                Auto-Schedule
+                <span class="iconify" data-icon="solar:magic-stick-3-bold" style="width: 15px; height: 15px; color: #10B981;"></span> Auto-Schedule
             </button>
 
             <!-- Schedule Baseline Selector (Target 4) -->
@@ -723,8 +717,7 @@
 
             <!-- Add Dependency Button -->
             <button class="btn btn-primary" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;" onclick="openAddDependencyModal()">
-                <span class="iconify" data-icon="solar:link-circle-bold" style="width: 16px; height: 16px;"></span>
-                Add Dependency
+                <span class="iconify" data-icon="solar:link-circle-bold" style="width: 16px; height: 16px;"></span> Add Dependency
             </button>
         </div>
     </div>
@@ -752,8 +745,7 @@
                     <span style="width: 75px; text-align: right; font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary);">{{ issue.status }}</span>
                 </div>
                 {% else %}
-                <div style="padding: 32px; text-align: center; color: var(--text-tertiary);">
-                    No issues found in this project.
+                <div style="padding: 32px; text-align: center; color: var(--text-tertiary);"> No issues found in this project.
                 </div>
                 {% endfor %}
             </div>
@@ -817,8 +809,7 @@
     <div class="modal-content" style="max-width: 480px;">
         <div class="modal-header">
             <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
-                <span class="iconify" data-icon="solar:link-circle-bold" style="color: #818CF8;"></span>
-                Create Issue Dependency / Relationship
+                <span class="iconify" data-icon="solar:link-circle-bold" style="color: #818CF8;"></span> Create Issue Dependency / Relationship
             </h2>
             <button class="btn-icon" onclick="closeAddDependencyModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
                 <span class="iconify" data-icon="solar:close-circle-bold" style="width: 20px; height: 20px;"></span>
@@ -878,16 +869,14 @@
     <div class="modal-content" style="max-width: 720px; max-height: 85vh; display: flex; flex-direction: column;">
         <div class="modal-header">
             <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
-                <span class="iconify" data-icon="solar:magic-stick-3-bold" style="color: #10B981;"></span>
-                Auto-Schedule Preview & Shift Analysis
+                <span class="iconify" data-icon="solar:magic-stick-3-bold" style="color: #10B981;"></span> Auto-Schedule Preview & Shift Analysis
             </h2>
             <button class="btn-icon" onclick="closeAutoScheduleModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
                 <span class="iconify" data-icon="solar:close-circle-bold" style="width: 20px; height: 20px;"></span>
             </button>
         </div>
         <div class="modal-body" style="padding: 16px 20px; overflow-y: auto; flex: 1;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 14px; line-height: 1.5;">
-                The scheduling intelligence engine has calculated the earliest topological dates satisfying all predecessor dependencies and inclusive end-date constraints. Review proposed shifts below before committing.
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 14px; line-height: 1.5;"> The scheduling intelligence engine has calculated the earliest topological dates satisfying all predecessor dependencies and inclusive end-date constraints. Review proposed shifts below before committing.
             </p>
             <div id="autoScheduleProposalsContainer">
                 <div style="text-align: center; padding: 24px; color: var(--text-secondary);">Calculating schedule preview...</div>
@@ -906,16 +895,14 @@
     <div class="modal-content" style="max-width: 480px;">
         <div class="modal-header">
             <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
-                <span class="iconify" data-icon="solar:history-bold" style="color: #F59E0B;"></span>
-                Snapshot Schedule Baseline
+                <span class="iconify" data-icon="solar:history-bold" style="color: #F59E0B;"></span> Snapshot Schedule Baseline
             </h2>
             <button class="btn-icon" onclick="closeCreateBaselineModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
                 <span class="iconify" data-icon="solar:close-circle-bold" style="width: 20px; height: 20px;"></span>
             </button>
         </div>
         <div class="modal-body" style="padding: 16px 20px;">
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; line-height: 1.5;">
-                Capture an immutable snapshot of all current task dates, durations, milestones, and dependencies to track schedule drift and variance over time.
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; line-height: 1.5;"> Capture an immutable snapshot of all current task dates, durations, milestones, and dependencies to track schedule drift and variance over time.
             </p>
             <div style="margin-bottom: 14px;">
                 <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Baseline Name *</label>
@@ -1440,7 +1427,7 @@ function renderTimeline() {
                 <span class="gantt-task-title">${issue.key}: ${issue.title}</span>
                 ${cpmBadgeHtml}
                 ${varianceBadgeHtml}
-                ${isConflict ? '<span class="conflict-badge" style="margin-left: 6px;">⚠️ Conflict</span>' : ''}
+                ${isConflict ? '<span class="conflict-badge" style="margin-left: 6px;"> Conflict</span>' : ''}
                 ${progressPillHtml}
                 <div class="gantt-connector-dot gantt-connector-right" data-action="connect-out" title="Successor connector"></div>
                 <div class="gantt-resize-handle gantt-resize-right" data-action="resize-right"></div>
@@ -1461,7 +1448,7 @@ function renderTimeline() {
                 <span>${issue.key}: ${issue.title}</span>
                 ${cpmBadgeHtml}
                 ${varianceBadgeHtml}
-                ${isConflict ? '<span class="conflict-badge">⚠️ Conflict</span>' : ''}
+                ${isConflict ? '<span class="conflict-badge"> Conflict</span>' : ''}
             `;
             track.appendChild(outsideLabel);
         }

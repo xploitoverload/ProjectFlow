@@ -24,8 +24,7 @@
                 <span class="iconify" data-icon="solar:kanban-bold" style="width: 20px; height: 20px;"></span>
             </div>
             <div style="min-width: 0;">
-                <h1 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2;">
-                    Board
+                <h1 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2;"> Board
                 </h1>
                 <p style="color: var(--text-secondary); margin: 2px 0 0; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     {% if selected_project %}{{ selected_project.name }}{% else %}Select a project{% endif %}
@@ -49,8 +48,7 @@
                 {% endif %}
             </select>
             <button class="btn btn-primary" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; white-space: nowrap;" onclick="openCreateIssueModal()">
-                <span class="iconify" data-icon="solar:add-circle-bold" style="width: 16px; height: 16px;"></span>
-                Create Issue
+                <span class="iconify" data-icon="solar:add-circle-bold" style="width: 16px; height: 16px;"></span> Create Issue
             </button>
         </div>
     </div>
@@ -83,13 +81,7 @@
                 </div>
                 <div class="column-body kanban-dropzone" data-status="{{ status }}" style="flex: 1 1 auto; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 240px; transition: background 0.15s ease, border-color 0.15s ease;">
                     {% for issue in status_issues %}
-                    <div class="kanban-card" 
-                         draggable="true" 
-                         data-issue-id="{{ issue.id }}" 
-                         data-status="{{ status }}" 
-                         data-project-id="{{ issue.project_id }}" 
-                         onclick="handleCardClick(event, {{ issue.id }}, {{ issue.project_id }})" 
-                         style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 14px; cursor: grab; transition: all 0.2s; user-select: none;">
+                    <div class="kanban-card" draggable="true" data-issue-id="{{ issue.id }}" data-status="{{ status }}" data-project-id="{{ issue.project_id }}" onclick="handleCardClick(event, {{ issue.id }}, {{ issue.project_id }})" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--surface-border-color); border-radius: 8px; padding: 14px; cursor: grab; transition: all 0.2s; user-select: none;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 {% if issue.issue_type == 'bug' %}
@@ -127,7 +119,7 @@
                                 {% endif %}
                                 {% if issue.start_date and issue.due_date %}
                                 <span style="font-size: 10px; color: var(--text-tertiary); margin-left: 2px;" title="Scheduled: {{ issue.start_date.strftime('%b %d') }} - {{ issue.due_date.strftime('%b %d') }}">
-                                    📅 {{ issue.start_date.strftime('%b %d') }}
+                                     {{ issue.start_date.strftime('%b %d') }}
                                 </span>
                                 {% endif %}
                             </div>
@@ -159,8 +151,7 @@
                 </div>
                 <div class="column-footer" style="padding: 10px 12px; border-top: 1px solid var(--surface-border-color); margin-top: auto; flex-shrink: 0;">
                     <button class="btn btn-ghost btn-sm" style="width: 100%; justify-content: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);" onclick="openCreateIssueModal('{{ status }}')">
-                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
-                        Add Issue
+                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Issue
                     </button>
                 </div>
             </div>
@@ -175,8 +166,7 @@
                 <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 8px;">No Project Selected</h2>
                 <p style="color: var(--text-secondary); margin: 0 0 24px;">Select a project from the dropdown to view its board.</p>
                 {% if projects %}
-                <button class="btn btn-primary" onclick="document.getElementById('projectSelector').focus()">
-                    Select Project
+                <button class="btn btn-primary" onclick="document.getElementById('projectSelector').focus()"> Select Project
                 </button>
                 {% else %}
                 <a href="{{ url_for('admin.admin_projects') if current_user.is_authenticated and current_user.role == 'admin' else url_for('main.dashboard') }}" class="btn btn-primary">Create a Project</a>

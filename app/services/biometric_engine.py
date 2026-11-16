@@ -424,7 +424,7 @@ class BiometricEngine:
             session['biometric_authenticated'] = True
             session['biometric_auth_time'] = time.time()
 
-            logger.info(f"✅ Biometric Access Granted to {best_user.username} (dist: {min_distance})")
+            logger.info(f"Biometric Access Granted to {best_user.username} (dist: {min_distance})")
 
             return True, {
                 'success': True,

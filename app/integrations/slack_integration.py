@@ -109,7 +109,7 @@ class SlackIntegration:
         Returns:
             Send result
         """
-        text = f"🔔 *Issue #{issue.get('id')}*\n"
+        text = f"*Issue #{issue.get('id')}*\n"
         text += f"Title: {issue.get('title')}\n"
         text += f"Status: {issue.get('status')}\n"
         text += f"Priority: {issue.get('priority')}"
@@ -118,7 +118,7 @@ class SlackIntegration:
     
     async def send_project_update(self, project: Dict) -> Dict:
         """Send project update to Slack."""
-        text = f"📊 *Project Update: {project.get('name')}*\n"
+        text = f"*Project Update: {project.get('name')}*\n"
         text += f"Progress: {project.get('completion_rate')}%\n"
         text += f"Team Size: {len(project.get('members', []))}"
         

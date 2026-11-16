@@ -309,7 +309,7 @@
         }
 
         .custom-checkbox:checked::after {
-            content: '✓';
+            content: '';
             position: absolute;
             top: 50%;
             left: 50%;
@@ -870,14 +870,8 @@
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                         <input 
-                            type="text" 
-                            id="username" 
-                            name="username" 
-                            class="custom-input" 
-                            placeholder="e.g. admin or engineer" 
-                            required 
-                            autocomplete="username" 
-                            autofocus
+                            type="text" id="username" name="username" class="custom-input" placeholder="e.g. admin or engineer" required 
+                            autocomplete="username" autofocus
                         >
                     </div>
                 </div>
@@ -893,12 +887,7 @@
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                         <input 
-                            type="password" 
-                            id="password" 
-                            name="password" 
-                            class="custom-input" 
-                            placeholder="Enter master password" 
-                            required 
+                            type="password" id="password" name="password" class="custom-input" placeholder="Enter master password" required 
                             autocomplete="current-password"
                         >
                     </div>
@@ -914,8 +903,7 @@
                         <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                         <polyline points="10 17 15 12 10 7"></polyline>
                         <line x1="15" y1="12" x2="3" y2="12"></line>
-                    </svg>
-                    Authenticate & Access
+                    </svg> Authenticate & Access
                 </button>
 
                 <!-- Biometric Section -->
@@ -929,8 +917,7 @@
                             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
                             <path d="M9 10h.01M15 10h.01M10 14a3.5 3.5 0 0 0 4 0"></path>
                         </svg>
-                    </span>
-                    Sign in with Biometric Facial ID
+                    </span> Sign in with Biometric Facial ID
                 </button>
             </form>
 
@@ -967,11 +954,9 @@
                 <img src="{{ url_for('static', filename='images/cyberhound_hero_banner.png') }}" alt="ProjectFlow Cyberhound Engine">
             </div>
 
-            <h2 class="showcase-title">
-                ProjectFlow <span>Cyberhound</span>
+            <h2 class="showcase-title"> ProjectFlow <span>Cyberhound</span>
             </h2>
-            <p class="showcase-desc">
-                High-performance project planning, interactive Gantt dependencies, and portfolio intelligence built with kernel-grade security discipline.
+            <p class="showcase-desc"> High-performance project planning, interactive Gantt dependencies, and portfolio intelligence built with kernel-grade security discipline.
             </p>
 
             <div class="showcase-pillars">
@@ -1049,11 +1034,9 @@
                     <canvas id="modalHudCanvas"></canvas>
                 </div>
                 <div class="modal-telemetry-bar">
-                    <div id="modalHudStatusText" class="hud-status-badge status-cyan">
-                        INITIALIZING OPTICAL SENSORS...
+                    <div id="modalHudStatusText" class="hud-status-badge status-cyan"> INITIALIZING OPTICAL SENSORS...
                     </div>
-                    <div id="modalHudMetricsText" style="color: #64748b; font-size: 11px;">
-                        RESOLUTION: 1280x720 HD | 128-D TENSOR
+                    <div id="modalHudMetricsText" style="color: #64748b; font-size: 11px;"> RESOLUTION: 1280x720 HD | 128-D TENSOR
                     </div>
                 </div>
                 <div class="modal-actions">
@@ -1063,15 +1046,13 @@
                             <polyline points="9 21 3 21 3 15"></polyline>
                             <line x1="21" y1="3" x2="14" y2="10"></line>
                             <line x1="3" y1="21" x2="10" y2="14"></line>
-                        </svg>
-                        Open Full-Screen Biometric Portal
+                        </svg> Open Full-Screen Biometric Portal
                     </a>
                     <button type="button" class="btn-modal-action" onclick="modalHud && modalHud.triggerVerification()">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="3"></circle>
                             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                        </svg>
-                        Manual Scan
+                        </svg> Manual Scan
                     </button>
                 </div>
             </div>
@@ -1079,8 +1060,7 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/cyberhound-biometric-hud.js') }}"></script>
-    <script>
-        let modalHud = null;
+    <script> let modalHud = null;
         function openBiometricModal() {
             const overlay = document.getElementById('biometricModal');
             overlay.classList.add('active');

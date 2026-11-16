@@ -28,8 +28,8 @@ class RequestLogger:
     def log_response(self, method, path, status_code, duration_ms, user_id=None):
         """Log outgoing response."""
         timestamp = datetime.utcnow().isoformat()
-        status_emoji = '✅' if status_code < 400 else '⚠️' if status_code < 500 else '❌'
-        self.logger.info(f"{timestamp} | {method} {path} | {status_code} {status_emoji} | {duration_ms:.2f}ms | User: {user_id}")
+        status_label = 'OK' if status_code < 400 else 'WARN' if status_code < 500 else 'ERROR'
+        self.logger.info(f"{timestamp} | {method} {path} | {status_code} [{status_label}] | {duration_ms:.2f}ms | User: {user_id}")
     
     def log_error(self, method, path, error_msg, status_code):
         """Log errors."""

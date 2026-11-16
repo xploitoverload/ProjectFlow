@@ -25,7 +25,7 @@ def migrate():
             # Create the notification table
             print("Creating notification table...")
             db.create_all()
-            print("✓ Notification table created successfully")
+            print("[OK] Notification table created successfully")
             
             # Get first user for sample notifications
             from models import User
@@ -35,9 +35,9 @@ def migrate():
                 print(f"\nCreating sample notifications for {len(users)} user(s)...")
                 for user in users:
                     NotificationService.create_sample_notifications(user.id)
-                    print(f"✓ Created sample notifications for user: {user.username}")
+                    print(f"[OK] Created sample notifications for user: {user.username}")
             
-            print("\n✓ Migration completed successfully!")
+            print("\n[OK] Migration completed successfully!")
             print("\nNew features available:")
             print("  - User notifications system")
             print("  - Notification dropdown in header")
@@ -46,7 +46,7 @@ def migrate():
             print("  - Auto-polling for new notifications")
             
         except Exception as e:
-            print(f"\n✗ Migration failed: {e}")
+            print(f"\n[FAIL] Migration failed: {e}")
             import traceback
             traceback.print_exc()
             return False

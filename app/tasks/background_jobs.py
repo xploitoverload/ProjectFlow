@@ -191,7 +191,7 @@ def init_tasks(app):
     # Store reference for decorator
     async_task._queue = _queue_instance
     
-    logger.info(f"✓ Background job queue initialized with {max_workers} workers")
+    logger.info(f"Background job queue initialized with {max_workers} workers")
     
     return _queue_instance
 

@@ -32,7 +32,7 @@ class UIStyleEngine {
         this.currentStyle = activeId;
         this.saveStyle(activeId);
         this.updateUI();
-        console.log(`✅ UI Style applied: ${activeId}`);
+        console.log(`UI Style applied: ${activeId}`);
     }
 
     updateUI() {

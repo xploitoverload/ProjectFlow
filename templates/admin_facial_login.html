@@ -377,11 +377,10 @@
         <div class="facial-login-card">
             <div class="facial-header">
                 <div class="facial-logo">
-                    <div class="facial-logo-icon">🔐</div>
+                    <div class="facial-logo-icon"></div>
                     <div class="facial-logo-text">ProjectFlow</div>
                 </div>
-                <h1 class="facial-title">
-                    Admin Access
+                <h1 class="facial-title"> Admin Access
                     <span class="facial-admin-badge">Facial ID</span>
                 </h1>
                 <p class="facial-subtitle">Scan your face to unlock admin panel</p>
@@ -412,42 +411,40 @@
             <!-- Info -->
             <div class="facial-info">
                 <div class="facial-info-item">
-                    <span class="facial-info-icon">📷</span>
+                    <span class="facial-info-icon"></span>
                     <span>Position your face in the oval frame</span>
                 </div>
                 <div class="facial-info-item">
-                    <span class="facial-info-icon">💡</span>
+                    <span class="facial-info-icon"></span>
                     <span>Ensure good lighting and no obstructions</span>
                 </div>
                 <div class="facial-info-item">
-                    <span class="facial-info-icon">✓</span>
+                    <span class="facial-info-icon"></span>
                     <span>Authentication takes 2-5 seconds</span>
                 </div>
             </div>
 
             <!-- Actions -->
             <div class="facial-actions">
-                <button class="btn btn-primary" id="verifyBtn" onclick="verifyFace()">
-                    Verify Face
+                <button class="btn btn-primary" id="verifyBtn" onclick="verifyFace()"> Verify Face
                     <span class="facial-spinner"></span>
                 </button>
                 <button class="btn btn-secondary" onclick="goBackToLogin()">Back</button>
             </div>
 
             <!-- Fallback Warning -->
-            <div class="facial-fallback" id="fallbackWarning" style="display: none;">
-                ⚠️ Camera access denied. Please check permissions or use password login.
+            <div class="facial-fallback" id="fallbackWarning" style="display: none;"> Camera access denied. Please check permissions or use password login.
             </div>
 
             <!-- Result Messages -->
             <div class="facial-result" id="successResult">
-                <div class="facial-result-icon">✓</div>
+                <div class="facial-result-icon"></div>
                 <div class="facial-result-text">Face Verified!</div>
                 <div class="facial-result-details">Redirecting to admin panel...</div>
             </div>
 
             <div class="facial-result error" id="errorResult">
-                <div class="facial-result-icon">✗</div>
+                <div class="facial-result-icon"></div>
                 <div class="facial-result-text" id="errorTitle">Verification Failed</div>
                 <div class="facial-result-details" id="errorMessage">Please try again</div>
             </div>
@@ -455,14 +452,13 @@
             <!-- Footer -->
             <div class="facial-login-footer">
                 <p>
-                    👤 <a href="{{ url_for('auth.login') }}">Use password login instead</a>
+                     <a href="{{ url_for('auth.login') }}">Use password login instead</a>
                 </p>
             </div>
         </div>
     </div>
 
-    <script>
-        let stream = null;
+    <script> let stream = null;
         let isVerifying = false;
         let confidenceLevel = 0;
         let faceDetected = false;
@@ -518,7 +514,7 @@
 
             if (faceDetected) {
                 dot.classList.add('detected');
-                text.textContent = 'Face detected ✓';
+                text.textContent = 'Face detected ';
             } else {
                 dot.classList.remove('detected');
                 text.textContent = 'Align your face';
@@ -571,7 +567,7 @@
 
                 if (data.success) {
                     // Show success with unique face ID info
-                    console.log('✅ Facial Authentication Success:', {
+                    console.log(' Facial Authentication Success:', {
                         face_id: data.face_id,
                         face_label: data.face_label,
                         admin_id: data.admin_id,

@@ -168,7 +168,7 @@ def init_api_versioning(app) -> VersionedAPIRouter:
     v2 = _router.register_version('v2', deprecated=False)
     v0 = _router.register_version('v0', deprecated=True, sunset_date='2026-08-01')
     
-    logger.info("✓ API versioning initialized with v0, v1, v2")
+    logger.info("API versioning initialized with v0, v1, v2")
     
     app.api_router = _router
     return _router

@@ -205,18 +205,11 @@ class BoardFiltersManager {
         if (!container) return;
 
         const priorities = ['highest', 'high', 'medium', 'low', 'lowest'];
-        const priorityIcons = {
-            'highest': '⬆️',
-            'high': '🔺',
-            'medium': '➖',
-            'low': '🔻',
-            'lowest': '⬇️'
-        };
 
         container.innerHTML = priorities.map(priority => `
             <label class="filter-checkbox">
                 <input type="checkbox" value="${priority}" data-filter-type="priority">
-                <span>${priorityIcons[priority]} ${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>
+                <span>${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>
             </label>
         `).join('');
 

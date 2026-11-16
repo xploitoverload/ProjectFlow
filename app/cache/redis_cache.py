@@ -56,11 +56,11 @@ class RedisCache:
             )
             self.client = redis.StrictRedis(connection_pool=self.pool)
             self.client.ping()
-            logger.info(f"✓ Redis cache connected: {self.host}:{self.port}")
+            logger.info(f"Redis cache connected: {self.host}:{self.port}")
             return True
         except Exception as e:
-            logger.warning(f"✗ Redis connection failed ({self.host}:{self.port}): {str(e)}")
-            logger.info("→ Continuing with in-memory fallback")
+            logger.warning(f"Redis connection failed ({self.host}:{self.port}): {str(e)}")
+            logger.info("Continuing with in-memory fallback")
             return False
     
     def set(self, key: str, value: Any, ttl: int = 3600, serializer: str = 'json') -> bool:

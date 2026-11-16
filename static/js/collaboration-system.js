@@ -51,7 +51,7 @@ class CollaborationSystem {
                 id: 1,
                 issueKey: 'PROJ-123',
                 author: { id: 1, name: 'John Doe', avatar: 'JD' },
-                text: 'This looks great! 👍',
+                text: 'This looks great.',
                 created: '2024-01-20T10:30:00',
                 updated: null,
                 replies: [],

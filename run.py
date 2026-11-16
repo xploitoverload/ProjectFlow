@@ -79,7 +79,7 @@ def run_development_server():
 ║  Debug Mode:  {'Enabled' if config_name == 'development' else 'Disabled':<8}                                        ║
 ║  SSL/TLS:     {'Enabled (for camera access)' if use_https else 'Disabled':<8}                             ║
 ║                                                                  ║
-║  📝 Access via HTTPS ONLY: https://localhost:5000/              ║
+║  Access via HTTPS ONLY: https://localhost:5000/                 ║
 ║     (HTTP requests will be redirected to HTTPS)                 ║
 ╚══════════════════════════════════════════════════════════════════╝
     """)
@@ -110,7 +110,7 @@ def init_database():
         
         print("Creating database tables...")
         db.create_all()
-        print("✓ Database tables created successfully!")
+        print("Database tables created successfully.")
         
         # Check if we should add sample data
         if '--with-sample-data' in sys.argv:
@@ -118,11 +118,11 @@ def init_database():
             try:
                 from create_sample_data import create_sample_data
                 create_sample_data()
-                print("✓ Sample data added successfully!")
+                print("Sample data added successfully.")
             except ImportError:
-                print("⚠ Sample data script not found")
+                print("Sample data script not found")
             except Exception as e:
-                print(f"✗ Error adding sample data: {e}")
+                print(f"Error adding sample data: {e}")
 
 
 def run_migrations():
@@ -135,9 +135,9 @@ def run_migrations():
         try:
             from flask_migrate import upgrade
             upgrade()
-            print("✓ Migrations applied successfully!")
+            print("Migrations applied successfully.")
         except Exception as e:
-            print(f"✗ Error running migrations: {e}")
+            print(f"Error running migrations: {e}")
 
 
 def show_routes():
@@ -145,7 +145,7 @@ def show_routes():
     
     app = create_app('development')
     
-    print("\n📍 Registered Routes:")
+    print("\nRegistered Routes:")
     print("=" * 80)
     
     rules = sorted(app.url_map.iter_rules(), key=lambda x: str(x))

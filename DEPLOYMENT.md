@@ -1,4 +1,4 @@
-# 🚀 Deployment Guide - Project Management System
+# Deployment Guide - Project Management System
 
 This guide provides comprehensive instructions for deploying the Project Management System to various platforms.
 

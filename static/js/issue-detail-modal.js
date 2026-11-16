@@ -181,11 +181,11 @@ class IssueDetailModal {
                             <div class="sidebar-field">
                                 <label class="field-label">Priority</label>
                                 <select class="field-select" id="issuePriority">
-                                    <option value="Highest">🔺 Highest</option>
-                                    <option value="High">⬆️ High</option>
-                                    <option value="Medium">➖ Medium</option>
-                                    <option value="Low">⬇️ Low</option>
-                                    <option value="Lowest">🔻 Lowest</option>
+                                    <option value="Highest">Highest</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Lowest">Lowest</option>
                                 </select>
                             </div>
 
