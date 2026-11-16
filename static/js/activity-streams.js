@@ -61,11 +61,11 @@ class ActivityStreams {
                 </div>
             </div>
 
-            <!-- Emoji Picker -->
+            <!-- Quick Reactions Picker -->
             <div id="emojiPicker" class="emoji-picker" style="display: none;">
                 <div class="emoji-grid">
-                    ${['👍', '❤️', '😊', '😂', '🎉', '🚀', '👀', '🔥'].map(emoji => `
-                        <button class="emoji-btn" onclick="activityStreams.insertEmoji('${emoji}')">${emoji}</button>
+                    ${['+1', 'Ack', 'Review', 'Approved', 'Fixed', 'Verify'].map(tag => `
+                        <button class="emoji-btn" onclick="activityStreams.insertEmoji('${tag}')">${tag}</button>
                     `).join('')}
                 </div>
             </div>
@@ -231,9 +231,9 @@ class ActivityStreams {
                     ` : ''}
 
                     <div class="reaction-picker" id="reactions-${comment.id}" style="display: none;">
-                        ${['👍', '❤️', '😊', '😂', '🎉', '🚀'].map(emoji => `
-                            <button class="reaction-btn" onclick="activityStreams.addReaction('${comment.id}', '${emoji}')">
-                                ${emoji}
+                        ${['+1', 'Ack', 'Review', 'Approved', 'Fixed'].map(tag => `
+                            <button class="reaction-btn" onclick="activityStreams.addReaction('${comment.id}', '${tag}')">
+                                ${tag}
                             </button>
                         `).join('')}
                     </div>
