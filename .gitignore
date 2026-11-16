@@ -187,3 +187,5 @@ attachments/
 *.manifest
 *.spec
 .ruff_cache/
+seed_showcase.py
+capture_showcase_screenshots.py

@@ -202,8 +202,9 @@ class InlineEditManager {
 }
 
 // CSS for inline editing
-const style = document.createElement('style');
-style.textContent = `
+(() => {
+    const style = document.createElement('style');
+    style.textContent = `
     [data-inline-edit] {
         position: relative;
         transition: all 0.2s;
@@ -372,7 +373,8 @@ style.textContent = `
         color: var(--jira-text-secondary, #8c9bab);
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
+})();
 
 // Initialize on DOM load
 if (document.readyState === 'loading') {

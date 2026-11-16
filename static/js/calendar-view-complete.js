@@ -3,6 +3,8 @@
  * Month/Week/Day/Agenda views, Drag-drop reschedule, Color coding, Mini calendar, iCal export
  */
 
+if (typeof window.CalendarViewSystem === 'undefined') {
+(function() {
 class CalendarViewSystem {
     constructor() {
         this.viewMode = 'month'; // month, week, day, agenda
@@ -643,3 +645,5 @@ class CalendarViewSystem {
 window.CalendarViewSystem = CalendarViewSystem;
 window.CalendarViewComplete = CalendarViewSystem;
 window.calendarViewSystem = new CalendarViewSystem();
+})();
+}

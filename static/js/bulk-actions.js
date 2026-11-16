@@ -336,8 +336,9 @@ class BulkActionsManager {
 }
 
 // CSS for bulk actions
-const style = document.createElement('style');
-style.textContent = `
+(() => {
+    const style = document.createElement('style');
+    style.textContent = `
     .bulk-actions-toolbar {
         background: var(--jira-darker-bg, #161a1d);
         border-bottom: 1px solid var(--jira-border, #2c333a);
@@ -445,7 +446,8 @@ style.textContent = `
         background: rgba(0, 82, 204, 0.05);
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
+})();
 
 // Initialize on DOM load
 if (document.readyState === 'loading') {

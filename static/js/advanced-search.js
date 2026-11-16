@@ -400,8 +400,9 @@ class AdvancedSearchManager {
 }
 
 // CSS for advanced search
-const style = document.createElement('style');
-style.textContent = `
+(() => {
+    const style = document.createElement('style');
+    style.textContent = `
     .advanced-search-modal {
         display: none;
         position: fixed;
@@ -582,7 +583,8 @@ style.textContent = `
         border-color: #0052cc;
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
+})();
 
 // Initialize on DOM load
 if (document.readyState === 'loading') {
