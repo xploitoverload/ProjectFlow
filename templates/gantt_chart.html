@@ -701,7 +701,7 @@
             <!-- Dependency Lines Toggle -->
             <button class="btn btn-secondary" id="toggleDependenciesBtn" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: 8px; border: 1px solid var(--surface-border-color);" onclick="toggleDependenciesVisibility()" title="Toggle visual dependency lines">
                 <span class="iconify" data-icon="solar:tuning-square-2-bold" style="width: 15px; height: 15px; color: #818CF8;"></span>
-                <span id="toggleDepText">Links: On</span>
+                <span id="toggleDepText">Links: Off</span>
             </button>
 
             <!-- Auto-Schedule Cascade Button -->
@@ -776,7 +776,7 @@
                 <div id="timelineRows"></div>
 
                 <!-- SVG Layer for Directed Dependency Lines -->
-                <svg class="gantt-svg-layer" id="ganttSvgLayer">
+                <svg class="gantt-svg-layer" id="ganttSvgLayer" style="display: none;">
                     <defs>
                         <marker id="depArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                             <path d="M 0 1 L 8 5 L 0 9 z" class="dep-arrow" />
@@ -987,7 +987,7 @@ function switchView(view) {
     }
 }
 
-let showDependencies = true;
+let showDependencies = false;
 function toggleDependenciesVisibility() {
     showDependencies = !showDependencies;
     const svgLayer = document.getElementById('ganttSvgLayer');
