@@ -11,7 +11,7 @@
 > Featuring biometric Facial ID authentication, memory-hard Argon2id hashing, and a cryptographic tamper-evident audit ledger.
 
 <p align="center">
-  <img src="docs/images/gantt_roadmap.png" alt="ProjectFlow Interactive Gantt & Critical Path Engine" width="100%">
+  <img src="docs/images/cyberhound_hero_banner.png" alt="ProjectFlow Cyberhound Engine" width="100%">
 </p>
 
 ---
@@ -100,54 +100,57 @@ python run.py
 
 ---
 
-## 🛡️ Systems-Grade Security Features
+## 🛡️ Systems-Grade Security & Authentication Nodes
 
-### 1. Cryptographic Tamper-Evident Audit Ledger
+### 1. Cyberhound Authentication & Biometric Scanner Gate
+Redesigned authentication portal featuring the ProjectFlow Cyberhound identity, glowing neon crimson telemetry, and hardware biometric facial ID integration.
+
+![ProjectFlow Sign In Portal](docs/images/login_page.png)
+
+### 2. Biometric Facial Recognition Gate
+Local, on-device vector generation comparing 128-dimensional Euclidean distances with anti-spoofing liveness verification. Facial encodings and preview frames are encrypted with AES-256-GCM.
+
+![Biometric Facial ID Authentication](docs/images/admin_facial_id.png)
+
+### 3. Cryptographic Tamper-Evident SHA-256 Audit Ledger
 All security events, permission escalations, and logins are committed to an append-only cryptographic ledger. Each block links back to the preceding block:
 
 $$\text{record\_hash}_i = \text{SHA256}(\text{prev\_hash}_{i-1} \,\|\, \text{user\_id} \,\|\, \text{action} \,\|\, \text{payload} \,\|\, \text{timestamp})$$
 
-Any direct database tampering or row deletion permanently invalidates the cryptographic chain and triggers an alert during integrity verification:
-```python
-from app.services.audit_service import AuditService
+Any direct database tampering or row deletion permanently invalidates the cryptographic chain and triggers an immediate alert during integrity verification:
 
-# Verify complete ledger integrity across entire history
-is_valid, broken_id, msg = AuditService.verify_ledger_integrity()
-assert is_valid is True
-```
+![Tamper-Evident Audit Ledger](docs/images/admin_audit_logs.png)
 
-### 2. Argon2id Password Hashing
+### 4. Argon2id Password Hashing & Security Policies
 Password hashes are computed using **Argon2id** (OWASP recommended memory-hard hashing), resisting GPU/ASIC brute-force attacks:
 ```python
 user.set_password("SecurePassword123!")
 # Stores: $argon2id$v=19$m=65536,t=3,p=4$...
 ```
 
-### 3. Biometric Facial ID Authentication
-* Local, on-device vector generation comparing 128-dimensional Euclidean distances.
-* Facial encodings and preview frames are encrypted with AES-256 before disk storage.
-* Multi-factor verification (Facial ID + TOTP 2FA via Google Authenticator or YubiKey).
-
-![Biometric Facial ID & Security Login](docs/images/biometric_auth.png)
+![Security Center & Access Control](docs/images/admin_security.png)
 
 ---
 
-## 📊 Project Planning & Intelligence Engine
+## 📊 User & Engineering Workspaces
 
-ProjectFlow includes a high-performance scheduling, timeline, and portfolio intelligence engine:
+### 🏠 Dashboard & Active Sprint Command Hub
+Unified delivery overview displaying active sprint velocity, burndown progress, cross-project workload, and real-time event streams.
+
+![ProjectFlow Workspace Dashboard](docs/images/dashboard.png)
+
+### 📋 Agile Kanban Board
+Interactive drag-and-drop workflow board with sub-20ms transitions, swimlanes, custom statuses, card tags, and instant filter toggling.
+
+![ProjectFlow Agile Kanban Board](docs/images/kanban_board.png)
 
 ### 🗓️ Interactive Roadmap & Gantt Engine
 Drag-and-drop task scheduling across Day, Week, Month, and Quarter views with real-time SVG dependency connectors, milestone markers, and automated Critical Path Method (CPM) calculation.
 
 ![ProjectFlow Gantt & Roadmap Engine](docs/images/gantt_roadmap.png)
 
-### 📋 Agile Kanban Board
-High-speed Kanban board with instant drag-and-drop workflow transitions, custom columns, issue filtering, and real-time state synchronization.
-
-![ProjectFlow Kanban Board](docs/images/kanban_board.png)
-
 ### 🕸️ Interactive Dependency Graph
-Topological dependency graph visualizer linking issues across projects with cycle prevention, direction indicators, and conflict detection.
+Directed topological dependency graph visualizer linking issues across projects with cycle prevention, direction indicators, and conflict detection.
 
 ![ProjectFlow Dependency Graph](docs/images/dependency_graph.png)
 
@@ -160,6 +163,50 @@ Contributor workload normalization, weekly allocation heatmaps, and automatic ov
 Cross-project strategic initiative planning, delivery progress rollups, and multi-team health tracking.
 
 ![ProjectFlow Portfolio Roadmap](docs/images/portfolio_roadmap.png)
+
+### 📦 Agile Backlog & Sprint Management
+Sprint grooming, issue ranking, velocity point estimation, and drag-and-drop backlog prioritization.
+
+![ProjectFlow Agile Backlog](docs/images/backlog_view.png)
+
+### 🔍 Issue Navigator & Filters
+Advanced issue search with multi-parameter filtering by status, priority, assignee, tags, and milestone associations.
+
+![ProjectFlow Issues View](docs/images/issues_view.png)
+
+### 📈 Reports & Agile Velocity Analytics
+Real-time sprint velocity charts, cumulative flow diagrams, and burndown analytics.
+
+![ProjectFlow Reports & Analytics](docs/images/reports_analytics.png)
+
+### 📅 Calendar Planning View
+Calendar-based milestone schedule, release dates, and scheduled issue delivery timelines.
+
+![ProjectFlow Calendar View](docs/images/calendar_view.png)
+
+---
+
+## ⚙️ Administration & Governance Nodes
+
+### 🎛️ Admin System Overview
+Comprehensive administrative telemetry monitoring system health, active user sessions, database metrics, and project quotas.
+
+![ProjectFlow Admin Dashboard](docs/images/admin_dashboard.png)
+
+### 👥 User & Privilege Administration (RBAC)
+Role-Based Access Control (RBAC) supporting granular permissions, account unlock, session termination, and biometric enrollment.
+
+![Admin User Management](docs/images/admin_users.png)
+
+### 🏢 Team Management & Multi-Project Allocation
+Team structure modeling, member assignments, and cross-project permissions.
+
+![Admin Teams Management](docs/images/admin_teams.png)
+
+### 🗄️ Database Optimizations & Storage Engine
+Live database status, connection metrics, index optimization, and snapshot maintenance.
+
+![Admin Database Status](docs/images/admin_database.png)
 
 ---
 
