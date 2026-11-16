@@ -92,11 +92,11 @@
         <!-- Sidebar -->
         <aside class="app-sidebar" id="sidebar">
             <div class="sidebar-header">
-                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo">
-                    <div class="sidebar-logo-icon" style="display: flex; align-items: center; justify-content: center;">
-                        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ProjectFlow" style="width: 26px; height: 26px; border-radius: 6px; filter: drop-shadow(0 2px 6px rgba(124, 58, 237, 0.4));">
+                <a href="{{ url_for('main.dashboard') }}" class="sidebar-logo" style="display: flex; align-items: center; gap: 0.65rem; text-decoration: none;">
+                    <div class="sidebar-logo-icon" style="width: 28px; height: 28px; border-radius: 8px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(255, 26, 42, 0.4); border: 1px solid rgba(255, 26, 42, 0.3);">
+                        <img src="{{ url_for('static', filename='images/cyberhound_app_icon.png') }}" alt="ProjectFlow" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <span class="sidebar-logo-text" style="letter-spacing: -0.3px; font-weight: 700;">ProjectFlow</span>
+                    <span class="sidebar-logo-text" style="letter-spacing: -0.3px; font-weight: 800; font-size: 1.1rem; color: #ffffff;">Project<span style="color: #ff1a2a;">Flow</span></span>
                 </a>
             </div>
 
