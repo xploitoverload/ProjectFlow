@@ -977,28 +977,35 @@ def get_recent_items():
 @api_bp.route('/search/autocomplete', methods=['GET'])
 @api_auth_required
 def search_autocomplete():
-    """Get autocomplete suggestions for search."""
+    """Get autocomplete suggestions for search with IDOR and authorization protection."""
     from app.models import Issue, Project, User
+    from app.services import ProjectService
     
     query = request.args.get('q', '').strip()
     if len(query) < 2:
         return jsonify({'success': True, 'data': {'issues': [], 'projects': [], 'users': []}})
     
-    # Search issues by key or title
+    current_user_obj = User.query.get(session.get('user_id'))
+    accessible_projects = ProjectService.get_user_accessible_projects(current_user_obj) if current_user_obj else []
+    accessible_project_ids = [p.id for p in accessible_projects]
+    
+    if not accessible_project_ids:
+        return jsonify({'success': True, 'data': {'issues': [], 'projects': [], 'users': []}})
+    
+    # Search issues restricted strictly to user-accessible projects
     issues = Issue.query.filter(
+        Issue.project_id.in_(accessible_project_ids),
         db.or_(
             Issue.key.ilike(f'%{query}%'),
             Issue.title.ilike(f'%{query}%')
         )
     ).limit(5).all()
     
-    # Search projects by name or key
-    projects = Project.query.filter(
-        db.or_(
-            Project.name.ilike(f'%{query}%'),
-            Project.key.ilike(f'%{query}%')
-        )
-    ).limit(5).all()
+    # Filter projects matching query strictly within user-accessible set
+    matched_projects = [
+        p for p in accessible_projects
+        if query.lower() in p.name.lower() or (p.key and query.lower() in p.key.lower())
+    ][:5]
     
     # Search users for @mentions or direct username match
     clean_query = query[1:] if query.startswith('@') else query
@@ -1020,11 +1027,11 @@ def search_autocomplete():
                 'id': project.id,
                 'key': project.key,
                 'name': project.name
-            } for project in projects],
+            } for project in matched_projects],
             'users': [{
                 'id': user.id,
                 'username': user.username,
-                'email': user.email
+                'email': user.email if current_user_obj and current_user_obj.role in ['admin', 'super_admin'] else ''
             } for user in users]
         }
     })

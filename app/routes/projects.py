@@ -598,6 +598,48 @@ def delete_attachment(project_id, issue_id, attachment_id):
     return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
 
 
+@projects_bp.route('/<int:project_id>/issue/<int:issue_id>/attachment/<int:attachment_id>/download', methods=['GET'])
+@login_required
+@project_access_required
+def download_attachment(project_id, issue_id, attachment_id):
+    """Download file attachment safely with IDOR and path traversal protection."""
+    import os
+    from flask import send_file
+    from app.models import Issue, Attachment
+    
+    issue = Issue.query.get_or_404(issue_id)
+    if issue.project_id != project_id:
+        abort(404)
+        
+    attachment = Attachment.query.get_or_404(attachment_id)
+    if attachment.issue_id != issue_id:
+        abort(404)
+        
+    target_path = attachment.file_path or getattr(attachment, 'filepath', None)
+    if not target_path or not os.path.exists(target_path):
+        flash('Attachment file not found on disk', 'error')
+        return redirect(url_for('projects.issue_view', project_id=project_id, issue_id=issue_id))
+        
+    # Prevent path traversal
+    upload_folder = os.path.abspath(current_app.config.get('UPLOAD_FOLDER', 'uploads'))
+    resolved_path = os.path.abspath(target_path)
+    if not resolved_path.startswith(upload_folder):
+        log_security_event(
+            'PATH_TRAVERSAL_ATTEMPT',
+            user_id=session.get('user_id'),
+            details=f"Directory traversal prevented for attachment {attachment_id}",
+            severity='CRITICAL'
+        )
+        abort(403)
+        
+    return send_file(
+        resolved_path,
+        as_attachment=True,
+        download_name=attachment.filename,
+        mimetype=attachment.mime_type or 'application/octet-stream'
+    )
+
+
 # =============================================
 # Sprint Management Routes
 # =============================================

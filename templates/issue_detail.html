@@ -442,13 +442,19 @@
                                             <span class="text-sm">{{ attachment.filename }}</span>
                                             <span class="text-xs text-gray-400">({{ (attachment.file_size / 1024) | round(1) }} KB)</span>
                                         </div>
-                                        <form action="{{ url_for('projects.delete_attachment', project_id=project.id, issue_id=issue.id, attachment_id=attachment.id) }}" 
-                                              method="POST" onsubmit="return confirm('Delete this attachment?');">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-ghost btn-sm text-danger">
-                                                <i data-lucide="trash-2" class="icon-xs"></i>
-                                            </button>
-                                        </form>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ url_for('projects.download_attachment', project_id=project.id, issue_id=issue.id, attachment_id=attachment.id) }}" 
+                                               class="btn btn-ghost btn-sm text-primary" title="Download attachment">
+                                                <i data-lucide="download" class="icon-xs"></i>
+                                            </a>
+                                            <form action="{{ url_for('projects.delete_attachment', project_id=project.id, issue_id=issue.id, attachment_id=attachment.id) }}" 
+                                                  method="POST" onsubmit="return confirm('Delete this attachment?');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-ghost btn-sm text-danger" title="Delete attachment">
+                                                    <i data-lucide="trash-2" class="icon-xs"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                     {% endfor %}
                                 </div>

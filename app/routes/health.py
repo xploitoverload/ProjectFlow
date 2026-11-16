@@ -131,7 +131,8 @@ def metrics():
 def check_database():
     """Check if database is connected and responsive."""
     try:
-        db.session.execute('SELECT 1')
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
         return True
     except Exception as e:
         logger.error(f"Database check failed: {str(e)}")

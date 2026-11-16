@@ -14,8 +14,15 @@ logger = logging.getLogger('export')
 
 
 class CSVExporter:
-    """Export data to CSV format."""
+    """Export data to CSV format with formula injection protection (CWE-1236)."""
     
+    @staticmethod
+    def _sanitize_csv_cell(val: Any) -> Any:
+        """Sanitize CSV cells against formula injection (CWE-1236)."""
+        if isinstance(val, str) and val.startswith(('=', '+', '-', '@', '\t', '\r')):
+            return "'" + val
+        return val
+
     @staticmethod
     def export_issues(issues: List[Dict[str, Any]], 
                      include_fields: Optional[List[str]] = None) -> str:
@@ -44,10 +51,12 @@ class CSVExporter:
         for issue in issues:
             # Filter to included fields
             row = {k: v for k, v in issue.items() if k in include_fields}
-            # Convert datetime objects to strings
+            # Convert datetime objects to strings and sanitize formula injection
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = value.isoformat()
+                else:
+                    row[key] = CSVExporter._sanitize_csv_cell(value)
             writer.writerow(row)
         
         csv_string = output.getvalue()
@@ -85,6 +94,8 @@ class CSVExporter:
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = value.isoformat()
+                else:
+                    row[key] = CSVExporter._sanitize_csv_cell(value)
             writer.writerow(row)
         
         csv_string = output.getvalue()
@@ -113,6 +124,8 @@ class CSVExporter:
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = value.isoformat()
+                else:
+                    row[key] = CSVExporter._sanitize_csv_cell(value)
             writer.writerow(row)
         
         csv_string = output.getvalue()

@@ -176,27 +176,16 @@ class SecureAdminManager:
     
     def verify_2fa_token(self, user_id: int, token: str) -> bool:
         """Verify 2FA TOTP token"""
-        
-        print(f"DEBUG: verify_2fa_token called for user_id={user_id}, token={token}")
-        
         # Strip whitespace from token
         token = token.strip()
         
         # Validate token is 6 digits
         if not token or len(token) != 6 or not token.isdigit():
-            print(f"DEBUG: Invalid token format: {token}")
             return False
         
         admin_sec = AdminSecurityModel.query.filter_by(user_id=user_id).first()
-        if not admin_sec:
-            print(f"DEBUG: No admin_sec record for user {user_id}")
+        if not admin_sec or not admin_sec.mfa_secret:
             return False
-        
-        if not admin_sec.mfa_secret:
-            print(f"DEBUG: No mfa_secret for user {user_id}")
-            return False
-        
-        print(f"DEBUG: Found mfa_secret for user {user_id}: {admin_sec.mfa_secret[:10]}...")
         
         pyotp = _get_pyotp()
         totp = pyotp.TOTP(admin_sec.mfa_secret)
@@ -204,8 +193,7 @@ class SecureAdminManager:
         # Allow 60-second window on either side (2 time steps before/after)
         # This accounts for clock skew between client and server
         result = totp.verify(token, valid_window=2)
-        print(f"DEBUG: TOTP verification result: {result}")
-        logger.info(f"2FA token verification for user {user_id}: token={token}, result={result}, secret_exists={bool(admin_sec.mfa_secret)}")
+        logger.info(f"2FA token verification for user {user_id}: result={result}, secret_exists={bool(admin_sec.mfa_secret)}")
         return result
     
     def verify_backup_code(self, user_id: int, code: str) -> bool:
