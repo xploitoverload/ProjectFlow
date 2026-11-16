@@ -31,41 +31,6 @@ Most project trackers are either heavy enterprise beasts consuming gigabytes of 
 
 ---
 
-## 🏗️ Architecture
-
-```mermaid
-flowchart TD
-    subgraph Client["Client Layer"]
-        UI["Linear/Jira Modern Dark UI<br/>(Tailwind + Lucide Icons)"]
-        Webcam["Biometric Webcam Input<br/>(Local Canvas Stream)"]
-        LiveWS["WebSocket Real-Time Bus<br/>(Instant Board Sync)"]
-    end
-
-    subgraph App["Application Engine"]
-        Factory["Flask App Factory"]
-        Kanban["Agile Domain Engine<br/>(Projects, Epics, Sprints, Issues)"]
-        API["REST API v1<br/>(OpenAPI / Swagger)"]
-    end
-
-    subgraph Security["Security & Cryptographic Core"]
-        BioAuth["Biometric Facial ID Engine<br/>(128-d Vector Matching)"]
-        Argon["Argon2id Password Hasher<br/>(Memory-Hard KDF)"]
-        AuditLedger["Tamper-Evident SHA-256 Ledger<br/>(Cryptographic Block Chaining)"]
-        AES["Field-Level AES-256-GCM<br/>(Encrypted at Rest)"]
-    end
-
-    subgraph Persistence["Storage Layer"]
-        DB[("SQLite / PostgreSQL<br/>(SQLAlchemy 2.0 ORM)")]
-    end
-
-    Client --> App
-    App --> Security
-    Security --> Persistence
-    App --> Persistence
-```
-
----
-
 ## 🚀 Quickstart
 
 ### Option 1: Docker (Recommended)
