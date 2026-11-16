@@ -138,9 +138,9 @@ class UIController {
         
         // Custom validations
         const customValidations = {
-            email: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/,
-            url: /^https?:\\/\\/.+/,
-            number: /^\\d+$/
+            email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            url: /^https?:\/\/.+/,
+            number: /^\d+$/
         };
         
         form.querySelectorAll('[data-validate]').forEach(field => {

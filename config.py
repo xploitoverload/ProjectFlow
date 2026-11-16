@@ -86,6 +86,9 @@ class Config:
     # CSRF Protection
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600  # 1 hour
+    
+    # Biometric & Secure Admin Vault Token
+    HIDDEN_ADMIN_TOKEN = os.environ.get('HIDDEN_ADMIN_TOKEN', 'vault-sec-0x7f88')
 
 
 class DevelopmentConfig(Config):
