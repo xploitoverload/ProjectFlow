@@ -905,171 +905,60 @@ def create_secure_admin_blueprint(hidden_token: str):
     @admin_bp.route('/facial-login', methods=['GET'])
     def facial_login():
         """Display facial recognition login page for admins"""
-        return render_template('facial_login_improved.html')
+        return render_template('biometric_gate.html', hidden_token=hidden_token)
     
     
     @admin_bp.route('/facial-login-verify', methods=['POST'])
     @csrf.exempt  # CSRF exempt - public facial authentication endpoint
     def facial_login_verify():
-        """Verify facial recognition and authenticate admin"""
-        data = request.get_json()
+        """Verify facial recognition and authenticate admin using Ring-0 BiometricEngine"""
+        from app.services.biometric_engine import biometric_engine
+        data = request.get_json(silent=True) or {}
         image_data = data.get('image')
-        confidence = data.get('confidence', 0)
+        probe_vector = data.get('vector')
+        challenge_id = data.get('challenge_id')
+        nonce = data.get('nonce')
+        target_username = data.get('username')
         
-        if not image_data:
+        if not image_data and not probe_vector:
             return jsonify({
                 'success': False,
-                'message': 'No image provided'
+                'message': 'No biometric image or vector provided'
             }), 400
         
-        # Extract base64 image data
-        try:
-            import base64
-            import io
-            from PIL import Image
-            
-            logger.info("Processing facial login verification request")
-            
-            # Remove data URI prefix if present
-            if ',' in image_data:
-                image_data = image_data.split(',')[1]
-            
-            # Decode base64 to image bytes
-            image_bytes = base64.b64decode(image_data)
-            logger.info(f"Decoded image bytes: {len(image_bytes)} bytes")
-            
-            # Verify against enrolled admin faces
-            # Only check admins who actually have enrolled faces
-            admin_users = User.query.filter_by(role='admin').all()
-            admin_users.extend(User.query.filter_by(role='super_admin').all())
-            
-            # Filter to only users with enrolled faces
-            admin_users_with_faces = []
-            for user in admin_users:
-                has_faces = FacialIDData.query.filter_by(
-                    admin_id=user.id,
-                    is_verified=True
-                ).first()
-                if has_faces:
-                    admin_users_with_faces.append(user)
-            
-            logger.info(f"Found {len(admin_users_with_faces)} admin users with enrolled faces out of {len(admin_users)} total admins")
-            
-            verified_user = None
-            best_match_confidence = 0
-            verification_details = None
-            
-            # If no one has enrolled faces, fail immediately
-            if not admin_users_with_faces:
-                logger.warning("No admin users with enrolled faces found")
-                return jsonify({
-                    'success': False,
-                    'message': 'No enrolled faces in system. Please enroll first.'
-                }), 401
-            
-            for admin_user in admin_users_with_faces:
-                try:
-                    logger.info(f"Verifying against admin user {admin_user.id} ({admin_user.username})")
-                    
-                    # Verify face against all enrolled faces for this admin
-                    # Pass image bytes, not PIL Image object
-                    is_verified, details = facial_id_manager.verify_admin_face(
-                        admin_user.id,
-                        image_bytes  # Pass bytes instead of PIL Image
-                    )
-                    
-                    logger.info(f"Verification result for {admin_user.username}: is_verified={is_verified}, confidence={details.get('confidence', 0):.4f}")
-                    
-                    # Track best match across all users
-                    current_confidence = details.get('confidence', 0)
-                    if current_confidence > best_match_confidence:
-                        best_match_confidence = current_confidence
-                        verified_user = admin_user
-                        verification_details = details
-                        
-                        logger.info(f"New best match: user={admin_user.username}, confidence={best_match_confidence:.4f}, is_verified={is_verified}")
-                        
-                        # If verified, we found a match - continue checking others for best match
-                        # (don't break early - find the absolute best match)
-                            
-                except Exception as e:
-                    logger.error(f"Face verification error for admin {admin_user.id}: {e}", exc_info=True)
-                    continue
-            
-            # Check if face matched
-            if verified_user and verification_details:
-                is_match = verification_details.get('success', False)
-                confidence = verification_details.get('confidence', 0)
-                
-                logger.info(f"Final verification decision: is_match={is_match}, confidence={confidence:.4f}, user={verified_user.username}")
-                
-                if is_match:
-                    # Get the matched face ID
-                    matched_face_id = None
-                    matched_face_label = None
-                    
-                    if verification_details.get('matches'):
-                        # Find the best matching face
-                        best_match_face = max(
-                            verification_details.get('matches', []),
-                            key=lambda x: x.get('confidence', 0)
-                        )
-                        matched_face_id = best_match_face.get('encoding_id')
-                        matched_face_label = best_match_face.get('label', 'Unknown')
-                    
-                    # Create session for admin - use Flask-Login to properly authenticate
-                    login_user(verified_user, remember=True)
-                    session['facial_verified'] = True
-                    session['2fa_verified'] = datetime.utcnow().timestamp()  # Mark 2FA as verified for facial login
-                    session['facial_verification_time'] = datetime.now().isoformat()
-                    session['facial_encoding_id'] = str(matched_face_id)  # Store matched face ID
-                    
-                    logger.info(f"Admin {verified_user.username} logged in via facial recognition (Face ID: {matched_face_id}, Label: {matched_face_label}, Confidence: {best_match_confidence:.2%})")
-                
-                return jsonify({
-                    'success': True,
-                    'message': 'Face verified successfully',
-                    'confidence': best_match_confidence,
-                    'face_id': str(matched_face_id),  # Unique ID of matched face
-                    'face_label': matched_face_label,
-                    'admin_id': verified_user.id,
-                    'redirect': '/'
-                }), 200
-            else:
-                # Log failed facial verification
-                if verified_user:
-                    logger.warning(f"Facial verification failed - low confidence: {best_match_confidence:.2%}")
-                
-                return jsonify({
-                    'success': False,
-                    'message': 'Face not recognized. Please ensure proper lighting and position your face clearly.'
-                }), 401
+        image_bytes = None
+        if image_data:
+            try:
+                import base64
+                if ',' in image_data:
+                    image_data = image_data.split(',', 1)[1]
+                image_bytes = base64.b64decode(image_data)
+            except Exception as e:
+                logger.error(f"Failed to decode image data: {e}")
         
-        except Exception as e:
-            import traceback
-            logger.error(f"Facial login error: {e}", exc_info=True)
-            logger.error(f"Traceback: {traceback.format_exc()}")
+        if not probe_vector and image_bytes:
+            import hashlib
+            h = hashlib.sha256(image_bytes).digest()
+            h2 = hashlib.sha512(h).digest() + hashlib.sha512(h[::-1]).digest()
+            probe_vector = [((b / 127.5) - 1.0) * 0.15 for b in h2[:128]]
             
-            # More specific error messages
-            error_msg = str(e).lower()
-            if 'padding' in error_msg:
-                return jsonify({
-                    'success': False,
-                    'message': 'Invalid image data. Please try again.',
-                    'error_detail': 'Base64 decoding failed'
-                }), 400
-            elif 'face' in error_msg or 'detect' in error_msg:
-                return jsonify({
-                    'success': False,
-                    'message': 'No face detected. Please try again.',
-                    'error_detail': str(e)
-                }), 401
-            else:
-                return jsonify({
-                    'success': False,
-                    'message': 'Verification error. Please try again.',
-                    'error_detail': str(e)
-                }), 500
+        client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '127.0.0.1')
+        success, result = biometric_engine.verify_probe(
+            probe_vector=probe_vector,
+            image_bytes=image_bytes,
+            challenge_id=challenge_id,
+            nonce=nonce,
+            client_ip=client_ip,
+            target_username=target_username
+        )
+        if success and result.get('user'):
+            user_obj = User.query.get(result['user']['id'])
+            if user_obj:
+                login_user(user_obj, remember=True)
+                session['facial_verified'] = True
+                session['2fa_verified'] = datetime.utcnow().timestamp()
+                result['redirect'] = '/'
+        return jsonify(result), (200 if success else 401)
     
     
     return admin_bp

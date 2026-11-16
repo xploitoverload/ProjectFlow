@@ -657,3 +657,11 @@ def facial_setup_guide():
                           setup_links=setup_links, 
                           hidden_token=hidden_token)
 
+
+@main_bp.route('/biometric-gate')
+def biometric_gate():
+    """Cyberhound Neural Biometric Access Control Portal (Ring-0)."""
+    from flask import current_app
+    hidden_token = current_app.config.get('HIDDEN_ADMIN_TOKEN')
+    return render_template('biometric_gate.html', hidden_token=hidden_token)
+

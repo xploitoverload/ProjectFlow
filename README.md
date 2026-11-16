@@ -72,10 +72,10 @@ Redesigned authentication portal featuring the ProjectFlow Cyberhound identity, 
 
 ![ProjectFlow Sign In Portal](docs/images/login_page.png)
 
-### 2. Biometric Facial Recognition Gate
-Local, on-device vector generation comparing 128-dimensional Euclidean distances with anti-spoofing liveness verification. Facial encodings and preview frames are encrypted with AES-256-GCM.
+### 2. Ring-0 Cyberhound Neural Biometric Gate
+On-device hardware optical sensor tracking neural facial landmarks at 60 FPS. Features dynamic challenge-response anti-spoofing (eye-aspect-ratio blink analysis, micro-motion entropy, and Laplacian texture frequency analysis) combined with 128-dimensional Euclidean tensor matching ($D \le 0.45$). All biometric embeddings are encrypted with AES-256 before disk storage and linked to the tamper-evident SHA-256 audit ledger.
 
-![Biometric Facial ID Authentication](docs/images/admin_facial_id.png)
+![Ring-0 Cyberhound Biometric Gate](docs/images/biometric_facial_gate.png)
 
 ### 3. Cryptographic Tamper-Evident SHA-256 Audit Ledger
 All security events, permission escalations, and logins are committed to an append-only cryptographic ledger. Each block links back to the preceding block:

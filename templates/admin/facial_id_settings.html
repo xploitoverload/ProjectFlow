@@ -61,6 +61,15 @@
             {% endif %}
           </div>
         {% endif %}
+        
+        <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="/biometric-gate" class="btn btn-primary" target="_blank" style="display: inline-flex; align-items: center; gap: 8px;">
+            <span>👁️</span> Launch Cyberhound Biometric Gate
+          </a>
+          <a href="{{ url_for('admin_secure.setup_facial_id') }}" class="btn btn-secondary">
+            + Enroll Additional Angle
+          </a>
+        </div>
       {% else %}
         <div class="empty-state-box">
           <p>No facial IDs enrolled yet</p>
