@@ -51,16 +51,16 @@ When deploying this application:
 
 This application includes:
 
-- ✅ Password hashing with Argon2
-- ✅ CSRF protection on all forms
-- ✅ XSS prevention with bleach
-- ✅ SQL injection prevention via SQLAlchemy ORM
-- ✅ Rate limiting on authentication endpoints
-- ✅ Security headers (via Flask-Talisman)
-- ✅ Session security with secure cookies
-- ✅ Input validation and sanitization
-- ✅ Two-factor authentication (TOTP)
-- ✅ Facial recognition authentication (optional)
+- Password hashing with Argon2id
+- CSRF protection on all forms
+- XSS prevention with bleach
+- SQL injection prevention via SQLAlchemy ORM
+- Rate limiting on authentication endpoints
+- Security headers (via Flask-Talisman)
+- Session security with secure cookies
+- Input validation and sanitization
+- Two-factor authentication (TOTP)
+- Facial recognition authentication (optional)
 
 ## Known Limitations
 

@@ -375,7 +375,7 @@ class ServiceDeskSystem {
                                 <h4>How to reset your password</h4>
                                 <p>Step-by-step guide to reset your account password...</p>
                                 <div class="article-meta">
-                                    <span>👍 125 helpful</span>
+                                    <span>125 helpful</span>
                                     <span>Updated 2 days ago</span>
                                 </div>
                             </div>
@@ -383,7 +383,7 @@ class ServiceDeskSystem {
                                 <h4>Setting up two-factor authentication</h4>
                                 <p>Secure your account with 2FA...</p>
                                 <div class="article-meta">
-                                    <span>👍 98 helpful</span>
+                                    <span>98 helpful</span>
                                     <span>Updated 1 week ago</span>
                                 </div>
                             </div>

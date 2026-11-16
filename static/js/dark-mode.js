@@ -115,7 +115,7 @@ class DarkModeManager {
      */
     getToggleIcon() {
         const currentTheme = this.getEffectiveTheme();
-        return currentTheme === 'dark' ? '☀️' : '🌙';
+        return currentTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
     }
     
     /**
@@ -124,7 +124,8 @@ class DarkModeManager {
     updateToggleButtonIcon(effectiveTheme) {
         const button = document.querySelector('.theme-toggle');
         if (button) {
-            button.innerHTML = effectiveTheme === 'dark' ? '☀️' : '🌙';
+            button.innerHTML = effectiveTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+            if (window.lucide) window.lucide.createIcons();
         }
     }
     

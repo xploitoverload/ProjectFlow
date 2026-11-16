@@ -279,7 +279,7 @@
     <div class="setup-2fa-page">
         <div class="setup-2fa-container">
             <div class="setup-2fa-header">
-                <div class="setup-2fa-icon">🔐</div>
+                <div class="setup-2fa-icon"></div>
                 <h1>Setup Two-Factor Authentication</h1>
                 <p>Secure your admin account with Google Authenticator</p>
             </div>
@@ -289,11 +289,11 @@
                     {% for category, message in messages %}
                         {% if category == 'error' %}
                             <div class="error-message">
-                                <strong>❌ Error:</strong> {{ message }}
+                                <strong> Error:</strong> {{ message }}
                             </div>
                         {% elif category == 'success' %}
                             <div class="success-message">
-                                <strong>✅ Success!</strong> {{ message }}
+                                <strong> Success!</strong> {{ message }}
                             </div>
                         {% endif %}
                     {% endfor %}
@@ -302,13 +302,13 @@
 
             {% if error %}
             <div class="error-message">
-                <strong>❌ Error:</strong> {{ error }}
+                <strong> Error:</strong> {{ error }}
             </div>
             {% endif %}
 
             {% if success %}
             <div class="success-message">
-                <strong>✅ Success!</strong> {{ success }}
+                <strong> Success!</strong> {{ success }}
             </div>
             {% endif %}
 
@@ -321,19 +321,19 @@
                         <p>Download and install one of these authenticator apps on your phone:</p>
                         <div class="app-links">
                             <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" class="app-link">
-                                <span>🔐</span>
+                                <span></span>
                                 <span>Google Authenticator (Android)</span>
                             </a>
                             <a href="https://apps.apple.com/us/app/google-authenticator/id388497605" target="_blank" class="app-link">
-                                <span>🔐</span>
+                                <span></span>
                                 <span>Google Authenticator (iOS)</span>
                             </a>
                             <a href="https://authy.com/download/" target="_blank" class="app-link">
-                                <span>🔑</span>
+                                <span></span>
                                 <span>Authy (Cross-platform)</span>
                             </a>
                             <a href="https://www.microsoft.com/en-us/account/authenticator" target="_blank" class="app-link">
-                                <span>🔐</span>
+                                <span></span>
                                 <span>Microsoft Auth (All devices)</span>
                             </a>
                         </div>
@@ -356,8 +356,7 @@
                         </div>
 
                         <div class="qr-code-info">
-                            <strong>💡 Can't scan?</strong><br>
-                            Manually enter this code in your app:<br>
+                            <strong> Can't scan?</strong><br> Manually enter this code in your app:<br>
                             <code style="background: white; padding: 8px 12px; border-radius: 4px; display: block; margin-top: 8px; word-break: break-all; font-family: monospace;">
                                 {{ qr_code_secret if qr_code_secret else 'Secret will appear after QR generation' }}
                             </code>
@@ -378,13 +377,7 @@
                                 <div class="form-group">
                                     <label for="token">Authentication Code</label>
                                     <input 
-                                        type="text" 
-                                        id="token" 
-                                        name="token" 
-                                        placeholder="000000" 
-                ength="6" 
-                                        pattern="[0-9]{6}" 
-                                        required 
+                                        type="text" id="token" name="token" placeholder="000000" ength="6" pattern="[0-9]{6}" required 
                                         autofocus
                                         autocomplete="one-time-code"
                                     >
@@ -398,7 +391,7 @@
             </div>
 
             <div class="warning-box">
-                <strong>⚠️ Important:</strong> Save your recovery codes in a safe place. You'll need them if you lose access to your authenticator app. Lost codes cannot be recovered.
+                <strong> Important:</strong> Save your recovery codes in a safe place. You'll need them if you lose access to your authenticator app. Lost codes cannot be recovered.
             </div>
 
             <div class="back-link">

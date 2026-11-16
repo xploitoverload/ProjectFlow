@@ -5,7 +5,7 @@
 {% block content %}
 <div class="admin-container">
   <div class="admin-header">
-    <h1>🔐 Facial ID Settings</h1>
+    <h1> Facial ID Settings</h1>
     <p>Manage your facial recognition authentication</p>
   </div>
 
@@ -17,7 +17,7 @@
       {% if facial_stats.enrolled %}
         <div class="stats-grid">
           <div class="stat-box">
-            <div class="stat-icon">📸</div>
+            <div class="stat-icon"></div>
             <div class="stat-info">
               <div class="stat-label">Enrolled Faces</div>
               <div class="stat-value">{{ facial_stats.enrollment_count }}</div>
@@ -25,7 +25,7 @@
           </div>
 
           <div class="stat-box">
-            <div class="stat-icon">✅</div>
+            <div class="stat-icon"></div>
             <div class="stat-info">
               <div class="stat-label">Verified & Active</div>
               <div class="stat-value">{{ facial_stats.verified_count }}</div>
@@ -33,7 +33,7 @@
           </div>
 
           <div class="stat-box">
-            <div class="stat-icon">🔓</div>
+            <div class="stat-icon"></div>
             <div class="stat-info">
               <div class="stat-label">Successful Unlocks</div>
               <div class="stat-value">{{ facial_stats.total_unlocks }}</div>
@@ -41,7 +41,7 @@
           </div>
 
           <div class="stat-box">
-            <div class="stat-icon">⚠️</div>
+            <div class="stat-icon"></div>
             <div class="stat-info">
               <div class="stat-label">Failed Attempts</div>
               <div class="stat-value">{{ facial_stats.total_failed }}</div>
@@ -64,7 +64,7 @@
         
         <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
           <a href="/biometric-gate" class="btn btn-primary" target="_blank" style="display: inline-flex; align-items: center; gap: 8px;">
-            <span>👁️</span> Launch Cyberhound Biometric Gate
+            <span></span> Launch Cyberhound Biometric Gate
           </a>
           <a href="{{ url_for('admin_secure.setup_facial_id') }}" class="btn btn-secondary">
             + Enroll Additional Angle
@@ -73,8 +73,7 @@
       {% else %}
         <div class="empty-state-box">
           <p>No facial IDs enrolled yet</p>
-          <a href="{{ url_for('admin_secure.setup_facial_id') }}" class="btn btn-primary">
-            Enroll Now
+          <a href="{{ url_for('admin_secure.setup_facial_id') }}" class="btn btn-primary"> Enroll Now
           </a>
         </div>
       {% endif %}
@@ -94,15 +93,15 @@
               <img src="data:image/jpeg;base64,{{ facial_data.face_preview }}" alt="Face preview">
             {% else %}
               <div class="no-preview">
-                <span class="preview-icon">📸</span>
+                <span class="preview-icon"></span>
               </div>
             {% endif %}
             
             <div class="face-status-badge">
               {% if facial_data.is_verified %}
-                <span class="badge badge-success">✅ Verified</span>
+                <span class="badge badge-success"> Verified</span>
               {% else %}
-                <span class="badge badge-warning">⏳ Pending</span>
+                <span class="badge badge-warning"> Pending</span>
               {% endif %}
             </div>
           </div>
@@ -180,8 +179,7 @@
       </div>
 
       <div class="action-footer">
-        <a href="{{ url_for('admin_secure.setup_facial_id') }}" class="btn btn-primary">
-          Add Another Face
+        <a href="{{ url_for('admin_secure.setup_facial_id') }}" class="btn btn-primary"> Add Another Face
         </a>
       </div>
     </div>
@@ -189,7 +187,7 @@
 
     <!-- Security Guidelines -->
     <div class="security-section">
-      <h2>🛡️ Security Guidelines</h2>
+      <h2> Security Guidelines</h2>
       
       <div class="guidelines-grid">
         <div class="guideline-card">
@@ -232,11 +230,10 @@
 
     <!-- Compliance Info -->
     <div class="compliance-section">
-      <h2>📋 Compliance & Regulations</h2>
+      <h2> Compliance & Regulations</h2>
       
       <div class="compliance-notice">
-        <p>
-          Our facial recognition system is designed with privacy and security in mind:
+        <p> Our facial recognition system is designed with privacy and security in mind:
         </p>
         
         <div class="compliance-items">

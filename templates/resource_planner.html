@@ -105,8 +105,7 @@
                 <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Intelligence & Delivery</span>
             </div>
             <h1 style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
-                <span class="iconify" data-icon="solar:user-hand-up-bold-duotone" style="color: var(--color-primary); width: 26px; height: 26px;"></span>
-                Resource & Capacity Planning
+                <span class="iconify" data-icon="solar:user-hand-up-bold-duotone" style="color: var(--color-primary); width: 26px; height: 26px;"></span> Resource & Capacity Planning
             </h1>
         </div>
 
@@ -147,7 +146,7 @@
                 {{ project_utilization.over_allocated_resources_count if project_utilization else 0 }}
             </div>
             <span style="font-size: 12px; color: {% if project_utilization and project_utilization.over_allocated_resources_count > 0 %}#F43F5E{% else %}var(--text-muted){% endif %};">
-                {% if project_utilization and project_utilization.over_allocated_resources_count > 0 %}⚠️ Burnout risk detected{% else %}All within standard limits{% endif %}
+                {% if project_utilization and project_utilization.over_allocated_resources_count > 0 %} Burnout risk detected{% else %}All within standard limits{% endif %}
             </span>
         </div>
 
@@ -244,8 +243,7 @@
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-secondary);">
-                            No assigned contributors found for the selected project and window.
+                        <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-secondary);"> No assigned contributors found for the selected project and window.
                         </td>
                     </tr>
                     {% endif %}
@@ -258,11 +256,9 @@
     {% if project_utilization and project_utilization.unassigned_tasks %}
     <div class="bento-card" style="padding: 20px 24px; border-radius: 12px;">
         <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 12px; display: flex; align-items: center; gap: 8px;">
-            <span class="iconify" data-icon="solar:clipboard-list-bold-duotone" style="color: #F59E0B;"></span>
-            Unassigned Work Items Queue ({{ project_utilization.unassigned_tasks|length }})
+            <span class="iconify" data-icon="solar:clipboard-list-bold-duotone" style="color: #F59E0B;"></span> Unassigned Work Items Queue ({{ project_utilization.unassigned_tasks|length }})
         </h3>
-        <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;">
-            These tasks have not yet been assigned to a contributor and represent pending capacity demand.
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;"> These tasks have not yet been assigned to a contributor and represent pending capacity demand.
         </p>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px;">

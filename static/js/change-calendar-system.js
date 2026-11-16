@@ -169,7 +169,7 @@ class ChangeCalendarSystem {
                             <div class="change-indicator change-${change.type}" 
                                 title="${change.title}"
                                 onclick="event.stopPropagation(); changeCalendarSystem.viewChange('${change.id}')">
-                                ${change.type === 'emergency' ? '⚡' : change.type === 'standard' ? '📋' : '🔧'}
+                                <span class="badge-${change.type}">${change.type.charAt(0).toUpperCase()}</span>
                             </div>
                         `).join('')}
                     </div>

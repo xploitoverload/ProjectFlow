@@ -317,7 +317,7 @@ def init_graphql(resolver: Optional[GraphQLResolver] = None) -> GraphQLExecutor:
     _resolver = resolver
     _executor = GraphQLExecutor(resolver)
     
-    logger.info("✓ GraphQL API initialized")
+    logger.info("GraphQL API initialized")
     return _executor
 
 

@@ -263,7 +263,7 @@ def init_performance_monitor(history_limit: int = 10000) -> PerformanceMonitor:
     """Initialize performance monitor."""
     global _monitor
     _monitor = PerformanceMonitor(history_limit)
-    logger.info("✓ Performance monitor initialized")
+    logger.info("Performance monitor initialized")
     return _monitor
 
 

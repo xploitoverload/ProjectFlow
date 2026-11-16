@@ -170,7 +170,7 @@
     <div class="verify-2fa-page">
         <div class="verify-2fa-container">
             <div class="verify-2fa-header">
-                <div class="verify-2fa-icon">🔐</div>
+                <div class="verify-2fa-icon"></div>
                 <h1>Verify 2FA Code</h1>
                 <p>Enter your authentication code</p>
             </div>
@@ -180,11 +180,11 @@
                     {% for category, message in messages %}
                         {% if category == 'error' %}
                             <div class="verify-error">
-                                <strong>❌ Error:</strong> {{ message }}
+                                <strong> Error:</strong> {{ message }}
                             </div>
                         {% elif category == 'success' %}
                             <div class="verify-success">
-                                <strong>✅ Success!</strong> {{ message }}
+                                <strong> Success!</strong> {{ message }}
                             </div>
                         {% endif %}
                     {% endfor %}
@@ -204,15 +204,14 @@
             {% endif %}
 
             <div class="verify-info">
-                <strong>📱 Google Authenticator Compatible</strong>
+                <strong> Google Authenticator Compatible</strong>
+                <br> Enter the 6-digit code from:
                 <br>
-                Enter the 6-digit code from:
+                •  Google Authenticator
                 <br>
-                • 🔐 Google Authenticator
+                •  Authy
                 <br>
-                • 🔑 Authy
-                <br>
-                • 🔐 Microsoft Authenticator
+                •  Microsoft Authenticator
                 <br>
                 • Any TOTP-compatible app
             </div>
@@ -222,13 +221,7 @@
                 <div class="form-group">
                     <label for="token">Authentication Code</label>
                     <input 
-                        type="text" 
-                        id="token" 
-                        name="token" 
-                        placeholder="000000" 
-                        maxlength="6" 
-                        pattern="[0-9]{6}" 
-                        required 
+                        type="text" id="token" name="token" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required 
                         autofocus
                         autocomplete="one-time-code"
                     >

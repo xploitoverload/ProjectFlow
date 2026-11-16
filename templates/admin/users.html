@@ -95,8 +95,7 @@
                     </button>
                     
                     <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
-                        <i data-lucide="log-out" class="icon-sm"></i>
-                        Sign out
+                        <i data-lucide="log-out" class="icon-sm"></i> Sign out
                     </a>
                 </div>
             </header>
@@ -123,8 +122,7 @@
                         </div>
                         <div class="page-header-actions">
                             <button class="btn btn-primary" onclick="openAddUserModal()">
-                                <i data-lucide="user-plus" class="icon-sm"></i>
-                                Add User
+                                <i data-lucide="user-plus" class="icon-sm"></i> Add User
                             </button>
                         </div>
                     </div>
@@ -225,11 +223,7 @@
                                         </td>
                                         <td>
                                             <div class="flex items-center gap-1">
-                                                <button class="btn btn-ghost btn-sm btn-icon edit-user-btn" title="Edit" 
-                                                    data-user-id="{{ user.id }}"
-                                                    data-user-email="{{ user.email }}"
-                                                    data-user-role="{{ user.role }}"
-                                                    data-user-team-id="{{ user.team_id or '' }}">
+                                                <button class="btn btn-ghost btn-sm btn-icon edit-user-btn" title="Edit" data-user-id="{{ user.id }}" data-user-email="{{ user.email }}" data-user-role="{{ user.role }}" data-user-team-id="{{ user.team_id or '' }}">
                                                     <i data-lucide="pencil" class="icon-sm"></i>
                                                 </button>
                                                 {% if user.id != current_user.id %}
@@ -726,12 +720,12 @@
                             <label class="form-label">Core Team (Optional)</label>
                             <select name="team_id" class="form-select" id="addUserTeamSelect">
                                 <option value="">Auto-assign based on role</option>
-                                <optgroup label="🏢 Core/Department Teams">
+                                <optgroup label=" Core/Department Teams">
                                 {% for team in teams if team.is_core_team %}
                                 <option value="{{ team.id }}" data-department="{{ team.department }}">{{ team.name }}</option>
                                 {% endfor %}
                                 </optgroup>
-                                <optgroup label="📁 Project Teams">
+                                <optgroup label=" Project Teams">
                                 {% for team in teams if not team.is_core_team %}
                                 <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{ team.team_type|title }}){% endif %}</option>
                                 {% endfor %}
@@ -744,8 +738,7 @@
                 <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
                     <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
                     <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                        <i data-lucide="user-plus" class="icon-sm"></i>
-                        Add User
+                        <i data-lucide="user-plus" class="icon-sm"></i> Add User
                     </button>
                 </div>
             </form>
@@ -1208,12 +1201,12 @@
                         <label class="form-label">Team</label>
                         <select name="team_id" id="editUserTeamId" class="form-select">
                             <option value="">No Team</option>
-                            <optgroup label="🏢 Core/Department Teams">
+                            <optgroup label=" Core/Department Teams">
                             {% for team in teams if team.is_core_team %}
                             <option value="{{ team.id }}">{{ team.name }}</option>
                             {% endfor %}
                             </optgroup>
-                            <optgroup label="📁 Project Teams">
+                            <optgroup label=" Project Teams">
                             {% for team in teams if not team.is_core_team %}
                             <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{ team.team_type|title }}){% endif %}</option>
                             {% endfor %}
@@ -1224,16 +1217,14 @@
                 <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
                     <button type="button" class="btn btn-secondary" onclick="closeEditUserModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
                     <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                        <i data-lucide="save" class="icon-sm"></i>
-                        Save Changes
+                        <i data-lucide="save" class="icon-sm"></i> Save Changes
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
-        lucide.createIcons();
+    <script> lucide.createIcons();
 
         function openAddUserModal() {
             document.getElementById('addUserModal').style.display = 'flex';

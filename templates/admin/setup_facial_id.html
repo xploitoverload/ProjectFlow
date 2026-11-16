@@ -5,7 +5,7 @@
 {% block content %}
 <div class="admin-container">
   <div class="admin-header">
-    <h1>🔐 Facial ID Setup</h1>
+    <h1> Facial ID Setup</h1>
     <p>Add facial recognition for enhanced security</p>
   </div>
 
@@ -67,29 +67,27 @@
                 <circle cx="160" cy="160" r="8" fill="none" stroke="#0284c7" stroke-width="2" opacity="0.6"/>
                 <circle cx="240" cy="160" r="8" fill="none" stroke="#0284c7" stroke-width="2" opacity="0.6"/>
                 <line x1="200" y1="170" x2="200" y2="210" stroke="#0284c7" stroke-width="2" opacity="0.6"/>
-                <text x="200" y="420" text-anchor="middle" fill="#0284c7" font-size="16" font-weight="bold">
-                  Position face in oval
+                <text x="200" y="420" text-anchor="middle" fill="#0284c7" font-size="16" font-weight="bold"> Position face in oval
                 </text>
-                <text x="200" y="445" text-anchor="middle" fill="#888" font-size="12">
-                  Face forward, good lighting
+                <text x="200" y="445" text-anchor="middle" fill="#888" font-size="12"> Face forward, good lighting
                 </text>
               </svg>
             </div>
           </div>
           <div id="faceDetectionStatus" class="detection-status" style="display: none;">
-            <span class="status-text">📷 Ready to capture</span>
+            <span class="status-text"> Ready to capture</span>
           </div>
         </div>
 
         <div class="capture-controls">
           <button type="button" id="startCameraBtn" class="btn btn-primary">
-            <span class="icon">📷</span> Start Camera
+            <span class="icon"></span> Start Camera
           </button>
           <button type="button" id="capturePhotoBtn" class="btn btn-success" disabled>
-            <span class="icon">📸</span> Capture Face
+            <span class="icon"></span> Capture Face
           </button>
           <button type="button" id="stopCameraBtn" class="btn btn-secondary" style="display: none;">
-            <span class="icon">⏹️</span> Stop Camera
+            <span class="icon"></span> Stop Camera
           </button>
         </div>
 
@@ -108,12 +106,7 @@
         <div class="form-group">
           <label for="enrollmentLabel">Label (e.g., Work, Home):</label>
           <input
-            type="text"
-            id="enrollmentLabel"
-            name="label"
-            placeholder="e.g., Office Laptop"
-            maxlength="100"
-            class="form-control"
+            type="text" id="enrollmentLabel" name="label" placeholder="e.g., Office Laptop" maxlength="100" class="form-control"
           />
         </div>
 
@@ -135,7 +128,7 @@
 
     <!-- Security Tips -->
     <div class="security-tips">
-      <h3>🛡️ Security Tips</h3>
+      <h3> Security Tips</h3>
       <ul>
         <li>Use good lighting - avoid backlighting</li>
         <li>Face camera directly with neutral expression</li>
@@ -508,7 +501,7 @@ const statusText = document.getElementById('statusText');
 // ========== START CAMERA ==========
 startCameraBtn.addEventListener('click', async () => {
   detectionStatus.style.display = 'block';
-  detectionStatus.innerHTML = '<span class="status-text">⏳ Accessing camera...</span>';
+  detectionStatus.innerHTML = '<span class="status-text"> Accessing camera...</span>';
 
   try {
     // Request camera with fallback
@@ -535,19 +528,19 @@ startCameraBtn.addEventListener('click', async () => {
     startCameraBtn.style.display = 'none';
     stopCameraBtn.style.display = 'inline-block';
     capturePhotoBtn.disabled = false;
-    detectionStatus.innerHTML = '<span class="status-text">✅ Camera ready - Click "Capture Face"</span>';
+    detectionStatus.innerHTML = '<span class="status-text"> Camera ready - Click "Capture Face"</span>';
 
-    console.log('✅ Camera started');
+    console.log(' Camera started');
   } catch (err) {
     console.error('Camera error:', err);
-    let msg = '❌ Cannot access camera';
+    let msg = ' Cannot access camera';
     
     if (err.name === 'NotAllowedError') {
-      msg = '🚫 Camera permission denied. Allow in browser settings.';
+      msg = ' Camera permission denied. Allow in browser settings.';
     } else if (err.name === 'NotFoundError') {
-      msg = '❌ No camera found. Connect a camera device.';
+      msg = ' No camera found. Connect a camera device.';
     } else if (err.name === 'NotReadableError') {
-      msg = '⚠️ Camera in use by another app.';
+      msg = ' Camera in use by another app.';
     }
     
     alert(msg);
@@ -570,13 +563,13 @@ stopCameraBtn.addEventListener('click', () => {
   capturePhotoBtn.disabled = true;
   detectionStatus.style.display = 'none';
   detectionActive = false;
-  console.log('✅ Camera stopped');
+  console.log(' Camera stopped');
 });
 
 // ========== CAPTURE PHOTO ==========
 capturePhotoBtn.addEventListener('click', () => {
   if (!cameraFeed.srcObject) {
-    alert('❌ Camera not active');
+    alert(' Camera not active');
     return;
   }
 
@@ -598,9 +591,9 @@ capturePhotoBtn.addEventListener('click', () => {
     capturePhotoBtn.disabled = true;
     detectionActive = false;
 
-    console.log('✅ Photo captured, image data size:', faceImageData.value.length);
+    console.log(' Photo captured, image data size:', faceImageData.value.length);
   } catch (err) {
-    alert('❌ Error: ' + err.message);
+    alert(' Error: ' + err.message);
   }
 });
 
@@ -613,7 +606,7 @@ retakePicBtn.addEventListener('click', () => {
   stopCameraBtn.style.display = 'inline-block';
   capturePhotoBtn.disabled = false;
   faceImageData.value = '';
-  console.log('✅ Ready to retake');
+  console.log(' Ready to retake');
 });
 
 // ========== USE PICTURE ==========
@@ -621,7 +614,7 @@ usePictureBtn.addEventListener('click', () => {
   capturedPreview.style.display = 'none';
   enrollmentForm.style.display = 'grid';
   enrollmentLabel.focus();
-  console.log('✅ Form ready for enrollment');
+  console.log(' Form ready for enrollment');
 });
 
 // ========== CANCEL ENROLLMENT ==========
@@ -634,7 +627,7 @@ cancelEnrollBtn.addEventListener('click', () => {
   stopCameraBtn.style.display = 'inline-block';
   capturePhotoBtn.disabled = false;
   enrollmentLabel.value = '';
-  console.log('✅ Cancelled, back to camera');
+  console.log(' Cancelled, back to camera');
 });
 
 // ========== FORM SUBMISSION ==========
@@ -642,17 +635,17 @@ enrollmentForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   
   if (!enrollmentLabel.value.trim()) {
-    alert('❌ Please enter a label');
+    alert(' Please enter a label');
     return;
   }
 
   if (!faceImageData.value) {
-    alert('❌ No image captured');
+    alert(' No image captured');
     return;
   }
 
   enrollmentStatus.style.display = 'block';
-  statusText.textContent = '⏳ Enrolling face... This may take a moment';
+  statusText.textContent = ' Enrolling face... This may take a moment';
 
   try {
     console.log('Submitting form with image size:', faceImageData.value.length);
@@ -673,24 +666,24 @@ enrollmentForm.addEventListener('submit', async (e) => {
     console.log('Response data:', result);
 
     if (result.success) {
-      statusText.textContent = '✅ ' + result.message;
+      statusText.textContent = ' ' + result.message;
       enrollmentStatus.classList.add('success');
       enrollmentForm.style.display = 'none';
-      console.log('✅ Enrollment successful!');
+      console.log(' Enrollment successful!');
       setTimeout(() => window.location.reload(), 2000);
     } else {
-      statusText.textContent = '❌ ' + result.message;
+      statusText.textContent = ' ' + result.message;
       enrollmentStatus.classList.add('error');
       console.error('Enrollment failed:', result);
     }
   } catch (err) {
     console.error('Submission error:', err);
-    statusText.textContent = '❌ Error: ' + err.message;
+    statusText.textContent = ' Error: ' + err.message;
     enrollmentStatus.classList.add('error');
   }
 });
 
-console.log('✅ Facial ID enrollment script loaded');
+console.log(' Facial ID enrollment script loaded');
 </script>
 
 {% endblock %}

@@ -19,7 +19,7 @@ def run_migration():
             # Check if project_teams table already exists
             result = db.session.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='project_teams'"))
             if result.fetchone():
-                print("✓ project_teams table already exists")
+                print("[OK] project_teams table already exists")
             else:
                 # Create the project_teams association table
                 db.session.execute(text('''
@@ -32,7 +32,7 @@ def run_migration():
                         FOREIGN KEY (team_id) REFERENCES team(id) ON DELETE CASCADE
                     )
                 '''))
-                print("✓ Created project_teams association table")
+                print("[OK] Created project_teams association table")
             
             # Check if team_type column exists in team table
             result = db.session.execute(text("PRAGMA table_info(team)"))
@@ -40,22 +40,22 @@ def run_migration():
             
             if 'team_type' not in columns:
                 db.session.execute(text("ALTER TABLE team ADD COLUMN team_type VARCHAR(50) DEFAULT 'general'"))
-                print("✓ Added team_type column to team table")
+                print("[OK] Added team_type column to team table")
             else:
-                print("✓ team_type column already exists")
+                print("[OK] team_type column already exists")
             
             if 'color' not in columns:
                 db.session.execute(text("ALTER TABLE team ADD COLUMN color VARCHAR(7) DEFAULT '#6366f1'"))
-                print("✓ Added color column to team table")
+                print("[OK] Added color column to team table")
             else:
-                print("✓ color column already exists")
+                print("[OK] color column already exists")
             
             db.session.commit()
-            print("\n✅ Migration completed successfully!")
+            print("\n[OK] Migration completed successfully!")
             
         except Exception as e:
             db.session.rollback()
-            print(f"❌ Migration failed: {e}")
+            print(f"[FAIL] Migration failed: {e}")
             raise e
 
 if __name__ == '__main__':

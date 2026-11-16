@@ -214,10 +214,7 @@
                                             <label class="form-label">Avatar Color</label>
                                             <div class="avatar-color-picker">
                                                 {% for color in ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#0ea5e9', '#3b82f6'] %}
-                                                <button type="button" class="avatar-color-option {{ 'active' if user.avatar_color == color else '' }}" 
-                                                        style="background: {{ color }} !important; background-color: {{ color }} !important;" 
-                                                        data-color="{{ color }}"
-                                                        onclick="selectAvatarColor('{{ color }}')">
+                                                <button type="button" class="avatar-color-option {{ 'active' if user.avatar_color == color else '' }}" style="background: {{ color }} !important; background-color: {{ color }} !important;" data-color="{{ color }}" onclick="selectAvatarColor('{{ color }}')">
                                                 </button>
                                                 {% endfor %}
                                             </div>
@@ -226,8 +223,7 @@
 
                                         <div class="flex justify-end gap-3 pt-4 border-t">
                                             <button type="submit" class="btn btn-primary">
-                                                <i data-lucide="save" style="width: 16px; height: 16px;"></i>
-                                                Save Changes
+                                                <i data-lucide="save" style="width: 16px; height: 16px;"></i> Save Changes
                                             </button>
                                         </div>
                                     </form>
@@ -251,8 +247,7 @@
                                                 <p class="text-secondary text-sm">Change your account password</p>
                                             </div>
                                             <a href="{{ url_for('auth.change_password') }}" class="btn btn-secondary btn-sm">
-                                                <i data-lucide="key" style="width: 16px; height: 16px;"></i>
-                                                Change Password
+                                                <i data-lucide="key" style="width: 16px; height: 16px;"></i> Change Password
                                             </a>
                                         </div>
 
@@ -262,13 +257,12 @@
                                                 <h4 class="font-medium">Two-Factor Authentication</h4>
                                                 <p class="text-secondary text-sm">Add an extra layer of security to your account</p>
                                                 {% if mfa_enabled %}
-                                                    <p class="text-success text-xs mt-2">✓ Enabled</p>
+                                                    <p class="text-success text-xs mt-2"> Enabled</p>
                                                 {% endif %}
                                             </div>
                                             {% if not mfa_enabled %}
                                                 <a href="{{ url_for('admin_secure.setup_2fa') }}" class="btn btn-secondary btn-sm">
-                                                    <i data-lucide="smartphone" style="width: 16px; height: 16px;"></i>
-                                                    Setup 2FA
+                                                    <i data-lucide="smartphone" style="width: 16px; height: 16px;"></i> Setup 2FA
                                                 </a>
                                             {% else %}
                                                 <span class="text-success text-sm">Enabled</span>
@@ -282,8 +276,7 @@
                                                 <p class="text-secondary text-sm">Manage your active login sessions</p>
                                             </div>
                                             <button class="btn btn-danger btn-sm" onclick="logoutAllSessions()">
-                                                <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
-                                                Logout All
+                                                <i data-lucide="log-out" style="width: 16px; height: 16px;"></i> Logout All
                                             </button>
                                         </div>
 
@@ -292,14 +285,12 @@
                                         <div class="setting-item" style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 20px;">
                                             <div class="setting-info">
                                                 <h4 class="font-medium" style="display: flex; align-items: center; gap: 8px;">
-                                                    <i data-lucide="eye" style="width: 18px; height: 18px; color: #667eea;"></i>
-                                                    Facial ID Authentication
+                                                    <i data-lucide="eye" style="width: 18px; height: 18px; color: #667eea;"></i> Facial ID Authentication
                                                 </h4>
                                                 <p class="text-secondary text-sm">Secure your admin account with biometric authentication</p>
                                             </div>
                                             <a href="{{ url_for('main.facial_setup_guide') }}" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
-                                                <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
-                                                Setup Facial ID
+                                                <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i> Setup Facial ID
                                             </a>
                                         </div>
                                         {% endif %}
@@ -373,8 +364,7 @@
 
                                     <div class="flex justify-end gap-3 pt-4 border-t mt-6">
                                         <button class="btn btn-primary">
-                                            <i data-lucide="save" style="width: 16px; height: 16px;"></i>
-                                            Save Preferences
+                                            <i data-lucide="save" style="width: 16px; height: 16px;"></i> Save Preferences
                                         </button>
                                     </div>
                                 </div>

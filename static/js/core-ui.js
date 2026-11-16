@@ -16,7 +16,7 @@ class UIController {
         this.setupKeyboardShortcuts();
         this.setupLoadingStates();
         
-        console.log('✅ UI Controller initialized');
+        console.log('UI Controller initialized');
     }
     
     // ========== DROPDOWN FUNCTIONALITY ==========
@@ -311,8 +311,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Lucide icons if available
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
-        console.log('✅ Lucide icons initialized');
+        console.log('Lucide icons initialized');
     }
     
-    console.log('✅ Core UI initialized - Forms, modals, dropdowns are now functional');
+    console.log('Core UI initialized - Forms, modals, dropdowns are functional');
 });

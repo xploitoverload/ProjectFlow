@@ -28,9 +28,9 @@ def run_migration():
             
             if 'department' not in user_columns:
                 db.session.execute(text("ALTER TABLE user ADD COLUMN department VARCHAR(50)"))
-                print("✓ Added department column to user table")
+                print("[OK] Added department column to user table")
             else:
-                print("✓ department column already exists in user table")
+                print("[OK] department column already exists in user table")
             
             # 2. Add columns to team table
             result = db.session.execute(text("PRAGMA table_info(team)"))
@@ -38,15 +38,15 @@ def run_migration():
             
             if 'department' not in team_columns:
                 db.session.execute(text("ALTER TABLE team ADD COLUMN department VARCHAR(50)"))
-                print("✓ Added department column to team table")
+                print("[OK] Added department column to team table")
             else:
-                print("✓ department column already exists in team table")
+                print("[OK] department column already exists in team table")
             
             if 'is_core_team' not in team_columns:
                 db.session.execute(text("ALTER TABLE team ADD COLUMN is_core_team BOOLEAN DEFAULT 0"))
-                print("✓ Added is_core_team column to team table")
+                print("[OK] Added is_core_team column to team table")
             else:
-                print("✓ is_core_team column already exists in team table")
+                print("[OK] is_core_team column already exists in team table")
             
             db.session.commit()
             
@@ -76,7 +76,7 @@ def run_migration():
                     created_teams += 1
             
             db.session.commit()
-            print(f"✓ Created {created_teams} core teams")
+            print(f"[OK] Created {created_teams} core teams")
             
             # 4. Update existing users with their department based on role
             users = User.query.all()
@@ -98,12 +98,12 @@ def run_migration():
                     updated_users += 1
             
             db.session.commit()
-            print(f"✓ Updated {updated_users} users with department info")
+            print(f"[OK] Updated {updated_users} users with department info")
             
-            print("\n✅ Migration completed successfully!")
+            print("\n[OK] Migration completed successfully!")
             
             # Show summary
-            print("\n📊 Core Teams Created:")
+            print("\n Core Teams Created:")
             core_teams = Team.query.filter_by(is_core_team=True).all()
             for team in core_teams:
                 member_count = len(team.members)
@@ -111,7 +111,7 @@ def run_migration():
             
         except Exception as e:
             db.session.rollback()
-            print(f"❌ Migration failed: {e}")
+            print(f"[FAIL] Migration failed: {e}")
             import traceback
             traceback.print_exc()
             raise e

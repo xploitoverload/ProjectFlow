@@ -82,8 +82,7 @@
                 <div class="header-left">
                     <div class="header-breadcrumb">
                         <span>Admin</span>
-                        <i data-lucide="chevron-right" class="header-breadcrumb-separator"
-                            style="width: 14px; height: 14px;"></i>
+                        <i data-lucide="chevron-right" class="header-breadcrumb-separator" style="width: 14px; height: 14px;"></i>
                         <span class="header-breadcrumb-current">Projects</span>
                     </div>
                 </div>
@@ -94,15 +93,13 @@
                     </button>
 
                     <!-- Notifications -->
-                    <button class="header-icon-btn" id="notificationBtn" title="Notifications"
-                        style="position: relative;">
+                    <button class="header-icon-btn" id="notificationBtn" title="Notifications" style="position: relative;">
                         <i data-lucide="bell"></i>
                         <span class="notification-badge">0</span>
                     </button>
 
                     <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">
-                        <i data-lucide="log-out" class="icon-sm"></i>
-                        Sign out
+                        <i data-lucide="log-out" class="icon-sm"></i> Sign out
                     </a>
                 </div>
             </header>
@@ -113,8 +110,7 @@
                 {% if messages %}
                 {% for category, message in messages %}
                 <div class="alert alert-{{ 'error' if category == 'danger' else category }}">
-                    <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}"
-                        class="alert-icon"></i>
+                    <i data-lucide="{{ 'alert-circle' if category in ['danger', 'error'] else 'check-circle' }}" class="alert-icon"></i>
                     <div class="alert-content">{{ message }}</div>
                 </div>
                 {% endfor %}
@@ -130,8 +126,7 @@
                         </div>
                         <div class="page-header-actions">
                             <button class="btn btn-primary" onclick="openAddProjectModal()">
-                                <i data-lucide="plus" class="icon-sm"></i>
-                                New Project
+                                <i data-lucide="plus" class="icon-sm"></i> New Project
                             </button>
                         </div>
                     </div>
@@ -193,8 +188,7 @@
                         <h2 class="card-title">All Projects</h2>
                         <div class="header-search" style="width: 220px;">
                             <i data-lucide="search" class="header-search-icon"></i>
-                            <input type="text" id="projectSearch" class="header-search-input"
-                                placeholder="Search projects...">
+                            <input type="text" id="projectSearch" class="header-search-input" placeholder="Search projects...">
                         </div>
                     </div>
                     <div class="card-body" style="padding: 0;">
@@ -221,8 +215,7 @@
                                                     <i data-lucide="folder" class="icon-sm"></i>
                                                 </div>
                                                 <div>
-                                                    <a href="{{ url_for('projects.project_detail', project_id=project.id) }}"
-                                                        class="font-medium text-primary hover:underline">{{ project.name
+                                                    <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="font-medium text-primary hover:underline">{{ project.name
                                                         }}</a>
                                                     <p class="text-xs text-tertiary">{{ project.key if project.key else
                                                         project.name[:3].upper() }}</p>
@@ -264,36 +257,19 @@
                                         </td>
                                         <td>
                                             <div class="flex items-center gap-1">
-                                                <a href="{{ url_for('projects.project_detail', project_id=project.id) }}"
-                                                    class="btn btn-ghost btn-sm btn-icon" title="View">
+                                                <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="btn btn-ghost btn-sm btn-icon" title="View">
                                                     <i data-lucide="eye" class="icon-sm"></i>
                                                 </a>
-                                                <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}"
-                                                    class="btn btn-ghost btn-sm btn-icon" title="Kanban">
+                                                <a href="{{ url_for('projects.project_kanban', project_id=project.id) }}" class="btn btn-ghost btn-sm btn-icon" title="Kanban">
                                                     <i data-lucide="kanban" class="icon-sm"></i>
                                                 </a>
-                                                <button class="btn btn-ghost btn-sm btn-icon edit-project-btn"
-                                                    title="Edit" data-project-id="{{ project.id }}"
-                                                    data-project-name="{{ project.name }}"
-                                                    data-project-key="{{ project.key }}"
-                                                    data-project-description="{{ project.description }}"
-                                                    data-project-status="{{ project.status }}"
-                                                    data-project-workflow="{{ project.workflow_type }}"
-                                                    data-project-team-ids="{{ project.teams.all()|map(attribute='id')|join(',') }}"
-                                                    data-project-lead-id="{{ project.lead_id or '' }}"
-                                                    data-project-start="{{ project.start_date or '' }}"
-                                                    data-project-end="{{ project.end_date or '' }}">
+                                                <button class="btn btn-ghost btn-sm btn-icon edit-project-btn" title="Edit" data-project-id="{{ project.id }}" data-project-name="{{ project.name }}" data-project-key="{{ project.key }}" data-project-description="{{ project.description }}" data-project-status="{{ project.status }}" data-project-workflow="{{ project.workflow_type }}" data-project-team-ids="{{ project.teams.all()|map(attribute='id')|join(',') }}" data-project-lead-id="{{ project.lead_id or '' }}" data-project-start="{{ project.start_date or '' }}" data-project-end="{{ project.end_date or '' }}">
                                                     <i data-lucide="pencil" class="icon-sm"></i>
                                                 </button>
-                                                <form method="POST"
-                                                    action="{{ url_for('admin.delete_project', project_id=project.id) }}"
-                                                    style="margin: 0;"
-                                                    onsubmit="return confirm('Delete this project? This cannot be undone.');">
+                                                <form method="POST" action="{{ url_for('admin.delete_project', project_id=project.id) }}" style="margin: 0;" onsubmit="return confirm('Delete this project? This cannot be undone.');">
                                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button type="submit" class="btn btn-ghost btn-sm btn-icon"
-                                                        title="Delete">
-                                                        <i data-lucide="trash-2" class="icon-sm"
-                                                            style="color: var(--error-500);"></i>
+                                                    <button type="submit" class="btn btn-ghost btn-sm btn-icon" title="Delete">
+                                                        <i data-lucide="trash-2" class="icon-sm" style="color: var(--error-500);"></i>
                                                     </button>
                                                 </form>
                                             </div>
@@ -309,8 +285,7 @@
                             <h3 class="empty-state-title">No projects found</h3>
                             <p class="empty-state-text">Create your first project to get started</p>
                             <button class="btn btn-primary" onclick="openAddProjectModal()">
-                                <i data-lucide="plus" class="icon-sm"></i>
-                                New Project
+                                <i data-lucide="plus" class="icon-sm"></i> New Project
                             </button>
                         </div>
                         {% endif %}
@@ -321,19 +296,15 @@
     </div>
 
     <!-- Add Project Modal -->
-    <div class="modal-backdrop" id="addProjectModal"
-        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
-        <div class="modal"
-            style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+    <div class="modal-backdrop" id="addProjectModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+        <div class="modal" style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
             <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;">
                 <h3 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Create New Project</h3>
-                <button class="modal-close" onclick="closeAddProjectModal()"
-                    style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <button class="modal-close" onclick="closeAddProjectModal()" style="background: none; border: none; cursor: pointer; padding: 4px;">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form method="POST" action="{{ url_for('admin.add_project') }}"
-                style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+            <form method="POST" action="{{ url_for('admin.add_project') }}" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
                     <div class="form-group">
@@ -343,8 +314,7 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-group">
                             <label class="form-label">Project Key</label>
-                            <input type="text" name="key" class="form-input" placeholder="e.g. PROJ" maxlength="10"
-                                style="text-transform: uppercase;">
+                            <input type="text" name="key" class="form-input" placeholder="e.g. PROJ" maxlength="10" style="text-transform: uppercase;">
                             <p class="form-hint">Unique identifier for issues</p>
                         </div>
                         <div class="form-group">
@@ -372,31 +342,29 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-textarea" rows="2"
-                            placeholder="Brief description of the project"></textarea>
+                        <textarea name="description" class="form-textarea" rows="2" placeholder="Brief description of the project"></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Project Lead</label>
                         <select name="lead_id" class="form-select" id="addProjectLeadSelect">
                             <option value="">Select Lead</option>
-                            <optgroup label="👑 Team Leads & Managers">
+                            <optgroup label=" Team Leads & Managers">
                                 {% for user in users if 'lead' in user.role or 'manager' in user.role or 'director' in
                                 user.role %}
                                 <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
                                 {% endfor %}
                             </optgroup>
-                            <optgroup label="🏗️ Architects & Principals">
+                            <optgroup label=" Architects & Principals">
                                 {% for user in users if 'architect' in user.role or 'principal' in user.role %}
                                 <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
                                 {% endfor %}
                             </optgroup>
-                            <optgroup label="👨‍💻 Senior Engineers">
-                                {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager'
-                                not in user.role %}
+                            <optgroup label="‍ Senior Engineers">
+                                {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager' not in user.role %}
                                 <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
                                 {% endfor %}
                             </optgroup>
-                            <optgroup label="👤 All Other Users">
+                            <optgroup label=" All Other Users">
                                 {% for user in users if 'lead' not in user.role and 'manager' not in user.role and
                                 'director' not in user.role and 'architect' not in user.role and 'principal' not in
                                 user.role and 'senior' not in user.role %}
@@ -407,8 +375,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Assign Teams</label>
-                        <select name="team_ids" class="form-select" multiple size="4"
-                            style="height: auto; min-height: 100px;">
+                        <select name="team_ids" class="form-select" multiple size="4" style="height: auto; min-height: 100px;">
                             {% for team in teams %}
                             <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{
                                 team.team_type|title }}){% endif %}</option>
@@ -428,14 +395,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer"
-                    style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
-                    <button type="button" class="btn btn-secondary" onclick="closeAddProjectModal()"
-                        style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
-                    <button type="submit" class="btn btn-primary"
-                        style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                        <i data-lucide="plus" class="icon-sm"></i>
-                        Create Project
+                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddProjectModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        <i data-lucide="plus" class="icon-sm"></i> Create Project
                     </button>
                 </div>
             </form>
@@ -443,19 +406,15 @@
     </div>
 
     <!-- Edit Project Modal -->
-    <div class="modal-backdrop" id="editProjectModal"
-        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
-        <div class="modal"
-            style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+    <div class="modal-backdrop" id="editProjectModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+        <div class="modal" style="max-width: 560px; width: 100%; max-height: 80vh; background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
             <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;">
                 <h3 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">Edit Project</h3>
-                <button class="modal-close" onclick="closeEditProjectModal()"
-                    style="background: none; border: none; cursor: pointer; padding: 4px;">
+                <button class="modal-close" onclick="closeEditProjectModal()" style="background: none; border: none; cursor: pointer; padding: 4px;">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form method="POST" id="editProjectForm"
-                style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+            <form method="POST" id="editProjectForm" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
                     <div class="form-group">
@@ -468,8 +427,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea name="description" id="editProjectDescription" class="form-textarea"
-                            rows="3"></textarea>
+                        <textarea name="description" id="editProjectDescription" class="form-textarea" rows="3"></textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-group">
@@ -492,8 +450,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Assign Teams</label>
-                        <select name="team_ids" id="editProjectTeamIds" class="form-select" multiple size="4"
-                            style="height: auto; min-height: 100px;">
+                        <select name="team_ids" id="editProjectTeamIds" class="form-select" multiple size="4" style="height: auto; min-height: 100px;">
                             {% for team in teams %}
                             <option value="{{ team.id }}">{{ team.name }} {% if team.team_type %}({{
                                 team.team_type|title }}){% endif %}</option>
@@ -505,24 +462,23 @@
                         <label class="form-label">Project Lead</label>
                         <select name="lead_id" id="editProjectLeadId" class="form-select">
                             <option value="">Select Lead</option>
-                            <optgroup label="👑 Team Leads & Managers">
+                            <optgroup label=" Team Leads & Managers">
                                 {% for user in users if 'lead' in user.role or 'manager' in user.role or 'director' in
                                 user.role %}
                                 <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
                                 {% endfor %}
                             </optgroup>
-                            <optgroup label="🏗️ Architects & Principals">
+                            <optgroup label=" Architects & Principals">
                                 {% for user in users if 'architect' in user.role or 'principal' in user.role %}
                                 <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
                                 {% endfor %}
                             </optgroup>
-                            <optgroup label="👨‍💻 Senior Engineers">
-                                {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager'
-                                not in user.role %}
+                            <optgroup label="‍ Senior Engineers">
+                                {% for user in users if 'senior' in user.role and 'lead' not in user.role and 'manager' not in user.role %}
                                 <option value="{{ user.id }}">{{ user.username }} ({{ user.role|format_role }})</option>
                                 {% endfor %}
                             </optgroup>
-                            <optgroup label="👤 All Other Users">
+                            <optgroup label=" All Other Users">
                                 {% for user in users if 'lead' not in user.role and 'manager' not in user.role and
                                 'director' not in user.role and 'architect' not in user.role and 'principal' not in
                                 user.role and 'senior' not in user.role %}
@@ -542,22 +498,17 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer"
-                    style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
-                    <button type="button" class="btn btn-secondary" onclick="closeEditProjectModal()"
-                        style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
-                    <button type="submit" class="btn btn-primary"
-                        style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                        <i data-lucide="save" class="icon-sm"></i>
-                        Save Changes
+                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white;">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditProjectModal()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        <i data-lucide="save" class="icon-sm"></i> Save Changes
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
-        lucide.createIcons();
+    <script> lucide.createIcons();
 
         function openAddProjectModal() {
             document.getElementById('addProjectModal').style.display = 'flex';

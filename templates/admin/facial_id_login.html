@@ -5,7 +5,7 @@
 {% block content %}
 <div class="admin-container">
   <div class="admin-header">
-    <h1>🔐 Facial ID Verification</h1>
+    <h1> Facial ID Verification</h1>
     <p>Verify your identity using facial recognition</p>
   </div>
 
@@ -54,29 +54,27 @@
                 <!-- Nose guide -->
                 <line x1="200" y1="170" x2="200" y2="210" stroke="#10b981" stroke-width="2" opacity="0.6"/>
                 <!-- Instructions -->
-                <text x="200" y="420" text-anchor="middle" fill="#10b981" font-size="16" font-weight="bold">
-                  Position face in oval
+                <text x="200" y="420" text-anchor="middle" fill="#10b981" font-size="16" font-weight="bold"> Position face in oval
                 </text>
-                <text x="200" y="445" text-anchor="middle" fill="#888" font-size="12">
-                  Face forward, good lighting
+                <text x="200" y="445" text-anchor="middle" fill="#888" font-size="12"> Face forward, good lighting
                 </text>
               </svg>
             </div>
           </div>
           <div id="verificationStatus" class="detection-status" style="display: none;">
-            <span class="status-text">🔍 Detecting face...</span>
+            <span class="status-text"> Detecting face...</span>
           </div>
         </div>
 
         <div class="verification-controls">
           <button type="button" id="startVerificationBtn" class="btn btn-primary">
-            <span class="icon">📷</span> Start Camera
+            <span class="icon"></span> Start Camera
           </button>
           <button type="button" id="stopVerificationBtn" class="btn btn-secondary" style="display: none;">
-            <span class="icon">⏹️</span> Stop Camera
+            <span class="icon"></span> Stop Camera
           </button>
           <button type="button" id="cancelVerificationBtn" class="btn btn-outline" style="display: none;">
-            <span class="icon">✖️</span> Cancel
+            <span class="icon"></span> Cancel
           </button>
         </div>
 
@@ -101,10 +99,10 @@
       <p>Having trouble?</p>
       <div class="button-group">
         <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">
-          <span class="icon">🔑</span> Use Password Login
+          <span class="icon"></span> Use Password Login
         </a>
         <a href="/" class="btn btn-secondary">
-          <span class="icon">🏠</span> Go Home
+          <span class="icon"></span> Go Home
         </a>
       </div>
     </div>
@@ -396,11 +394,11 @@ let capturedDescriptor = null;
 // Load face-api.js models on page load
 async function loadFaceApiModels() {
   try {
-    console.log('📦 Attempting to load face-api models...');
+    console.log(' Attempting to load face-api models...');
     
     // Check if faceapi is available
     if (typeof faceapi === 'undefined') {
-      console.error('❌ face-api.js library not loaded!');
+      console.error(' face-api.js library not loaded!');
       modelsLoaded = false;
       return;
     }
@@ -408,7 +406,7 @@ async function loadFaceApiModels() {
     // Use official CDN path for models
     const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';
     
-    console.log(`📥 Loading models from: ${MODEL_URL}`);
+    console.log(` Loading models from: ${MODEL_URL}`);
     
     // Load all required models in parallel
     await Promise.all([
@@ -418,22 +416,22 @@ async function loadFaceApiModels() {
     ]);
     
     modelsLoaded = true;
-    console.log('✅ All face-api models loaded successfully!');
+    console.log(' All face-api models loaded successfully!');
     
     // Verify models are ready
     if (!faceapi.nets.tinyFaceDetector.isLoaded() || 
         !faceapi.nets.faceLandmark68Net.isLoaded() || 
         !faceapi.nets.faceRecognitionNet.isLoaded()) {
-      console.warn('⚠️ Some models may not be fully ready');
+      console.warn(' Some models may not be fully ready');
     }
   } catch (error) {
-    console.error('❌ Failed to load face-api models:', error);
+    console.error(' Failed to load face-api models:', error);
     console.error('Error details:', error.message, error.stack);
     modelsLoaded = false;
     
     // Show user-friendly error
     if (verificationStatus) {
-      verificationStatus.innerHTML = '<span class="status-text">❌ Failed to load face detection: ' + error.message.substring(0, 40) + '...</span>';
+      verificationStatus.innerHTML = '<span class="status-text"> Failed to load face detection: ' + error.message.substring(0, 40) + '...</span>';
     }
   }
 }
@@ -455,22 +453,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function attachVerificationListeners() {
   if (!startVerificationBtn) {
-    console.error('❌ startVerificationBtn element not found!');
+    console.error(' startVerificationBtn element not found!');
     return;
   }
 
   // Start verification
   startVerificationBtn.addEventListener('click', async () => {
     try {
-      console.log('🎥 Start Camera clicked - Requesting camera access...');
+      console.log(' Start Camera clicked - Requesting camera access...');
       
       // Check if browser supports getUserMedia
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('❌ Your browser does not support camera access. Please use Chrome, Firefox, Safari, or Edge.');
+        alert(' Your browser does not support camera access. Please use Chrome, Firefox, Safari, or Edge.');
         return;
       }
       
-      console.log('⏳ Waiting for camera permission...');
+      console.log(' Waiting for camera permission...');
       verificationStream = await navigator.mediaDevices.getUserMedia({
         video: { 
           facingMode: 'user', 
@@ -480,14 +478,14 @@ function attachVerificationListeners() {
         audio: false
       });
       
-      console.log('✅ Camera stream obtained');
+      console.log(' Camera stream obtained');
       
       // Set video source
       verificationFeed.srcObject = verificationStream;
       
       // Wait for video to load
       verificationFeed.onloadedmetadata = () => {
-        console.log('✅ Video metadata loaded, starting playback');
+        console.log(' Video metadata loaded, starting playback');
         verificationFeed.play().catch(e => console.error('Play error:', e));
       };
       
@@ -496,16 +494,16 @@ function attachVerificationListeners() {
       stopVerificationBtn.style.display = 'inline-block';
       cancelVerificationBtn.style.display = 'inline-block';
       verificationStatus.style.display = 'block';
-      verificationStatus.innerHTML = '<span class="status-text">🔍 Detecting face...</span>';
+      verificationStatus.innerHTML = '<span class="status-text"> Detecting face...</span>';
       
       // Start verification detection after small delay to ensure video is ready
       setTimeout(() => {
         if (modelsLoaded) {
-          console.log('✅ Models loaded, starting detection');
+          console.log(' Models loaded, starting detection');
           startVerificationDetection();
         } else {
-          console.warn('⚠️ Models still loading...');
-          verificationStatus.innerHTML = '<span class="status-text">⏳ Loading models... please wait</span>';
+          console.warn(' Models still loading...');
+          verificationStatus.innerHTML = '<span class="status-text"> Loading models... please wait</span>';
           
           // Poll for model loading
           let waitCount = 0;
@@ -513,18 +511,18 @@ function attachVerificationListeners() {
             waitCount++;
             if (modelsLoaded) {
               clearInterval(waitInterval);
-              console.log('✅ Models now loaded');
+              console.log(' Models now loaded');
               startVerificationDetection();
             } else if (waitCount > 30) {
               clearInterval(waitInterval);
-              console.error('❌ Model loading timeout');
-              verificationStatus.innerHTML = '<span class="status-text">❌ Failed to load face detection models</span>';
+              console.error(' Model loading timeout');
+              verificationStatus.innerHTML = '<span class="status-text"> Failed to load face detection models</span>';
             }
           }, 500);
         }
       }, 500);
     } catch (err) {
-      console.error('❌ Camera error:', err);
+      console.error(' Camera error:', err);
       alert('Unable to access camera:\n\n' + err.message + '\n\nMake sure you:\n1. Allow camera permission\n2. Use HTTPS (not HTTP)\n3. Use a supported browser (Chrome, Firefox, Safari, Edge)');
       
       // Reset UI
@@ -565,12 +563,12 @@ function attachVerificationListeners() {
 // Auto-verify when face detected
 async function startVerificationDetection() {
   if (!modelsLoaded) {
-    console.error('❌ Face models not loaded - cannot start detection');
-    verificationStatus.innerHTML = '<span class="status-text">❌ Face detection models failed to load</span>';
+    console.error(' Face models not loaded - cannot start detection');
+    verificationStatus.innerHTML = '<span class="status-text"> Face detection models failed to load</span>';
     return;
   }
 
-  console.log('🔍 Starting face detection...');
+  console.log(' Starting face detection...');
   verificationActive = true;
   let goodFaceFrames = 0;
   let verificationAttempted = false;
@@ -604,18 +602,18 @@ async function startVerificationDetection() {
           goodFaceFrames++;
           verificationStatus.classList.add('face-detected');
           verificationStatus.classList.remove('no-face');
-          verificationStatus.innerHTML = `<span class="status-text">✅ Face detected (${Math.round(confidence * 100)}%) ${goodFaceFrames}/2</span>`;
+          verificationStatus.innerHTML = `<span class="status-text"> Face detected (${Math.round(confidence * 100)}%) ${goodFaceFrames}/2</span>`;
           
           // AUTO-VERIFY after 2 good frames
           if (goodFaceFrames >= 2 && !verificationAttempted) {
             verificationAttempted = true;
             clearInterval(detectInterval);
             
-            console.log('🔐 Performing facial verification...');
+            console.log(' Performing facial verification...');
             capturedDescriptor = face.descriptor;
             
             verificationActive = false;
-            verificationStatus.innerHTML = '<span class="status-text">✅ Face captured! Matching...</span>';
+            verificationStatus.innerHTML = '<span class="status-text"> Face captured! Matching...</span>';
             
             // Stop camera stream
             if (verificationStream) {
@@ -628,7 +626,7 @@ async function startVerificationDetection() {
             }
             
             // Send for verification
-            console.log('📤 Sending descriptor to server for verification');
+            console.log(' Sending descriptor to server for verification');
             performFacialVerification(face.descriptor);
           }
         } else if (detections.length === 1) {
@@ -636,25 +634,25 @@ async function startVerificationDetection() {
           goodFaceFrames = 0;
           verificationStatus.classList.remove('face-detected');
           verificationStatus.classList.add('no-face');
-          verificationStatus.innerHTML = `<span class="status-text">💡 Need better lighting (${Math.round(confidence * 100)}%)</span>`;
+          verificationStatus.innerHTML = `<span class="status-text"> Need better lighting (${Math.round(confidence * 100)}%)</span>`;
         } else {
           // Multiple faces
           goodFaceFrames = 0;
           verificationStatus.classList.remove('face-detected');
           verificationStatus.classList.add('no-face');
-          verificationStatus.innerHTML = `<span class="status-text">❌ Multiple faces detected (${detections.length}) - show only your face</span>`;
+          verificationStatus.innerHTML = `<span class="status-text"> Multiple faces detected (${detections.length}) - show only your face</span>`;
         }
       } else {
         // No faces detected
         goodFaceFrames = 0;
         verificationStatus.classList.remove('face-detected');
         verificationStatus.classList.add('no-face');
-        verificationStatus.innerHTML = '<span class="status-text">🔍 No face detected - look at camera</span>';
+        verificationStatus.innerHTML = '<span class="status-text"> No face detected - look at camera</span>';
       }
     } catch (error) {
-      console.error('❌ Detection error:', error);
+      console.error(' Detection error:', error);
       verificationStatus.classList.add('no-face');
-      verificationStatus.innerHTML = '<span class="status-text">❌ Detection error: ' + error.message.substring(0, 30) + '</span>';
+      verificationStatus.innerHTML = '<span class="status-text"> Detection error: ' + error.message.substring(0, 30) + '</span>';
     }
   }, 200);
 }
@@ -682,10 +680,10 @@ async function performFacialVerification(descriptor) {
     verificationIndicator.style.display = 'none';
 
     if (result.success) {
-      console.log('✅ Facial verification successful!');
+      console.log(' Facial verification successful!');
       verificationResult.classList.remove('error');
       verificationResult.classList.add('success');
-      verificationMessage.textContent = '✅ Facial verification successful!';
+      verificationMessage.textContent = ' Facial verification successful!';
       matchScore.innerHTML = `<strong>Match Score:</strong> ${(result.confidence * 100).toFixed(1)}%`;
       matchScore.style.display = 'block';
       verificationResult.style.display = 'block';
@@ -695,10 +693,10 @@ async function performFacialVerification(descriptor) {
         window.location.href = '{{ url_for("admin_secure.dashboard") }}';
       }, 2000);
     } else {
-      console.log('❌ Facial verification failed:', result.message);
+      console.log(' Facial verification failed:', result.message);
       verificationResult.classList.remove('success');
       verificationResult.classList.add('error');
-      verificationMessage.textContent = '❌ ' + result.message;
+      verificationMessage.textContent = ' ' + result.message;
       matchScore.style.display = 'none';
       verificationResult.style.display = 'block';
       
@@ -718,7 +716,7 @@ async function performFacialVerification(descriptor) {
     verificationIndicator.style.display = 'none';
     verificationResult.classList.remove('success');
     verificationResult.classList.add('error');
-    verificationMessage.textContent = '❌ Verification error: ' + error.message;
+    verificationMessage.textContent = ' Verification error: ' + error.message;
     verificationResult.style.display = 'block';
     
     // Show retry

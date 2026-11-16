@@ -231,7 +231,7 @@ def init_websocket(app, socketio: Optional[Any] = None) -> Optional[Any]:
                 'room_id': room_id
             }, room=room_id)
     
-    logger.info("✓ WebSocket system initialized")
+    logger.info("WebSocket system initialized")
     return socketio
 
 

@@ -6,7 +6,7 @@
 <div class="admin-container">
   <div class="verify-facial-container">
     <div class="verify-header">
-      <h1>🔐 Verify Your Identity</h1>
+      <h1> Verify Your Identity</h1>
       <p>Use facial recognition to continue</p>
     </div>
 
@@ -23,8 +23,7 @@
               <ellipse cx="150" cy="150" rx="80" ry="100" fill="none" stroke="#0284c7" stroke-width="3"/>
               <circle cx="110" cy="120" r="5" fill="#0284c7"/>
               <circle cx="190" cy="120" r="5" fill="#0284c7"/>
-              <text x="150" y="280" text-anchor="middle" fill="#0284c7" font-size="14" font-weight="bold">
-                Position your face
+              <text x="150" y="280" text-anchor="middle" fill="#0284c7" font-size="14" font-weight="bold"> Position your face
               </text>
             </svg>
           </div>
@@ -47,13 +46,12 @@
         <!-- Controls -->
         <div class="verify-controls">
           <button type="button" id="startVerifyBtn" class="btn btn-primary btn-lg">
-            <span class="icon">📷</span> Start Verification
+            <span class="icon"></span> Start Verification
           </button>
           <button type="button" id="captureVerifyBtn" class="btn btn-success btn-lg" disabled style="display: none;">
-            <span class="icon">📸</span> Capture Face
+            <span class="icon"></span> Capture Face
           </button>
-          <button type="button" id="stopVerifyBtn" class="btn btn-secondary" style="display: none;">
-            Stop Camera
+          <button type="button" id="stopVerifyBtn" class="btn btn-secondary" style="display: none;"> Stop Camera
           </button>
         </div>
 
@@ -73,7 +71,7 @@
       <!-- Info Section -->
       <div class="verify-info">
         <div class="info-card">
-          <h3>💡 Tips for Best Results</h3>
+          <h3> Tips for Best Results</h3>
           <ul>
             <li>Ensure good lighting on your face</li>
             <li>Position camera at eye level</li>
@@ -84,13 +82,13 @@
         </div>
 
         <div class="info-card">
-          <h3>⏱️ Timeout Information</h3>
+          <h3> Timeout Information</h3>
           <p>You have <strong>5 minutes</strong> to complete facial verification before your session expires.</p>
           <p class="text-muted">After successful verification, you remain authenticated for <strong>30 minutes</strong>.</p>
         </div>
 
         <div class="info-card backup-code">
-          <h3>🔑 Having Trouble?</h3>
+          <h3> Having Trouble?</h3>
           <p>If facial ID verification fails, you can:</p>
           <ul>
             <li>Try again with better lighting</li>
@@ -349,7 +347,7 @@
 }
 
 .info-card li:before {
-  content: "✓";
+  content: "";
   position: absolute;
   left: 0;
   color: var(--success);
@@ -401,7 +399,7 @@ startVerifyBtn.addEventListener('click', async () => {
     startVerifyBtn.style.display = 'none';
     captureVerifyBtn.style.display = 'inline-block';
     stopVerifyBtn.style.display = 'inline-block';
-    verificationStatus.textContent = '✅ Camera ready';
+    verificationStatus.textContent = ' Camera ready';
     startConfidenceDetection();
   } catch (err) {
     verificationStatus.classList.add('error');
@@ -479,7 +477,7 @@ function showSuccessResult(data) {
   
   resultContent.className = 'result-content success';
   resultContent.innerHTML = `
-    <h3>✅ Identity Verified!</h3>
+    <h3> Identity Verified!</h3>
     <p>Your face has been successfully recognized.</p>
     <div class="result-confidence">
       <strong>Confidence:</strong> ${confidence}%<br>
@@ -496,7 +494,7 @@ function showErrorResult(data) {
   const resultContent = document.getElementById('resultContent');
   resultContent.className = 'result-content error';
   resultContent.innerHTML = `
-    <h3>❌ Verification Failed</h3>
+    <h3> Verification Failed</h3>
     <p>${data.message}</p>
   `;
   verificationResult.style.display = 'block';
