@@ -10,6 +10,10 @@
 > **High-Performance, Self-Hosted Jira/Linear Alternative Built with Systems-Grade Security Discipline.**  
 > Featuring biometric Facial ID authentication, memory-hard Argon2id hashing, and a cryptographic tamper-evident audit ledger.
 
+<p align="center">
+  <img src="docs/images/gantt_roadmap.png" alt="ProjectFlow Interactive Gantt & Critical Path Engine" width="100%">
+</p>
+
 ---
 
 ## ⚡ Why ProjectFlow?
@@ -124,19 +128,38 @@ user.set_password("SecurePassword123!")
 * Facial encodings and preview frames are encrypted with AES-256 before disk storage.
 * Multi-factor verification (Facial ID + TOTP 2FA via Google Authenticator or YubiKey).
 
+![Biometric Facial ID & Security Login](docs/images/biometric_auth.png)
+
 ---
 
 ## 📊 Project Planning & Intelligence Engine
 
 ProjectFlow includes a high-performance scheduling, timeline, and portfolio intelligence engine:
 
-* **Interactive Gantt & Timeline**: Drag-and-drop task scheduling across Day, Week, Month, and Quarter views with real-time SVG dependency connectors.
-* **Dependency Engine**: Native support for Finish-to-Start (FS), Start-to-Start (SS), and Finish-to-Finish (FF) links with configurable lag days and cycle detection.
-* **Critical Path Method (CPM)**: Forward and backward pass calculation, total/free float analysis, and critical path highlighting.
-* **Working Calendars & Milestones**: Custom work weeks, holiday exception rules, and milestone markers with anti-collision layout.
-* **Schedule Baselines & Variance**: Immutable snapshot history and variance analysis comparing planned versus actual execution.
-* **Resource Capacity Planning**: Contributor workload normalization, weekly allocation heatmaps, and over-capacity warnings.
-* **Portfolio Initiatives**: Cross-project strategic initiatives, multi-project roadmap delivery, and health status tracking.
+### 🗓️ Interactive Roadmap & Gantt Engine
+Drag-and-drop task scheduling across Day, Week, Month, and Quarter views with real-time SVG dependency connectors, milestone markers, and automated Critical Path Method (CPM) calculation.
+
+![ProjectFlow Gantt & Roadmap Engine](docs/images/gantt_roadmap.png)
+
+### 📋 Agile Kanban Board
+High-speed Kanban board with instant drag-and-drop workflow transitions, custom columns, issue filtering, and real-time state synchronization.
+
+![ProjectFlow Kanban Board](docs/images/kanban_board.png)
+
+### 🕸️ Interactive Dependency Graph
+Topological dependency graph visualizer linking issues across projects with cycle prevention, direction indicators, and conflict detection.
+
+![ProjectFlow Dependency Graph](docs/images/dependency_graph.png)
+
+### 👥 Resource Capacity & Utilization Planner
+Contributor workload normalization, weekly allocation heatmaps, and automatic over-capacity warning indicators.
+
+![ProjectFlow Resource Capacity Planner](docs/images/resource_planner.png)
+
+### 🎯 Strategic Portfolio Roadmaps
+Cross-project strategic initiative planning, delivery progress rollups, and multi-team health tracking.
+
+![ProjectFlow Portfolio Roadmap](docs/images/portfolio_roadmap.png)
 
 ---
 
