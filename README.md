@@ -126,31 +126,17 @@ user.set_password("SecurePassword123!")
 
 ---
 
-## 🧪 Testing & Verification
+## 📊 Project Planning & Intelligence Engine
 
-ProjectFlow includes a comprehensive Pytest test suite covering REST APIs, automation workflows, cryptographic integrity, validation, and agile workflows:
+ProjectFlow includes a high-performance scheduling, timeline, and portfolio intelligence engine:
 
-```bash
-# Run test suite
-pytest tests/ -v
-
-# Run with coverage report
-pytest tests/ --cov=app --cov-report=term-missing
-```
-
-```
-tests/test_api_v1.py .............                                      [ 18%]
-tests/test_audit_ledger.py ....                                          [ 24%]
-tests/test_auth.py .........                                             [ 37%]
-tests/test_automation_engine.py .....                                    [ 44%]
-tests/test_health.py .......                                             [ 55%]
-tests/test_kanban_core.py ....                                           [ 60%]
-tests/test_security.py ........                                          [ 72%]
-tests/test_services.py .....                                             [ 79%]
-tests/test_validators.py ..............                                  [100%]
-
-======================= 69 passed, 0 failures =======================
-```
+* **Interactive Gantt & Timeline**: Drag-and-drop task scheduling across Day, Week, Month, and Quarter views with real-time SVG dependency connectors.
+* **Dependency Engine**: Native support for Finish-to-Start (FS), Start-to-Start (SS), and Finish-to-Finish (FF) links with configurable lag days and cycle detection.
+* **Critical Path Method (CPM)**: Forward and backward pass calculation, total/free float analysis, and critical path highlighting.
+* **Working Calendars & Milestones**: Custom work weeks, holiday exception rules, and milestone markers with anti-collision layout.
+* **Schedule Baselines & Variance**: Immutable snapshot history and variance analysis comparing planned versus actual execution.
+* **Resource Capacity Planning**: Contributor workload normalization, weekly allocation heatmaps, and over-capacity warnings.
+* **Portfolio Initiatives**: Cross-project strategic initiatives, multi-project roadmap delivery, and health status tracking.
 
 ---
 
